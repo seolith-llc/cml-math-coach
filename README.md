@@ -35,7 +35,8 @@ npm test
 ```bash
 npm run build && npm run preview
 ```
-**iPad:** see [docs/IPAD.md](docs/IPAD.md). In short: deploy over HTTPS (GitHub Pages workflow included), open in Safari, then Add to Home Screen.
+**Live app:** https://cml-math-coach.seolith.com (Cloudflare Pages, deployed from `main`, see [docs/DEPLOY.md](docs/DEPLOY.md)).
+**iPad:** see [docs/IPAD.md](docs/IPAD.md). In short: open the link in Safari, then Add to Home Screen.
 
 Open the printed URL in Chrome, Edge or Safari, allow the microphone, and install with "Add to Home Screen" / "Install app".
 The microphone needs HTTPS or `localhost`.
@@ -48,6 +49,7 @@ The microphone needs HTTPS or `localhost`.
 | Firefox | ✅ | ❌ behind a flag, so typing is used instead |
 
 ## Docs
+- [Deployment (Cloudflare Pages)](docs/DEPLOY.md)
 - [Using it on an iPad](docs/IPAD.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Coaching guide & 8-week study plan](docs/STUDY-PLAN.md)

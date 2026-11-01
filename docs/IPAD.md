@@ -3,25 +3,9 @@
 The app is a website that can be installed like an app. The iPad needs to reach it over **HTTPS**:
 Safari only allows the microphone and offline mode on secure sites.
 
-## 1. Put it online (one time, free)
-
-**Option A: GitHub Pages (recommended, updates automatically)**
-1. Create an empty repository on GitHub, e.g. `cml-math-coach` (private repos need a paid plan for Pages, so public is simplest. There's no personal data in the code).
-2. Push this project to it:
-   ```bash
-   git remote add origin https://github.com/<you>/cml-math-coach.git
-   ```
-   ```bash
-   git push -u origin main
-   ```
-3. On GitHub, go to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. The workflow in `.github/workflows/deploy-pages.yml` tests, builds and publishes the app. After about 2 minutes it is live at
-   `https://<you>.github.io/cml-math-coach/`.
-
-**Option B: Netlify Drop (no Git needed, 2 minutes)**
-1. Run `npm run build` on your computer.
-2. Open https://app.netlify.com/drop and drag the `dist` folder onto the page.
-3. You get an `https://….netlify.app` link. Repeat the drag to update it.
+## 1. Put it online (one time)
+The app is hosted on **Cloudflare Pages** at **https://cml-math-coach.seolith.com**. Every push to `main` is tested and redeployed
+automatically. One-time setup (API token, two GitHub secrets, custom domain) is in [DEPLOY.md](DEPLOY.md).
 
 ## 2. Open it on the iPad
 1. Open **Safari** and go to the link. Other iPad browsers may not support voice input.

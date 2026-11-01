@@ -51,7 +51,13 @@ Workers AI pricing for current rates).
 
 - Clips are cached at the Cloudflare edge and in the app's service worker, so each sentence is generated only once.
 - Guard rails: 40-voice allow-list, 600-character cap, same-origin check.
-- **Recommended:** add a rate-limiting rule (Security → WAF → Rate limiting rules): path `/api/tts`, e.g. 60 requests per minute per IP, block for 1 minute.
+- **Rate limiting, two layers:**
+  1. *In the function:* each IP may make 40 **new** clips per minute and 1,500 per day at each Cloudflare location. Cached clips are never counted.
+     This covers every hostname, including `*.pages.dev`, which the zone's WAF does not protect. Over the limit, the app returns 429 and the app uses the device voice for a minute.
+  2. *WAF rule on the custom domain:* allows 20 requests per 10 s per IP, then blocks for 10 s (these values work on every plan). Apply or update it with
+     **Actions → Cloudflare rate limit → Run workflow**, which runs `scripts/cloudflare-rate-limit.mjs`. It's idempotent and keeps other rules.
+     The token needs **Zone → Zone WAF → Edit** and **Zone → Zone → Read** for `seolith.com`. Either add those to `CLOUDFLARE_API_TOKEN`,
+     or store a separate token as the `CLOUDFLARE_WAF_TOKEN` secret, which takes precedence. `CLOUDFLARE_ZONE_ID` is optional.
 - If Workers AI is unavailable or the device is offline, the app automatically uses the device voice.
 - Local testing with the function: `npm run build && npx wrangler pages dev dist` (needs `wrangler login`).
 

@@ -33,3 +33,46 @@ describe('/api/tts function', () => {
     }
   });
 });
+
+import { LIMITS, rateLimit } from '../functions/api/tts';
+
+/** Minimal in-memory stand-in for the Workers Cache API. */
+class FakeCache {
+  store = new Map<string, string>();
+  async match(r: Request) {
+    const v = this.store.get(r.url);
+    return v === undefined ? undefined : new Response(v);
+  }
+  async put(r: Request, res: Response) {
+    this.store.set(r.url, await res.text());
+  }
+}
+
+describe('rate limiting', () => {
+  it('allows up to the per-minute limit, then asks to retry', async () => {
+    const c = new FakeCache() as unknown as Cache;
+    const t0 = Date.UTC(2026, 10, 1, 12, 0, 5);
+    for (let i = 0; i < LIMITS[0].max; i++) expect(await rateLimit(c, 'https://x', '1.2.3.4', t0)).toBe(0);
+    expect(await rateLimit(c, 'https://x', '1.2.3.4', t0)).toBe(55);
+    expect(await rateLimit(c, 'https://x', '5.6.7.8', t0)).toBe(0); // other visitors unaffected
+    expect(await rateLimit(c, 'https://x', '1.2.3.4', t0 + 60_000)).toBe(0); // next minute
+  });
+
+  it('returns 429 from the endpoint but still serves cached clips', async () => {
+    const fake = new FakeCache();
+    (globalThis as unknown as { caches: unknown }).caches = { default: fake };
+    try {
+      const e = { AI: { run: vi.fn(async () => new Uint8Array([1, 2, 3])) } };
+      const mk = (t: string) => new Request(`https://cml-math-coach.seolith.com/api/tts?v=luna&t=${t}`, { headers: { 'sec-fetch-site': 'same-origin', 'cf-connecting-ip': '9.9.9.9' } });
+      let last = 200;
+      for (let i = 0; i <= LIMITS[0].max; i++) last = (await onRequestGet({ request: mk('word' + i), env: e })).status;
+      expect(last).toBe(429);
+      expect(e.AI.run).toHaveBeenCalledTimes(LIMITS[0].max);
+      const again = await onRequestGet({ request: mk('word0'), env: e }); // cached -> not limited
+      expect(again.status).toBe(200);
+      expect(e.AI.run).toHaveBeenCalledTimes(LIMITS[0].max);
+    } finally {
+      delete (globalThis as unknown as { caches?: unknown }).caches;
+    }
+  });
+});

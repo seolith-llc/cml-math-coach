@@ -27,8 +27,41 @@ export const SPEAKERS = [
   'orion', 'orpheus', 'pandora', 'phoebe', 'pluto', 'saturn', 'thalia', 'theia', 'vesta', 'zeus'
 ];
 
-const err = (status: number, message: string) =>
-  new Response(JSON.stringify({ error: message }), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+/**
+ * Per-IP limits on NEW generations (cache hits are free and never counted).
+ * Counters live in the edge cache of the Cloudflare location serving the visitor, so the limit is
+ * per location. That is enough to stop a script from running up the Workers AI bill on any hostname,
+ * including *.pages.dev, which the zone's WAF rules don't cover.
+ */
+export const LIMITS = [
+  { window: 60, max: 40 }, // a busy practice session is ~10-20 new clips a minute
+  { window: 86_400, max: 1_500 }
+];
+
+const err = (status: number, message: string, extra: Record<string, string> = {}) =>
+  new Response(JSON.stringify({ error: message }), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...extra } });
+
+/** Returns seconds to wait if the IP is over a limit, otherwise counts this request and returns 0. */
+export async function rateLimit(edge: Cache, origin: string, ip: string, now = Date.now()): Promise<number> {
+  const keys = LIMITS.map(({ window }) => {
+    const bucket = Math.floor(now / 1000 / window);
+    return new Request(`${origin}/__ratelimit/tts/${window}/${bucket}/${encodeURIComponent(ip)}`);
+  });
+  const counts = await Promise.all(keys.map(async (k) => {
+    const hit = await edge.match(k);
+    return hit ? Number(await hit.text()) || 0 : 0;
+  }));
+  for (let i = 0; i < LIMITS.length; i++) {
+    if (counts[i] >= LIMITS[i].max) {
+      const w = LIMITS[i].window;
+      return Math.max(1, Math.ceil(w - ((now / 1000) % w)));
+    }
+  }
+  await Promise.all(keys.map((k, i) =>
+    edge.put(k, new Response(String(counts[i] + 1), { headers: { 'cache-control': `public, max-age=${LIMITS[i].window}` } }))
+  ));
+  return 0;
+}
 
 function fromBase64(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -74,6 +107,12 @@ export async function onRequestGet(ctx: Ctx): Promise<Response> {
   const edge = typeof caches !== 'undefined' ? (caches as unknown as { default: Cache }).default : undefined;
   const hit = await edge?.match(cacheKey);
   if (hit) return hit;
+
+  if (edge) {
+    const ip = request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown';
+    const wait = await rateLimit(edge, url.origin, ip);
+    if (wait) return err(429, 'Too many voice requests - using the device voice for now', { 'retry-after': String(wait) });
+  }
 
   let audio: ArrayBuffer | Uint8Array;
   try {

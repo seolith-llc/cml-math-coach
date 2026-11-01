@@ -1,0 +1,38 @@
+# Applies (or updates) the WAF rate-limiting rule for /api/tts on the custom domain.
+# Run manually: Actions -> "Cloudflare rate limit" -> Run workflow.
+# The token needs: Zone -> Zone WAF -> Edit and Zone -> Zone -> Read (seolith.com).
+# Optional secret CLOUDFLARE_ZONE_ID skips the zone lookup.
+name: Cloudflare rate limit
+
+on:
+  workflow_dispatch:
+    inputs:
+      requests:
+        description: Requests allowed per period, per IP
+        default: '20'
+      period:
+        description: Period in seconds (Free plan only supports 10)
+        default: '10'
+      timeout:
+        description: Block duration in seconds (Free plan only supports 10)
+        default: '10'
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Upsert rate-limit rule
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WAF_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          RL_REQUESTS: ${{ inputs.requests }}
+          RL_PERIOD: ${{ inputs.period }}
+          RL_TIMEOUT: ${{ inputs.timeout }}
+        run: node scripts/cloudflare-rate-limit.mjs

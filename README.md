@@ -13,7 +13,8 @@ recognises common mistakes and talks through worked solutions.
 |---|---|
 | 🎯 Smart practice | Adaptive mix. Weak or unseen topics come up more often. Difficulty (Warm-up → Contest → Challenge) follows mastery. |
 | ⏱ Mock meet | 6 questions in 30 minutes. Difficulty rises through the paper, there's no feedback until you hand in, then you get per-question explanations. |
-| 📚 Learn | 37 topics (33 for Grade 2 and 37 for Grade 3), each with an idea, tips, traps, a strategy and a step-by-step worked example. |
+| 📚 Learn | 39 topics (35 for Grade 2 and 39 for Grade 3), each with an idea, tips, traps, a strategy and a step-by-step worked example. |
+| 🧩 Puzzles | Palindromes (spot, complete with given digits, next palindrome) and digit-placement "magic sum" boards (plus shape, triangle, corner square). Tap a circle and then a digit, or say the digits in order. Any valid arrangement counts. |
 | 🔁 Review | Missed problems go into a Leitner spaced-repetition queue and are re-asked as the *same* problem later. |
 | 🧭 Toolkit | Pólya's 4 problem-solving steps, 10 strategies and contest-day tips, all read aloud. |
 | 📈 Progress | Mastery per topic, accuracy, day streak, meet history and "next goals". |
@@ -34,6 +35,8 @@ npm test
 ```bash
 npm run build && npm run preview
 ```
+**iPad:** see [docs/IPAD.md](docs/IPAD.md). In short: deploy over HTTPS (GitHub Pages workflow included), open in Safari, then Add to Home Screen.
+
 Open the printed URL in Chrome, Edge or Safari, allow the microphone, and install with "Add to Home Screen" / "Install app".
 The microphone needs HTTPS or `localhost`.
 
@@ -41,10 +44,11 @@ The microphone needs HTTPS or `localhost`.
 | Browser | Read aloud | Voice answers |
 |---|---|---|
 | Chrome / Edge (desktop & Android) | ✅ | ✅ (Google's service, needs network) |
-| Safari macOS 14.1+ / iOS 14.5+ | ✅ | ✅ |
+| Safari macOS 14.1+ / iPadOS & iOS 14.5+ | ✅ | ✅ in a Safari tab, ❌ from a Home Screen icon (WebKit limitation) |
 | Firefox | ✅ | ❌ behind a flag, so typing is used instead |
 
 ## Docs
+- [Using it on an iPad](docs/IPAD.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Coaching guide & 8-week study plan](docs/STUDY-PLAN.md)
 - [Research notes](docs/RESEARCH.md)

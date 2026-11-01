@@ -17,7 +17,23 @@ export type AnswerSpec =
   /** One of a fixed list of names / words. */
   | { kind: 'word'; value: string; options: string[] }
   /** Unordered set of numbers ("8 and 3"). */
-  | { kind: 'set'; values: number[] };
+  | { kind: 'set'; values: number[] }
+  /** A string of digits read left to right, e.g. a palindrome "6897986". Spaces/commas ignored. */
+  | { kind: 'digits'; value: string }
+  /**
+   * Put each digit in a slot so every line has the same sum. Any valid arrangement is accepted.
+   * Answers are written as one digit per slot, in slot order (A, B, C, …).
+   */
+  | {
+      kind: 'placement';
+      digits: number[];
+      lines: number[][];
+      target: number;
+      /** Slots whose digit is given in the figure. */
+      fixed?: Record<number, number>;
+      /** One valid arrangement (shown in solutions). */
+      solution: number[];
+    };
 
 /** A likely wrong answer and the coaching message that explains the mix-up. */
 export interface Misconception {

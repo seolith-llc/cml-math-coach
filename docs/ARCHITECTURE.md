@@ -8,7 +8,7 @@ Angular/React/Ionic later without changes. The UI layer is the only part that wo
 ```
 src/
   core/            pure domain logic (unit-tested)
-    types.ts       Problem, Topic, AnswerSpec (number | money | time | day | choice | word | set)
+    types.ts       Problem, Topic, AnswerSpec (number | money | time | day | choice | word | set | digits | placement)
     rng.ts         seeded PRNG (mulberry32). Problems are reproducible from their id
     numberWords.ts spoken/typed text → numbers ("one hundred and five", "31,400", "2nd")
     answer.ts      answer normalisation, checking and diagnosis of known misconceptions
@@ -16,12 +16,13 @@ src/
     mastery.ts     adaptive topic and level selection (EWMA mastery, staleness bonus)
     storage.ts     localStorage persistence, Leitner review boxes, streaks, meet history
   content/
-    generators/*.ts  37 topic generators (number, word, money, time, logic, counting, puzzles)
+    generators/*.ts  39 topic generators (number, word, money, time, logic, counting, puzzles, placement)
     topics.ts        registry, makeProblem(), problemFromId(), makeMeet()
     strategies.ts    Pólya's 4 steps, strategy glossary, contest tips
   voice/
     speech.ts        TTS: sentence chunking, maths-to-speech ("−" → "minus", "$1.25" → "1 dollar and 25 cents")
     recognition.ts   STT: up to 5 alternatives, interim results, voice-command parser
+  ui/placementBoard.ts  tap-a-circle, tap-a-digit board for magic-sum puzzles (touch + keyboard)
   ui/              hash router + views (home, practice, review, meet, learn, toolkit, progress, settings)
 ```
 

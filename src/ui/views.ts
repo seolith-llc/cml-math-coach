@@ -3,7 +3,7 @@ import { dayStreak, dueReviews, load, reset, save } from '../core/storage';
 import { statFor, weakestTopics } from '../core/mastery';
 import { TOPICS, makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
-import { configureSpeech, listVoices, speak, stopSpeaking, ttsSupported, voicesReady } from '../voice/speech';
+import { configureSpeech, isAppleMobile, isStandalone, listVoices, speak, stopSpeaking, ttsSupported, voicesReady } from '../voice/speech';
 import { sttSupported, COMMAND_HELP } from '../voice/recognition';
 import { h, rich, svg, toast } from './dom';
 import type { View } from './app';
@@ -49,7 +49,11 @@ export function homeView(): View {
         tile('#/toolkit', '🧭', 'Problem-solving toolkit', 'The 4 steps and 10 strategies'),
         tile('#/progress', '📈', 'My progress', 'See your strengths and your next goals')
       ),
-      !sttSupported() ? h('p', { class: 'note' }, 'Tip: voice answers work in Chrome, Edge and Safari. In this browser the coach can still read aloud, and you can type your answers.') : null
+      !sttSupported()
+        ? h('p', { class: 'note' }, isAppleMobile() && isStandalone()
+          ? 'On iPad, voice answers only work when Math Coach is opened in Safari, not from the Home Screen icon. Reading aloud and typing work everywhere.'
+          : 'Tip: voice answers work in Chrome, Edge and Safari. In this browser the coach can still read aloud, and you can type your answers.')
+        : null
     )
   };
 }

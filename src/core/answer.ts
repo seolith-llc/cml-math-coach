@@ -164,6 +164,16 @@ export function checkAnswer(spec: AnswerSpec, rawInput: string): CheckResult {
       if (!w) return { correct: false, understood: false };
       return { correct: w === spec.value, understood: true };
     }
+    case 'digits': {
+      const d = parseDigits(input);
+      if (!d) return { correct: false, understood: false };
+      return { correct: d === spec.value, understood: true };
+    }
+    case 'placement': {
+      const arr = parsePlacement(input, spec.solution.length);
+      if (!arr) return { correct: false, understood: false };
+      return { correct: placementProblems(spec, arr).length === 0, understood: true };
+    }
     case 'set': {
       const nums = parseNumbers(input);
       if (!nums.length) return { correct: false, understood: false };
@@ -174,8 +184,61 @@ export function checkAnswer(spec: AnswerSpec, rawInput: string): CheckResult {
   }
 }
 
+/** "6,8 9 7, 9 8 6", "6897986" or "six eight nine seven…" -> "6897986". */
+export function parseDigits(input: string): string | undefined {
+  const compact = input.replace(/[\s,.\-]/g, '');
+  if (/^\d+$/.test(compact)) return compact;
+  const nums = parseNumbers(input);
+  if (!nums.length || nums.some((n) => !Number.isInteger(n) || n < 0)) return undefined;
+  return nums.map(String).join('');
+}
+
+/** One digit per slot, in slot order. "_" or "?" marks an empty slot. */
+export function parsePlacement(input: string, slots: number): number[] | undefined {
+  const compact = input.replace(/[A-Za-z]\s*[=:]/g, ' ').replace(/[\s,]/g, '');
+  let digits: string[];
+  if (/^[\d_?]+$/.test(compact)) digits = compact.split('');
+  else {
+    const d = parseDigits(input);
+    if (!d) return undefined;
+    digits = d.split('');
+  }
+  void slots; // a wrong length is reported by placementProblems()
+  return digits.length ? digits.map((x) => (/\d/.test(x) ? +x : NaN)) : undefined;
+}
+
+export const slotName = (i: number) => String.fromCharCode(65 + i);
+
+/** Human-readable reasons an arrangement is wrong (empty list = correct). */
+export function placementProblems(spec: Extract<AnswerSpec, { kind: 'placement' }>, arr: number[]): string[] {
+  const out: string[] = [];
+  const n = spec.solution.length;
+  if (arr.length !== n || arr.some((x) => Number.isNaN(x))) return [`Fill all ${n} spaces, one digit in each.`];
+  for (const [slot, d] of Object.entries(spec.fixed ?? {})) {
+    if (arr[+slot] !== d) out.push(`Space ${slotName(+slot)} must stay ${d}.`);
+  }
+  const want = [...spec.digits].sort((a, b) => a - b).join(',');
+  const got = [...arr].sort((a, b) => a - b).join(',');
+  if (want !== got) out.push(`Use each of the digits ${spec.digits.join(', ')} exactly once.`);
+  spec.lines.forEach((line) => {
+    const sum = line.reduce((s, i) => s + arr[i], 0);
+    if (sum !== spec.target) out.push(`The line ${line.map(slotName).join('-')} adds to ${sum}, not ${spec.target}.`);
+  });
+  return out;
+}
+
 /** Returns the coaching message for a recognised wrong answer, if any. */
 export function diagnose(problem: Problem, rawInput: string): string | undefined {
+  if (problem.answer.kind === 'placement') {
+    const arr = parsePlacement(rawInput, problem.answer.solution.length);
+    const issues = arr ? placementProblems(problem.answer, arr) : [];
+    if (issues.length) return issues.slice(0, 2).join(' ');
+  }
+  if (problem.answer.kind === 'digits') {
+    const d = parseDigits(rawInput);
+    if (d && d.length !== problem.answer.value.length) return `The palindrome needs exactly ${problem.answer.value.length} digits. You gave ${d.length}.`;
+    if (d && d !== d.split('').reverse().join('')) return `Read ${d} backwards: ${d.split('').reverse().join('')}. It is not the same, so it is not a palindrome yet.`;
+  }
   for (const m of problem.misconceptions ?? []) {
     if (checkAnswer(m.answer, rawInput).correct) return m.feedback;
   }
@@ -208,6 +271,10 @@ export function formatAnswer(spec: AnswerSpec): string {
       return `(${spec.value}) ${spec.options[spec.value.charCodeAt(0) - 97]}`;
     case 'set':
       return spec.values.join(' and ');
+    case 'digits':
+      return spec.value;
+    case 'placement':
+      return spec.solution.map((d, i) => `${slotName(i)}=${d}`).join(', ');
   }
 }
 
@@ -226,6 +293,10 @@ export function answerPlaceholder(spec: AnswerSpec): string {
       return spec.options.join(' / ');
     case 'set':
       return 'e.g. 3 and 8';
+    case 'digits':
+      return 'all the digits, e.g. 12321';
+    case 'placement':
+      return 'tap a circle, then a digit';
     default:
       return 'your answer';
   }

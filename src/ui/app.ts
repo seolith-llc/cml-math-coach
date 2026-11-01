@@ -1,5 +1,5 @@
 import { load } from '../core/storage';
-import { configureSpeech, stopSpeaking } from '../voice/speech';
+import { configureSpeech, stopSpeaking, unlockSpeechOnFirstGesture } from '../voice/speech';
 import { stopListening } from '../voice/recognition';
 import { h } from './dom';
 import { homeView, learnView, progressView, settingsView, toolkitView, topicView } from './views';
@@ -29,6 +29,7 @@ function route(hash: string): View {
 export function startApp(root: HTMLElement): void {
   const s = load().settings;
   configureSpeech({ rate: s.rate, voiceURI: s.voiceURI });
+  unlockSpeechOnFirstGesture();
   let current: View | undefined;
   const titleEl = h('h1', { class: 'page-title' });
   const back = h('a', { class: 'icon-btn', href: '#/', 'aria-label': 'Home' }, '🏠');

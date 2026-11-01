@@ -7,6 +7,8 @@ import { topicById } from '../content/topics';
 import { configureSpeech, speak, stopSpeaking } from '../voice/speech';
 import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported } from '../voice/recognition';
 import { h, rich, svg } from './dom';
+import { placementBoard } from './placementBoard';
+import { parseDigits } from '../core/answer';
 
 export interface CardResult {
   correct: boolean;
@@ -44,14 +46,16 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     placeholder: answerPlaceholder(problem.answer),
     'aria-label': 'Your answer',
     autocomplete: 'off',
-    onkeydown: (e: KeyboardEvent) => e.key === 'Enter' && submit([input.value])
+    onkeydown: (e: KeyboardEvent) => e.key === 'Enter' && submit([currentAnswer()])
   });
+  const board = problem.answer.kind === 'placement' && problem.figure ? placementBoard(problem.figure, problem.answer) : undefined;
+  const currentAnswer = () => (board ? board.value() : input.value);
   const heard = h('div', { class: 'heard', 'aria-live': 'polite' });
   const feedback = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
   const solution = h('ol', { class: 'solution', hidden: true });
   const hintsBox = h('ul', { class: 'hints' });
   const micBtn = h('button', { class: 'mic', type: 'button', title: 'Answer by voice', 'aria-label': 'Answer by voice', onclick: () => (listening ? stopListening() : startListening()) }, '🎤');
-  const checkBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => submit([input.value]) }, 'Check');
+  const checkBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => submit([currentAnswer()]) }, 'Check');
   const nextBtn = h('button', { class: 'btn primary big', type: 'button', hidden: true, onclick: () => opts.onNext() }, opts.nextLabel ?? 'Next problem →');
 
   const say = (text: string) => (destroyed ? Promise.resolve() : speak(text, { rate: settings.rate, voiceURI: settings.voiceURI }));
@@ -89,6 +93,7 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     if (finished) return;
     finished = true;
     input.disabled = true;
+    board?.disable();
     checkBtn.disabled = true;
     nextBtn.hidden = false;
     opts.onDone(r);
@@ -183,7 +188,7 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     }
     setFeedback(fb.verdict === 'unclear' ? 'info' : 'bad', (fb.verdict === 'wrong' ? '✘ ' : '') + fb.message);
     if (fb.verdict === 'wrong' && !fb.reveal) {
-      input.select();
+      if (!board) input.select();
       hintsBox.replaceChildren(...problem.hints.slice(0, coach.hintsUsed).map((x) => h('li', {}, '💡 ', x)));
     }
     if (fb.reveal) {
@@ -234,6 +239,12 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     }
     const cmd = parseCommand(alts[0]);
     if (cmd) return handleCommand(cmd);
+    if (board) {
+      const digits = alts.map((a) => parseDigits(a)).find(Boolean);
+      if (!digits) return submit(alts);
+      board.fill(digits);
+      return submit([board.value()]);
+    }
     input.value = alts[0];
     submit(alts);
   }
@@ -262,8 +273,8 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
       h('span', { class: 'chip ghost', title: 'Suggested strategy' }, '🧭 ', topic.strategy)
     ),
     h('p', { class: 'question' }, rich(problem.text)),
-    problem.figure ? svg(problem.figure) : null,
-    h('div', { class: 'answer-row' }, input, checkBtn, sttSupported() ? micBtn : null),
+    board ? board.el : problem.figure ? svg(problem.figure) : null,
+    h('div', { class: 'answer-row' }, board ? null : input, checkBtn, sttSupported() ? micBtn : null),
     heard,
     feedback,
     hintsBox,

@@ -12,8 +12,9 @@
   palindromes and magic arrangements.
 - Grade 3 papers reuse several Grade 2 ideas with larger numbers and one more step. The app mirrors this with
   grade-specific number ranges and three difficulty levels.
-- Not yet covered: palindrome completion and digit-placement grids (answers are drawn layouts), and the family
-  brothers/sisters puzzle. These are candidates for a future "special answer" input type.
+- Palindromes and digit-placement puzzles were added in step002 with two new answer types: `digits` and `placement`.
+  Placement accepts **any** valid arrangement, as the CML solutions do ("other possible arrangements").
+  Not yet covered: the brothers/sisters family puzzle.
 
 ## Pedagogy
 - **Pólya's 4 steps** (Understand, Plan, Solve, Look back) and a fixed set of named strategies give children a shared language.
@@ -27,7 +28,13 @@
   Firefox has it behind a flag. Chrome has started shipping on-device recognition (`processLocally`), which isn't used yet.
 - Chrome may cut off long utterances, so the app speaks sentence by sentence. Recognition needs a secure context (HTTPS or localhost).
 
+## iPad / iOS notes
+- Speech recognition works in Safari tabs but is not exposed to Home Screen web apps (WebKit bug 225298).
+- iOS needs a user gesture before the first speech synthesis, so the app unlocks it on the first tap.
+
 ## Sources
+- https://bugs.webkit.org/show_bug.cgi?id=225298
+- https://developer.apple.com/forums/thread/748048
 - https://www.mersnj.us/Page/6014 (school overview of CML)
 - https://news.harker.org/grade-3-students-win-math-league-regional-award/
 - https://www.assemblyai.com/blog/speech-recognition-javascript-web-speech-api

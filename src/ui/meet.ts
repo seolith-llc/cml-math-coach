@@ -6,6 +6,8 @@ import { CONTEST_TIPS } from '../content/strategies';
 import { speak, stopSpeaking } from '../voice/speech';
 import { listen, stopListening, sttSupported } from '../voice/recognition';
 import { h, rich, svg } from './dom';
+import { placementBoard } from './placementBoard';
+import { parseDigits } from '../core/answer';
 import type { View } from './app';
 
 const MINUTES = 30;
@@ -51,6 +53,8 @@ export function meetView(): View {
 
   function question(p: Problem, i: number, answers: string[][]) {
     const input = h('input', { class: 'answer-input', placeholder: answerPlaceholder(p.answer), 'aria-label': `Answer to question ${i + 1}`, oninput: () => (answers[i] = [input.value]) });
+    const board = p.answer.kind === 'placement' && p.figure ? placementBoard(p.figure, p.answer) : undefined;
+    if (board) board.onChange = () => (answers[i] = [board.value()]);
     const heard = h('span', { class: 'heard' });
     const mic = h('button', {
       class: 'mic small', type: 'button', 'aria-label': 'Answer by voice',
@@ -59,7 +63,11 @@ export function meetView(): View {
         stopSpeaking();
         const r = await listen((t) => (heard.textContent = t));
         mic.classList.remove('on');
-        if (r.alternatives.length) {
+        if (r.alternatives.length && board) {
+          const d = r.alternatives.map((a) => parseDigits(a)).find(Boolean);
+          if (d) board.fill(d);
+          heard.textContent = d ? '' : 'Say the digits for circles A, B, C… in order.';
+        } else if (r.alternatives.length) {
           input.value = r.alternatives[0];
           answers[i] = r.alternatives;
           heard.textContent = '';
@@ -69,15 +77,15 @@ export function meetView(): View {
     return h('article', { class: 'card problem meet-q' },
       h('div', { class: 'qnum' }, `${i + 1}`),
       h('p', { class: 'question' }, rich(p.text)),
-      p.figure ? svg(p.figure) : null,
-      h('div', { class: 'answer-row' }, input,
+      board ? board.el : p.figure ? svg(p.figure) : null,
+      h('div', { class: 'answer-row' }, board ? null : input,
         h('button', { class: 'btn ghost', type: 'button', onclick: () => speak(p.speech ?? p.text) }, '🔊'),
         sttSupported() ? mic : null),
       heard);
   }
 
   function confirmFinish(problems: Problem[], answers: string[][], started: number) {
-    const blank = answers.filter((a) => !a.join('').trim()).length;
+    const blank = answers.filter((a) => !/[0-9a-z]/i.test(a.join(''))).length;
     if (blank && !confirm(`You left ${blank} question${blank > 1 ? 's' : ''} blank. Hand in anyway?`)) return;
     finish(problems, answers, started);
   }

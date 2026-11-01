@@ -8,6 +8,7 @@ import * as time from './generators/time';
 import * as logic from './generators/logic';
 import * as counting from './generators/counting';
 import * as puzzles from './generators/puzzles';
+import * as placement from './generators/placement';
 
 export const TOPICS: Topic[] = [
   number.missingNumber,
@@ -46,7 +47,9 @@ export const TOPICS: Topic[] = [
   puzzles.customOp,
   puzzles.shapeEquations,
   puzzles.packages,
-  puzzles.balance
+  puzzles.balance,
+  placement.palindromes,
+  placement.digitPlacement
 ];
 
 export const topicById = (id: string) => TOPICS.find((t) => t.id === id);

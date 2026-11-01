@@ -168,3 +168,19 @@ a { color: var(--primary); }
 }
 [hidden] { display: none !important; }
 main:focus, main:focus-visible { outline: none; }
+
+/* placement puzzles */
+.placement-wrap { display: flex; flex-direction: column; align-items: center; margin: 4px 0 10px; }
+.placement .slot { cursor: pointer; outline: none; }
+.placement .slot.fixed { cursor: default; }
+.placement .slot.fixed circle { fill: var(--info-bg); }
+.placement .slot.selected circle, .placement .slot:focus-visible circle { stroke: var(--primary); stroke-width: 5; fill: var(--info-bg); }
+.palette { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }
+.digit-btn {
+  width: 54px; height: 54px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); color: var(--text);
+  font: inherit; font-size: 1.5rem; font-weight: 800; cursor: pointer; touch-action: manipulation;
+}
+.digit-btn.used { opacity: 0.4; }
+.digit-btn.clear { font-size: 1.2rem; }
+.digit-btn:disabled { cursor: default; }
+button, a, .slot { -webkit-tap-highlight-color: transparent; }

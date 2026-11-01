@@ -88,6 +88,31 @@ export function prepareForSpeech(text: string): string {
     .trim();
 }
 
+/**
+ * iPad/iPhone Safari only allows speech after a user gesture. Speaking a silent utterance
+ * on the first tap "unlocks" it, so later automatic read-aloud works.
+ */
+export function unlockSpeechOnFirstGesture(): void {
+  if (!ttsSupported()) return;
+  const unlock = () => {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    window.removeEventListener('pointerdown', unlock, true);
+    window.removeEventListener('keydown', unlock, true);
+  };
+  window.addEventListener('pointerdown', unlock, true);
+  window.addEventListener('keydown', unlock, true);
+}
+
+/** True for iPad/iPhone, including iPadOS which reports itself as a Mac. */
+export const isAppleMobile = (): boolean =>
+  typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+export const isStandalone = (): boolean =>
+  typeof window !== 'undefined' &&
+  ((navigator as Navigator & { standalone?: boolean }).standalone === true || matchMedia('(display-mode: standalone)').matches);
+
 export function stopSpeaking(): void {
   token++;
   if (ttsSupported()) speechSynthesis.cancel();

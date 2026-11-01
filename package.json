@@ -1,0 +1,22 @@
+{
+  "name": "cml-math-coach",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-first PWA to practice Continental Math League (CML) style problems for Grades 2 and 3.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prompts:consolidate": "node scripts/consolidate-prompts.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^6.4.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^3.2.7"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.log
+.DS_Store
+# Source contest papers are copyrighted - keep them out of the repo
+samples/

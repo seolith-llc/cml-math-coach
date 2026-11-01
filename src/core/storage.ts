@@ -35,6 +35,9 @@ export interface Settings {
   handsFree: boolean;
   /** Say feedback out loud. */
   speakFeedback: boolean;
+  /** 'premium' = natural cloud voice (falls back to the device voice when offline). */
+  voiceEngine: 'premium' | 'device';
+  premiumVoice: string;
 }
 
 export interface AppState {
@@ -50,7 +53,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, autoRead: true, handsFree: false, speakFeedback: true },
+  settings: { name: '', grade: 2, rate: 0.95, autoRead: true, handsFree: false, speakFeedback: true, voiceEngine: 'premium', premiumVoice: 'luna' },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

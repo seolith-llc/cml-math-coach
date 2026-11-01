@@ -22,6 +22,7 @@ src/
   voice/
     speech.ts        TTS: sentence chunking, maths-to-speech ("−" → "minus", "$1.25" → "1 dollar and 25 cents")
     recognition.ts   STT: up to 5 alternatives, interim results, voice-command parser
+functions/api/tts.ts  Cloudflare Pages Function: Workers AI (Aura-2) text-to-speech with edge caching
   ui/placementBoard.ts  tap-a-circle, tap-a-digit board for magic-sum puzzles (touch + keyboard)
   ui/              hash router + views (home, practice, review, meet, learn, toolkit, progress, settings)
 ```

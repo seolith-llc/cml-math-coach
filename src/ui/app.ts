@@ -28,7 +28,7 @@ function route(hash: string): View {
 
 export function startApp(root: HTMLElement): void {
   const s = load().settings;
-  configureSpeech({ rate: s.rate, voiceURI: s.voiceURI });
+  configureSpeech({ rate: s.rate, voiceURI: s.voiceURI, engine: s.voiceEngine, premiumVoice: s.premiumVoice });
   unlockSpeechOnFirstGesture();
   let current: View | undefined;
   const titleEl = h('h1', { class: 'page-title' });

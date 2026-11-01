@@ -18,6 +18,7 @@ recognises common mistakes and talks through worked solutions.
 | 🔁 Review | Missed problems go into a Leitner spaced-repetition queue and are re-asked as the *same* problem later. |
 | 🧭 Toolkit | Pólya's 4 problem-solving steps, 10 strategies and contest-day tips, all read aloud. |
 | 📈 Progress | Mastery per topic, accuracy, day streak, meet history and "next goals". |
+| ✨ Premium voice | Natural neural voice (Deepgram Aura-2 on Cloudflare Workers AI, served by a Pages Function at `/api/tts`, cached at the edge and offline). There are 12 voices to choose from, and it falls back to the device voice automatically. |
 | 🎤 Voice | Text-to-speech for everything. Speech recognition for answers ("forty two", "$1.25", "four oh two P M", "Monday", "Mrs. Chen") and commands (*repeat, hint, explain, skip, next, slower, faster, stop*). Hands-free mode chains read → listen → feedback → next. |
 | 🧑‍🏫 Mistake coaching | Each generator lists likely wrong answers with a targeted explanation (e.g. "You counted the small triangles only"). After 2 tries the coach reads the worked solution step by step. |
 | 📴 Offline | Service worker precaches the app. Recognition may still need the network in Chrome. |

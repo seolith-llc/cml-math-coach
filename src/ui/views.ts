@@ -3,7 +3,7 @@ import { dayStreak, dueReviews, load, reset, save } from '../core/storage';
 import { statFor, weakestTopics } from '../core/mastery';
 import { TOPICS, makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
-import { configureSpeech, isAppleMobile, isStandalone, listVoices, speak, stopSpeaking, ttsSupported, voicesReady } from '../voice/speech';
+import { PREMIUM_VOICES, configureSpeech, isAppleMobile, isStandalone, listVoices, speak, stopSpeaking, ttsSupported, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported, COMMAND_HELP } from '../voice/recognition';
 import { h, rich, svg, toast } from './dom';
 import type { View } from './app';
@@ -173,11 +173,32 @@ function stat(label: string, value: string | number) {
 export function settingsView(): View {
   const state = load();
   const s = state.settings;
-  const voiceSel = h('select', { 'aria-label': 'Voice', onchange: () => { s.voiceURI = voiceSel.value || undefined; save(state); configureSpeech({ voiceURI: s.voiceURI }); speak('This is my new voice.'); } },
-    h('option', { value: '' }, 'Automatic'));
+  const sample = 'Hi! I am your math coach. Let\'s solve some fun problems together.';
+  const voiceSel = h('select', { 'aria-label': 'Device voice', onchange: () => { s.voiceURI = voiceSel.value || undefined; save(state); configureSpeech({ voiceURI: s.voiceURI }); speak(sample, { engine: 'device', voiceURI: s.voiceURI }); } },
+    h('option', { value: '' }, 'Automatic (best available)'));
   voicesReady().then(() => {
-    for (const v of listVoices()) voiceSel.append(h('option', { value: v.voiceURI, selected: v.voiceURI === s.voiceURI }, `${v.name} (${v.lang})`));
+    for (const v of listVoices()) {
+      const q = voiceQuality(v);
+      voiceSel.append(h('option', { value: v.voiceURI, selected: v.voiceURI === s.voiceURI }, `${q >= 3 ? '★ ' : ''}${v.name} (${v.lang})`));
+    }
   });
+  const premiumSel = h('select', { 'aria-label': 'Premium voice', onchange: () => { s.premiumVoice = premiumSel.value; save(state); configureSpeech({ premiumVoice: s.premiumVoice }); speak(sample, { engine: 'premium', premiumVoice: s.premiumVoice }); } },
+    ...PREMIUM_VOICES.map((v) => h('option', { value: v, selected: v === s.premiumVoice }, v[0].toUpperCase() + v.slice(1))));
+  const engineRadio = (value: 'premium' | 'device', label: string, sub: string) => {
+    const r = h('input', { type: 'radio', name: 'engine', value, checked: s.voiceEngine === value, onchange: () => {
+      s.voiceEngine = value; save(state); configureSpeech({ engine: value }); updateEngine(); speak(sample);
+    } });
+    return h('label', { class: 'check' }, r, ' ', h('span', {}, h('strong', {}, label), h('br'), h('small', { class: 'muted' }, sub)));
+  };
+  const premiumRow = h('label', {}, 'Premium voice', h('div', { class: 'row tight' }, premiumSel, h('button', { class: 'btn ghost', type: 'button', onclick: () => speak(sample, { engine: 'premium', premiumVoice: premiumSel.value }) }, '▶ Preview')));
+  const deviceRow = h('label', {}, 'Device voice', h('div', { class: 'row tight' }, voiceSel, h('button', { class: 'btn ghost', type: 'button', onclick: () => speak(sample, { engine: 'device', voiceURI: voiceSel.value || undefined }) }, '▶ Preview')),
+    h('small', { class: 'muted' }, isAppleMobile()
+      ? 'Tip: on iPad, download a better voice in Settings → Accessibility → Spoken Content → Voices → English (choose an "Enhanced" or "Premium" voice), then reopen this page. ★ marks the natural-sounding voices.'
+      : '★ marks the natural-sounding voices installed on this device.'));
+  function updateEngine() {
+    premiumRow.hidden = s.voiceEngine !== 'premium';
+  }
+  updateEngine();
   const rate = h('input', { type: 'range', min: '0.6', max: '1.4', step: '0.05', value: String(s.rate), oninput: () => { s.rate = +rate.value; configureSpeech({ rate: s.rate }); save(state); }, onchange: () => speak('This is how fast I talk.') });
   const check = (key: 'autoRead' | 'handsFree' | 'speakFeedback', label: string, disabled = false) => {
     const box = h('input', { type: 'checkbox', checked: s[key], disabled, onchange: () => { s[key] = box.checked; save(state); } });
@@ -191,14 +212,18 @@ export function settingsView(): View {
         h('label', {}, 'Name', name),
         h('label', {}, 'Grade', h('select', { onchange: (e: Event) => { s.grade = +(e.target as HTMLSelectElement).value as Grade; save(state); } },
           h('option', { value: '2', selected: s.grade === 2 }, 'Grade 2'), h('option', { value: '3', selected: s.grade === 3 }, 'Grade 3'))),
-        ttsSupported() ? h('label', {}, 'Voice', voiceSel) : h('p', { class: 'note' }, 'Read-aloud is not supported in this browser.'),
+        h('fieldset', { class: 'engine' }, h('legend', {}, 'Coach voice'),
+          engineRadio('premium', '✨ Premium natural voice', 'Sounds like a real person. Needs internet; switches to the device voice automatically when offline.'),
+          engineRadio('device', '📱 Device voice', 'Built into this device. Works offline.')),
+        premiumRow,
+        ttsSupported() ? deviceRow : null,
         h('label', {}, 'Talking speed', rate),
         check('autoRead', 'Read each question out loud automatically', !ttsSupported()),
         check('speakFeedback', 'Say feedback and solutions out loud', !ttsSupported()),
         check('handsFree', 'Hands-free voice mode (listen for answers automatically)', !sttSupported())),
       h('div', { class: 'card' },
         h('h2', {}, 'Privacy'),
-        h('p', { class: 'muted' }, 'Progress is saved only on this device. Voice recognition is handled by your browser, and some browsers (like Chrome) send the audio to their speech service.'),
+        h('p', { class: 'muted' }, 'Progress is saved only on this device. The premium voice sends the text being read (questions, hints, solutions) to Cloudflare Workers AI to make the audio. Nothing about your child is sent. Voice answers are handled by your browser, and some browsers (like Chrome and Safari) send the audio to their speech service.'),
         h('button', { class: 'btn danger', onclick: () => { if (confirm('Erase all progress on this device?')) { reset(); toast('Progress erased'); location.hash = '#/'; } } }, 'Reset progress'))
     )
   };

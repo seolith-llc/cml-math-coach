@@ -184,3 +184,9 @@ main:focus, main:focus-visible { outline: none; }
 .digit-btn.clear { font-size: 1.2rem; }
 .digit-btn:disabled { cursor: default; }
 button, a, .slot { -webkit-tap-highlight-color: transparent; }
+.row.tight { margin: 0; flex-wrap: nowrap; }
+.row.tight select { flex: 1; min-width: 0; }
+fieldset.engine { border: 1.5px solid var(--border); border-radius: 12px; padding: 6px 14px; margin: 12px 0; }
+fieldset.engine legend { font-weight: 700; padding: 0 6px; }
+fieldset.engine label.check { align-items: flex-start; gap: 8px; }
+fieldset.engine input { margin-top: 6px; }

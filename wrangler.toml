@@ -1,0 +1,8 @@
+# Cloudflare Pages project configuration (used by `wrangler pages deploy` in CI).
+name = "cml-math-coach"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-09-01"
+
+# Workers AI powers the premium (natural) voice at /api/tts.
+[ai]
+binding = "AI"

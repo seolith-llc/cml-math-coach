@@ -43,5 +43,17 @@ Cloudflare dashboard → **Workers & Pages → cml-math-coach → Custom domains
 The earlier GitHub Pages workflow has been removed. If you enabled Pages in repository settings, you can
 disable it (Settings → Pages → Source: None).
 
+## Premium voice (Workers AI)
+The coach's natural voice comes from the Pages Function [`functions/api/tts.ts`](../functions/api/tts.ts), which calls
+**Workers AI → `@cf/deepgram/aura-2-en`** through the `AI` binding declared in [`wrangler.toml`](../wrangler.toml).
+There are no extra API keys. Usage is billed to the Cloudflare account under Workers AI (it has a daily free allocation, so check
+Workers AI pricing for current rates).
+
+- Clips are cached at the Cloudflare edge and in the app's service worker, so each sentence is generated only once.
+- Guard rails: 40-voice allow-list, 600-character cap, same-origin check.
+- **Recommended:** add a rate-limiting rule (Security → WAF → Rate limiting rules): path `/api/tts`, e.g. 60 requests per minute per IP, block for 1 minute.
+- If Workers AI is unavailable or the device is offline, the app automatically uses the device voice.
+- Local testing with the function: `npm run build && npx wrangler pages dev dist` (needs `wrangler login`).
+
 ## Rollback
 Workers & Pages → cml-math-coach → **Deployments** → choose an earlier deployment → **Rollback**.

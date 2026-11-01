@@ -23,7 +23,22 @@ export default defineConfig({
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' }
         ]
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'] }
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        navigateFallbackDenylist: [/^\/api\//],
+        runtimeCaching: [
+          {
+            // Premium voice clips: replay instantly and offline once heard.
+            urlPattern: ({ url }) => url.pathname.endsWith('/api/tts'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'coach-voice',
+              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 60 },
+              cacheableResponse: { statuses: [200] }
+            }
+          }
+        ]
+      }
     })
   ],
   test: { environment: 'node', include: ['tests/**/*.test.ts'] }

@@ -3,24 +3,47 @@
  * - Splits long text into sentences (Chrome stops long utterances after ~15 s).
  * - Resolves when finished so the caller can chain "speak, then listen".
  */
+export type VoiceEngine = 'premium' | 'device';
+
 export interface SpeakOptions {
   rate?: number;
   pitch?: number;
   voiceURI?: string;
+  /** 'premium' = natural neural voice from /api/tts (needs internet); 'device' = the browser's built-in voice. */
+  engine?: VoiceEngine;
+  /** Aura speaker name for the premium engine. */
+  premiumVoice?: string;
 }
+
+/** A short, kid-friendly selection of the Aura-2 voices (all 40 work). */
+export const PREMIUM_VOICES = ['luna', 'thalia', 'asteria', 'athena', 'helena', 'aurora', 'iris', 'apollo', 'orion', 'arcas', 'hermes', 'atlas'];
 
 export const ttsSupported = (): boolean => typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-let defaults: SpeakOptions = { rate: 0.95, pitch: 1.05 };
+let defaults: SpeakOptions = { rate: 0.95, pitch: 1.05, engine: 'premium', premiumVoice: 'luna' };
 let token = 0;
 
 export function configureSpeech(opts: SpeakOptions): void {
   defaults = { ...defaults, ...opts };
 }
 
+/** Higher = more natural. Downloaded Enhanced/Premium (Apple) and Natural/Neural (Microsoft) voices rank first. */
+export function voiceQuality(v: SpeechSynthesisVoice): number {
+  const n = `${v.name} ${v.voiceURI}`;
+  if (/premium/i.test(n)) return 5;
+  if (/natural|neural/i.test(n)) return 4;
+  if (/enhanced|siri/i.test(n)) return 3;
+  if (/google/i.test(n)) return 2;
+  if (/compact|eloquence|novelty|bad news|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox|albert|fred|junior|ralph|kathy/i.test(n)) return 0;
+  return 1;
+}
+
 export function listVoices(): SpeechSynthesisVoice[] {
   if (!ttsSupported()) return [];
-  return speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('en'));
+  return speechSynthesis
+    .getVoices()
+    .filter((v) => v.lang.toLowerCase().startsWith('en'))
+    .sort((a, b) => voiceQuality(b) - voiceQuality(a) || Number(b.lang === 'en-US') - Number(a.lang === 'en-US'));
 }
 
 /** Voices load asynchronously in some browsers. */
@@ -35,7 +58,7 @@ export function voicesReady(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
-const PREFERRED = [/natural/i, /samantha/i, /google us english/i, /aria/i, /jenny/i, /karen/i, /daniel/i, /en-us/i];
+const PREFERRED = [/premium/i, /enhanced/i, /natural/i, /neural/i, /samantha/i, /google us english/i, /aria/i, /jenny/i, /karen/i, /daniel/i, /en-us/i];
 
 function pickVoice(uri?: string): SpeechSynthesisVoice | undefined {
   const voices = listVoices();
@@ -48,6 +71,17 @@ function pickVoice(uri?: string): SpeechSynthesisVoice | undefined {
     if (v) return v;
   }
   return voices[0];
+}
+
+/** Bigger pieces for the cloud voice (fewer requests, smoother flow), split at sentence ends. */
+function cloudChunks(text: string, max = 280): string[] {
+  const out: string[] = [];
+  for (const sentence of chunks(text)) {
+    const last = out[out.length - 1];
+    if (last && last.length + sentence.length + 1 <= max) out[out.length - 1] = `${last} ${sentence}`;
+    else out.push(sentence.slice(0, 590));
+  }
+  return out;
 }
 
 function chunks(text: string): string[] {
@@ -93,11 +127,17 @@ export function prepareForSpeech(text: string): string {
  * on the first tap "unlocks" it, so later automatic read-aloud works.
  */
 export function unlockSpeechOnFirstGesture(): void {
-  if (!ttsSupported()) return;
+  if (typeof window === 'undefined') return;
   const unlock = () => {
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    speechSynthesis.speak(u);
+    if (ttsSupported()) {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    }
+    // iOS also needs one gesture-initiated play() before audio elements may play on their own.
+    const a = player();
+    a.src = SILENT_WAV;
+    a.play().catch(() => {});
     window.removeEventListener('pointerdown', unlock, true);
     window.removeEventListener('keydown', unlock, true);
   };
@@ -116,15 +156,101 @@ export const isStandalone = (): boolean =>
 export function stopSpeaking(): void {
   token++;
   if (ttsSupported()) speechSynthesis.cancel();
+  if (audioEl) {
+    audioEl.pause();
+    audioEl.onended = audioEl.onerror = null;
+  }
 }
 
-export function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
-  if (!ttsSupported() || !text) return Promise.resolve();
+/* ---------------- premium (cloud) voice ---------------- */
+
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let audioEl: HTMLAudioElement | undefined;
+const audioCache = new Map<string, Promise<string>>();
+let premiumDownUntil = 0;
+
+function player(): HTMLAudioElement {
+  if (!audioEl) {
+    audioEl = new Audio();
+    audioEl.preload = 'auto';
+    audioEl.setAttribute('playsinline', '');
+  }
+  return audioEl;
+}
+
+/** Fetch (and remember) one chunk of premium speech as an object URL. */
+function fetchAudio(text: string, voice: string): Promise<string> {
+  const key = `${voice}|${text}`;
+  const hit = audioCache.get(key);
+  if (hit) return hit;
+  const p = fetch(`./api/tts?v=${encodeURIComponent(voice)}&t=${encodeURIComponent(text)}`).then(async (r) => {
+    if (!r.ok || !(r.headers.get('content-type') ?? '').startsWith('audio/')) throw new Error(`tts ${r.status}`);
+    return URL.createObjectURL(await r.blob());
+  });
+  p.catch(() => audioCache.delete(key));
+  audioCache.set(key, p);
+  if (audioCache.size > 150) {
+    const oldest = audioCache.keys().next().value as string;
+    audioCache.get(oldest)?.then((u) => URL.revokeObjectURL(u)).catch(() => {});
+    audioCache.delete(oldest);
+  }
+  return p;
+}
+
+function playUrl(url: string, rate: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const a = player();
+    a.onended = () => resolve(true);
+    a.onerror = () => resolve(false);
+    a.src = url;
+    a.playbackRate = rate;
+    a.play().catch(() => resolve(false));
+  });
+}
+
+export const premiumAvailable = (): boolean =>
+  typeof window !== 'undefined' && typeof Audio !== 'undefined' && navigator.onLine !== false && Date.now() > premiumDownUntil;
+
+/** Speak with the premium voice; returns false if it could not start (caller falls back to the device voice). */
+async function speakPremium(parts: string[], o: SpeakOptions, my: number): Promise<boolean> {
+  const voice = o.premiumVoice ?? 'luna';
+  const rate = o.rate ?? 1;
+  const pending: (Promise<string> | undefined)[] = parts.map((t, i) => (i < 2 ? fetchAudio(t, voice) : undefined));
+  for (let i = 0; i < parts.length; i++) {
+    if (my !== token) return true;
+    if (i + 2 < parts.length) pending[i + 2] = fetchAudio(parts[i + 2], voice);
+    let url: string;
+    try {
+      url = await (pending[i] ?? fetchAudio(parts[i], voice));
+    } catch {
+      premiumDownUntil = Date.now() + 60_000; // back off: use the device voice for a minute
+      if (i === 0) return false;
+      await speakDevice(parts.slice(i), o, my);
+      return true;
+    }
+    if (my !== token) return true;
+    const ok = await playUrl(url, rate);
+    if (!ok && i === 0) return false;
+  }
+  return true;
+}
+
+export async function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
+  if (!text) return;
   stopSpeaking();
   const my = token;
   const o = { ...defaults, ...opts };
+  const prepared = prepareForSpeech(text);
+  if (o.engine === 'premium' && premiumAvailable()) {
+    if (await speakPremium(cloudChunks(prepared), o, my)) return;
+    if (my !== token) return;
+  }
+  await speakDevice(chunks(prepared), o, my);
+}
+
+function speakDevice(parts: string[], o: SpeakOptions, my: number): Promise<void> {
+  if (!ttsSupported()) return Promise.resolve();
   const voice = pickVoice(o.voiceURI);
-  const parts = chunks(prepareForSpeech(text));
   return new Promise((resolve) => {
     const next = (i: number) => {
       if (my !== token || i >= parts.length) return resolve();

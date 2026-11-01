@@ -24,10 +24,12 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+          # Holds a WAF-capable token, so skip dependency caching (setup-node's guidance for privileged jobs).
+          package-manager-cache: false
       - name: Upsert rate-limit rule
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WAF_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}

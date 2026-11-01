@@ -16,7 +16,7 @@ src/
     mastery.ts     adaptive topic and level selection (EWMA mastery, staleness bonus)
     storage.ts     localStorage persistence, Leitner review boxes, streaks, meet history
   content/
-    generators/*.ts  39 topic generators (number, word, money, time, logic, counting, puzzles, placement)
+    generators/*.ts  40 topic generators (number, word, money, time, logic, family, counting, puzzles, placement)
     topics.ts        registry, makeProblem(), problemFromId(), makeMeet()
     strategies.ts    Pólya's 4 steps, strategy glossary, contest tips
   voice/

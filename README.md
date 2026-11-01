@@ -13,8 +13,9 @@ recognises common mistakes and talks through worked solutions.
 |---|---|
 | 🎯 Smart practice | Adaptive mix. Weak or unseen topics come up more often. Difficulty (Warm-up → Contest → Challenge) follows mastery. |
 | ⏱ Mock meet | 6 questions in 30 minutes. Difficulty rises through the paper, there's no feedback until you hand in, then you get per-question explanations. |
-| 📚 Learn | 39 topics (35 for Grade 2 and 39 for Grade 3), each with an idea, tips, traps, a strategy and a step-by-step worked example. |
+| 📚 Learn | 40 topics (36 for Grade 2 and 40 for Grade 3), each with an idea, tips, traps, a strategy and a step-by-step worked example. |
 | 🧩 Puzzles | Palindromes (spot, complete with given digits, next palindrome) and digit-placement "magic sum" boards (plus shape, triangle, corner square). Tap a circle and then a digit, or say the digits in order. Any valid arrangement counts. |
+| 👨‍👩‍👧‍👦 Family puzzles | Brothers & sisters logic ("Jill has as many sisters as brothers…"). Warm-up counting from one child's point of view, then direct-count + relation clues, then the classic two-relation puzzle (Grade 3). Each puzzle has exactly one solution, and the coach catches the "counted yourself" mistake. |
 | 🔁 Review | Missed problems go into a Leitner spaced-repetition queue and are re-asked as the *same* problem later. |
 | 🧭 Toolkit | Pólya's 4 problem-solving steps, 10 strategies and contest-day tips, all read aloud. |
 | 📈 Progress | Mastery per topic, accuracy, day streak, meet history and "next goals". |

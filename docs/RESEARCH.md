@@ -14,7 +14,8 @@
   grade-specific number ranges and three difficulty levels.
 - Palindromes and digit-placement puzzles were added in step002 with two new answer types: `digits` and `placement`.
   Placement accepts **any** valid arrangement, as the CML solutions do ("other possible arrangements").
-  Not yet covered: the brothers/sisters family puzzle.
+  The brothers/sisters family puzzle was added in step010. Two "as many / more than" clues only fix *girls − boys*, so Grade 2
+  pairs one direct count with one relation, and Grade 3 adds "twice / three times" clues, which make two-relation puzzles solvable.
 
 ## Pedagogy
 - **Pólya's 4 steps** (Understand, Plan, Solve, Look back) and a fixed set of named strategies give children a shared language.

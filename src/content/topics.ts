@@ -9,6 +9,7 @@ import * as logic from './generators/logic';
 import * as counting from './generators/counting';
 import * as puzzles from './generators/puzzles';
 import * as placement from './generators/placement';
+import * as family from './generators/family';
 
 export const TOPICS: Topic[] = [
   number.missingNumber,
@@ -39,6 +40,7 @@ export const TOPICS: Topic[] = [
   time.segments,
   logic.orderingLogic,
   logic.matchingLogic,
+  family.familyPuzzle,
   counting.countTriangles,
   counting.countRectangles,
   counting.venn,

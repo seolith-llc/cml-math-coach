@@ -74,6 +74,24 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=${{ env.PROJECT_NAME }} --branch=${{ github.head_ref || github.ref_name }} --commit-hash=${{ github.sha }} --commit-dirty=true
 
+      - name: Smoke test the deployed APIs
+        if: steps.secrets.outputs.ok == 'true'
+        env:
+          URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          set -u
+          sleep 10
+          # Parent dashboard: an unknown family must give 401 (D1 bound). 503 means the DB binding is missing.
+          code=$(curl -s -o /tmp/parent.json -w '%{http_code}' -X POST "$URL/api/parent" \
+            -H 'content-type: application/json' -H 'sec-fetch-site: same-origin' \
+            -d '{"familyId":"smoke-test-not-a-real-family-id","pin":"0000"}')
+          echo "parent API: HTTP $code $(cat /tmp/parent.json)"
+          if [ "$code" = "401" ]; then echo "✔ Parent dashboard storage (D1) is bound"; else echo "::warning::Parent dashboard API returned $code"; fi
+          # Premium voice: a short phrase (edge-cached after the first run) must return audio.
+          tts=$(curl -s -o /tmp/tts.bin -w '%{http_code} %{content_type}' "$URL/api/tts?v=luna&t=Ready" -H 'sec-fetch-site: same-origin')
+          echo "tts API: $tts, $(wc -c < /tmp/tts.bin) bytes"
+          case "$tts" in "200 audio/"*) echo "✔ Premium voice (Workers AI) works" ;; *) echo "::warning::Premium voice returned $tts" ;; esac
+
       - name: Summary
         if: steps.secrets.outputs.ok == 'true'
         run: echo "Deployed to ${{ steps.deploy.outputs.deployment-url }}" >> "$GITHUB_STEP_SUMMARY"

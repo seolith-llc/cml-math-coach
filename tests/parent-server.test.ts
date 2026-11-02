@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { LIMITS, deleteFamily, readDashboard, sync, type DB, type Stmt } from '../server/parent';
 import { onRequestPost as syncRoute } from '../functions/api/sync';
 import { onRequestPost as parentRoute } from '../functions/api/parent';
 
 /** D1-compatible adapter over node:sqlite, running the real migration. */
-function makeDb(): DB {
+export function makeDb(): DB {
   const sqlite = new DatabaseSync(':memory:');
-  sqlite.exec(readFileSync('migrations/0001_parent_dashboard.sql', 'utf8'));
+  for (const f of readdirSync('migrations').filter((x) => x.endsWith('.sql')).sort()) sqlite.exec(readFileSync(`migrations/${f}`, 'utf8'));
   const stmt = (sql: string, params: unknown[] = []): Stmt => ({
     bind: (...v) => stmt(sql, v),
     first: async <T>() => (sqlite.prepare(sql).get(...(params as never[])) as T) ?? null,

@@ -6,3 +6,7 @@ compatibility_date = "2025-09-01"
 # Workers AI powers the premium (natural) voice at /api/tts.
 [ai]
 binding = "AI"
+
+[vars]
+# Public site URL used in email links (confirmation, unsubscribe, "Open Math Coach").
+APP_URL = "https://cml-math-coach.seolith.com"

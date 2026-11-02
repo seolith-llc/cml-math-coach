@@ -23,6 +23,8 @@ src/
     speech.ts        TTS: sentence chunking, maths-to-speech ("−" → "minus", "$1.25" → "1 dollar and 25 cents")
     recognition.ts   STT: up to 5 alternatives, interim results, voice-command parser
 functions/api/sync.ts, parent.ts  Parent dashboard API (thin wrappers around server/parent.ts → Cloudflare D1)
+server/email.ts, digest.ts, ses.ts  weekly email: opt-in/confirm/unsubscribe, batch sender, email content, SES v2 + SigV4
+functions/api/weekly.ts, functions/api/email/*  weekly batch (bearer secret), confirm and unsubscribe pages
 server/parent.ts  sync / read / delete logic, PIN hashing + lockout (unit-tested on SQLite)
 migrations/  D1 schema
 src/sync/sync.ts  offline-first sync of the attempt log (debounced, batched, beacon on hide)

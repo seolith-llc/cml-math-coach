@@ -76,7 +76,77 @@ function download(name: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function render(familyId: string, data: DashboardData, root: HTMLElement, reload: () => void) {
+type EmailState = { address: string; verified: boolean } | null;
+
+async function parentAction(familyId: string, pin: string, action: string, extra: Record<string, unknown> = {}) {
+  const res = await fetch('./api/parent', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ familyId, pin, action, ...extra })
+  });
+  const body = (await res.json().catch(() => ({}))) as { error?: string; email?: string | null };
+  if (!res.ok) throw new Error(body.error ?? `Error ${res.status}`);
+  return body;
+}
+
+/** "Weekly email" card: add, confirm, test or stop the Sunday-evening progress email. */
+function emailCard(familyId: string, pin: string, initial: EmailState): HTMLElement {
+  const card = h('div', { class: 'card' });
+  let state = initial;
+  const draw = (note?: { kind: 'good' | 'bad' | 'info'; text: string }) => {
+    const msg = note ? h('p', { class: `feedback ${note.kind}`, role: 'status' }, note.text) : null;
+    const busy = (btn: HTMLButtonElement, fn: () => Promise<void>) => async () => {
+      btn.disabled = true;
+      try {
+        await fn();
+      } catch (e) {
+        draw({ kind: 'bad', text: (e as Error).message });
+      } finally {
+        btn.disabled = false;
+      }
+    };
+    if (!state) {
+      const input = h('input', { type: 'email', autocomplete: 'email', placeholder: 'you@example.com', 'aria-label': 'Your email address' });
+      const btn = h('button', { class: 'btn primary', type: 'button' }, 'Send confirmation');
+      btn.onclick = busy(btn, async () => {
+        const r = await parentAction(familyId, pin, 'email-set', { email: input.value });
+        state = { address: String(r.email), verified: false };
+        draw({ kind: 'info', text: `We sent a confirmation link to ${r.email}. Open it to start the weekly emails.` });
+      });
+      card.replaceChildren(
+        h('h2', {}, '📧 Weekly email'),
+        h('p', { class: 'muted' }, 'Get a short summary every Sunday evening (US Central): the week in numbers, topics that need help, mistakes worth going over together, and ideas for next week.'),
+        h('div', { class: 'link-box' }, input, btn),
+        msg ?? '');
+      return;
+    }
+    const test = h('button', { class: 'btn', type: 'button', disabled: !state.verified }, '✉️ Send a test now');
+    test.onclick = busy(test, async () => {
+      await parentAction(familyId, pin, 'email-test');
+      draw({ kind: 'good', text: `Test email sent to ${state!.address}. Check your inbox (and spam folder).` });
+    });
+    const resend = h('button', { class: 'btn ghost', type: 'button' }, 'Resend confirmation');
+    resend.onclick = busy(resend, async () => {
+      await parentAction(familyId, pin, 'email-set', { email: state!.address });
+      draw({ kind: 'info', text: 'Confirmation sent again.' });
+    });
+    const stop = h('button', { class: 'btn ghost', type: 'button' }, 'Stop emails');
+    stop.onclick = busy(stop, async () => {
+      await parentAction(familyId, pin, 'email-stop');
+      state = null;
+      draw({ kind: 'info', text: 'Weekly emails stopped.' });
+    });
+    card.replaceChildren(
+      h('h2', {}, '📧 Weekly email'),
+      h('p', {}, state.verified ? '✅ ' : '⏳ ', h('strong', {}, state.address), state.verified ? ' gets an update every Sunday evening.' : ' is waiting for confirmation. Open the link we emailed you.'),
+      h('div', { class: 'row' }, state.verified ? test : resend, stop),
+      msg ?? '');
+  };
+  draw();
+  return card;
+}
+
+function render(familyId: string, pin: string, data: DashboardData & { email?: EmailState }, root: HTMLElement, reload: () => void) {
   const s = summarize(data);
   const name = data.child.name || 'Your child';
   const possessive = data.child.name ? `${data.child.name}'s` : "Your child's";
@@ -128,6 +198,8 @@ function render(familyId: string, data: DashboardData, root: HTMLElement, reload
             h('p', { class: 'small' }, s.untried.map((t) => t.title).join(' · ')))
         : null),
 
+    emailCard(familyId, pin, data.email ?? null),
+
     h('div', { class: 'card' },
       h('h2', {}, 'Mock meets'),
       s.meets.length ? meetChart(s.meets) : h('p', { class: 'muted' }, 'No mock meets yet. A meet is 6 questions in 30 minutes, just like contest day.')),
@@ -169,7 +241,7 @@ export function parentView(familyId: string): View {
     try {
       const data = await fetchData(pin);
       setPin(familyId, pin);
-      render(familyId, data, root, () => open(pin));
+      render(familyId, pin, data, root, () => open(pin));
     } catch (e) {
       setPin(familyId, null);
       askPin((e as Error).message);

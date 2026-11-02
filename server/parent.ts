@@ -72,8 +72,15 @@ const int = (v: unknown, lo: number, hi: number, dflt = 0) => {
   return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
 };
 
-interface FamilyRow {
+export interface FamilyRow {
   key: string;
+  email?: string | null;
+  email_verified?: number;
+  email_token?: string | null;
+  email_token_expires?: number | null;
+  unsub_token?: string | null;
+  email_last_week?: string | null;
+  email_quota?: string | null;
   pin_salt: string;
   pin_hash: string;
   child_name: string | null;
@@ -142,7 +149,7 @@ export async function sync(db: DB, body: Record<string, unknown>, now = Date.now
 }
 
 /** Checks the PIN with lockout. Returns the family row. */
-async function authorize(db: DB, body: Record<string, unknown>, now: number): Promise<FamilyRow> {
+export async function authorize(db: DB, body: Record<string, unknown>, now: number): Promise<FamilyRow> {
   const { familyId, pin } = body;
   // Same message for unknown family and wrong PIN, so nothing can be learned by guessing ids.
   if (!validFamilyId(familyId) || !validPin(pin)) throw new HttpError(401, 'Wrong link or PIN');
@@ -168,6 +175,11 @@ async function authorize(db: DB, body: Record<string, unknown>, now: number): Pr
 /** POST /api/parent: read the dashboard data. */
 export async function readDashboard(db: DB, body: Record<string, unknown>, now = Date.now()) {
   const row = await authorize(db, body, now);
+  return { ...(await loadData(db, row, now)), email: row.email ? { address: row.email, verified: !!row.email_verified } : null };
+}
+
+/** Dashboard data for one family (shared by the dashboard and the weekly email). */
+export async function loadData(db: DB, row: FamilyRow, now = Date.now()) {
   const since = now - LIMITS.readDays * 86_400_000;
   const { results } = await db
     .prepare(

@@ -9,6 +9,11 @@
  */
 import { appendFileSync, readFileSync, readdirSync } from 'node:fs';
 
+/** Splits a migration into statements (comments removed). */
+export function splitSql(text) {
+  return text.replace(/--.*$/gm, '').split(';').map((s) => s.trim()).filter(Boolean);
+}
+
 const API = 'https://api.cloudflare.com/client/v4';
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -44,14 +49,22 @@ try {
   }
   const id = db.uuid || db.id;
 
-  // Apply every migration file in order. Each statement is idempotent.
+  // Apply each migration file once, in order, recording it in _migrations.
+  const q = async (sql, params) => (await cf('POST', `/accounts/${account}/d1/database/${id}/query`, { sql, params }))?.[0]?.results ?? [];
+  await q('CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at INTEGER NOT NULL)');
+  const done = new Set((await q('SELECT name FROM _migrations')).map((r) => r.name));
   for (const file of readdirSync('migrations').filter((f) => f.endsWith('.sql')).sort()) {
-    const statements = readFileSync(`migrations/${file}`, 'utf8')
-      .replace(/--.*$/gm, '')
-      .split(';')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    for (const sql of statements) await cf('POST', `/accounts/${account}/d1/database/${id}/query`, { sql });
+    if (done.has(file)) continue;
+    const statements = splitSql(readFileSync(`migrations/${file}`, 'utf8'));
+    for (const sql of statements) {
+      try {
+        await q(sql);
+      } catch (e) {
+        // A column that already exists means a previous run got this far: carry on.
+        if (!/duplicate column/i.test(e.message)) throw e;
+      }
+    }
+    await q('INSERT INTO _migrations (name, applied_at) VALUES (?, ?)', [file, Date.now()]);
     console.log(`Applied ${file} (${statements.length} statements)`);
   }
 

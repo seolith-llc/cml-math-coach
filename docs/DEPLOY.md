@@ -72,5 +72,32 @@ The dashboard data lives in a Cloudflare **D1** database named `cml-math-coach`.
 - Security: only `sha256(familyId)` and a PBKDF2 hash of the PIN are stored. After 5 wrong PINs the family is locked for 15 minutes. Requests must be same-origin.
 - Privacy: stored data is the child's first name, grade, topic results, answers given, time spent and mock meet scores. "Turn off and delete online data" in Settings erases it.
 
+## Weekly progress email (Amazon SES)
+How it works: the scheduled workflow [`weekly-email.yml`](../.github/workflows/weekly-email.yml) calls `POST /api/weekly`
+with `Authorization: Bearer <CRON_SECRET>` at both Sunday-evening UTC slots. The function sends only inside
+**Sunday 5 pm – Monday 6 am America/Chicago**, at most once per family per week, and skips families with no practice for 4+ weeks.
+Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../server/ses.ts) (no SDK).
+
+**One-time setup**
+1. **SES:** in the AWS console (choose a region, e.g. us-east-1) → Amazon SES → *Identities* → **Create identity → Domain** `seolith.com`.
+   Add the DKIM CNAME records it shows to Cloudflare DNS. Optionally set a custom MAIL FROM domain for better deliverability.
+2. **Production access:** new SES accounts are in the *sandbox* and can only send to verified addresses.
+   Request production access (SES → Account dashboard), or verify your own email address while testing.
+3. **IAM user** with only this permission, then create an access key:
+   ```json
+   { "Version": "2012-10-17", "Statement": [{ "Effect": "Allow", "Action": "ses:SendEmail", "Resource": "*" }] }
+   ```
+4. **GitHub → Settings → Secrets and variables → Actions**
+   - Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CRON_SECRET` (a random string of at least 16 characters; generate one with
+     `openssl rand -base64 32`)
+   - Variables (optional): `AWS_REGION` (default `us-east-1`), `MAIL_FROM` (default `CML Math Coach <coach@seolith.com>`), `MAIL_REPLY_TO`
+5. Re-run **Deploy to Cloudflare Pages**. It copies these into the Pages project's secrets. `APP_URL` is in `wrangler.toml`.
+6. On the parent dashboard, add your email, confirm it, and press **Send a test now**.
+   To try the weekly run itself: Actions → **Weekly progress email** → Run workflow with *force*.
+
+**Safety:** confirmation links expire after 3 days and only work once. Link opens show a button and the change happens on POST, so mail scanners can't
+confirm or unsubscribe on the parent's behalf. Confirmation and test emails are capped at 5 per family per day.
+Every weekly email has `List-Unsubscribe` and `List-Unsubscribe-Post` (one-click) headers.
+
 ## Rollback
 Workers & Pages → cml-math-coach → **Deployments** → choose an earlier deployment → **Rollback**.

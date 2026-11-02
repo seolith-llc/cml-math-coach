@@ -16,6 +16,7 @@ recognises common mistakes and talks through worked solutions.
 | 📚 Learn | 40 topics (36 for Grade 2 and 40 for Grade 3), each with an idea, tips, traps, a strategy and a step-by-step worked example. |
 | 🧩 Puzzles | Palindromes (spot, complete with given digits, next palindrome) and digit-placement "magic sum" boards (plus shape, triangle, corner square). Tap a circle and then a digit, or say the digits in order. Any valid arrangement counts. |
 | 👨‍👩‍👧‍👦 Family puzzles | Brothers & sisters logic ("Jill has as many sisters as brothers…"). Warm-up counting from one child's point of view, then direct-count + relation clues, then the classic two-relation puzzle (Grade 3). Each puzzle has exactly one solution, and the coach catches the "counted yourself" mistake. |
+| 👨‍👩‍👧 Parent dashboard | Turn on in Settings with a parent PIN, then open the private link on your own phone or computer. It shows this week vs last week (problems, first-try accuracy, minutes, days), daily activity, mastery per topic (needs help / building / strong), mock meet scores, recent mistakes with the real question and the correct answer, plain-language suggestions, and CSV export. Data syncs to Cloudflare D1. |
 | 🔁 Review | Missed problems go into a Leitner spaced-repetition queue and are re-asked as the *same* problem later. |
 | 🧭 Toolkit | Pólya's 4 problem-solving steps, 10 strategies and contest-day tips, all read aloud. |
 | 📈 Progress | Mastery per topic, accuracy, day streak, meet history and "next goals". |

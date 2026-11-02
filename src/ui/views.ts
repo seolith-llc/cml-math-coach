@@ -6,6 +6,7 @@ import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
 import { PREMIUM_VOICES, configureSpeech, isAppleMobile, isStandalone, listVoices, speak, stopSpeaking, ttsSupported, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported, COMMAND_HELP } from '../voice/recognition';
 import { h, rich, svg, toast } from './dom';
+import { parentSetupCard } from './parentSetup';
 import type { View } from './app';
 
 const CATEGORY_ICON: Record<Category, string> = {
@@ -221,6 +222,7 @@ export function settingsView(): View {
         check('autoRead', 'Read each question out loud automatically', !ttsSupported()),
         check('speakFeedback', 'Say feedback and solutions out loud', !ttsSupported()),
         check('handsFree', 'Hands-free voice mode (listen for answers automatically)', !sttSupported())),
+      parentSetupCard(),
       h('div', { class: 'card' },
         h('h2', {}, 'Privacy'),
         h('p', { class: 'muted' }, 'Progress is saved only on this device. The premium voice sends the text being read (questions, hints, solutions) to Cloudflare Workers AI to make the audio. Nothing about your child is sent. Voice answers are handled by your browser, and some browsers (like Chrome and Safari) send the audio to their speech service.'),

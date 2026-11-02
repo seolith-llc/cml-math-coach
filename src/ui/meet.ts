@@ -97,7 +97,10 @@ export function meetView(): View {
     const results = problems.map((p, i) => answers[i].some((a) => checkAnswer(p.answer, a).correct));
     const score = results.filter(Boolean).length;
     problems.forEach((p, i) => {
-      recordAttempt(state, grade, p.topicId, results[i]);
+      recordAttempt(state, grade, p.topicId, results[i], {
+        problemId: p.id, level: p.level, correct: results[i], firstTry: results[i], skipped: !answers[i].join('').trim(),
+        hints: 0, seconds: Math.round(seconds / problems.length), answer: results[i] ? undefined : answers[i][0]?.slice(0, 60), mode: 'meet'
+      });
       if (!results[i]) addToReview(state, p.id, answers[i][0]);
     });
     state.meets.push({ date: Date.now(), grade, score, total: problems.length, seconds, topics: problems.map((p, i) => ({ topicId: p.topicId, correct: results[i] })) });

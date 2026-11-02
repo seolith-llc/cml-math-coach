@@ -40,6 +40,33 @@ export interface Settings {
   premiumVoice: string;
 }
 
+/** One answered problem, kept for the parent dashboard (synced when enabled). */
+export interface AttemptLog {
+  ts: number;
+  problemId: string;
+  topicId: string;
+  grade: Grade;
+  level: number;
+  /** Solved in the end (possibly after a hint or a retry). */
+  correct: boolean;
+  /** Solved on the first try with no hints. */
+  firstTry: boolean;
+  skipped?: boolean;
+  hints?: number;
+  seconds?: number;
+  /** First wrong answer, if any. */
+  answer?: string;
+  mode: 'practice' | 'review' | 'meet';
+}
+
+export interface SyncState {
+  familyId: string;
+  /** Highest attempt timestamp the server has confirmed. */
+  lastTs: number;
+  lastSyncAt?: number;
+  lastError?: string;
+}
+
 export interface AppState {
   version: 1;
   settings: Settings;
@@ -47,6 +74,8 @@ export interface AppState {
   review: ReviewItem[];
   meets: MeetRecord[];
   activeDays: string[]; // yyyy-mm-dd
+  log: AttemptLog[];
+  sync?: SyncState;
 }
 
 const KEY = 'cml-coach-v1';
@@ -57,7 +86,8 @@ export const defaultState = (): AppState => ({
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],
-  activeDays: []
+  activeDays: [],
+  log: []
 });
 
 let memory: AppState | null = null;
@@ -88,8 +118,11 @@ export function save(state: AppState = load()): void {
   }
 }
 
+/** Clears progress on this device. Keeps the parent-dashboard link so the online copy isn't orphaned. */
 export function reset(): void {
+  const sync = memory?.sync ?? load().sync;
   memory = defaultState();
+  if (sync) memory.sync = { ...sync };
   save(memory);
 }
 
@@ -98,7 +131,17 @@ export const today = (d = new Date()) => d.toISOString().slice(0, 10);
 const DAY = 86_400_000;
 const BOX_DAYS = [0, 0, 1, 3, 7, 14];
 
-export function recordAttempt(state: AppState, grade: Grade, topicId: string, correct: boolean): void {
+const LOG_MAX = 4000;
+
+export type AttemptDetail = Omit<AttemptLog, 'ts' | 'topicId' | 'grade' | 'firstTry'> & { firstTry?: boolean };
+
+export function recordAttempt(state: AppState, grade: Grade, topicId: string, correct: boolean, detail?: AttemptDetail): void {
+  if (detail) {
+    const last = state.log[state.log.length - 1];
+    const ts = Math.max(Date.now(), (last?.ts ?? 0) + 1); // unique, increasing
+    state.log.push({ ...detail, ts, topicId, grade, firstTry: detail.firstTry ?? correct });
+    if (state.log.length > LOG_MAX) state.log.splice(0, state.log.length - LOG_MAX);
+  }
   const g = (state.stats[String(grade)] ??= {});
   const s = (g[topicId] ??= { attempts: 0, correct: 0, mastery: 0.3, streak: 0, lastSeen: 0 });
   s.attempts++;
@@ -109,6 +152,7 @@ export function recordAttempt(state: AppState, grade: Grade, topicId: string, co
   const d = today();
   if (!state.activeDays.includes(d)) state.activeDays.push(d);
   save(state);
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
 }
 
 /** Put a missed problem in the review queue (or move it back to box 1). */

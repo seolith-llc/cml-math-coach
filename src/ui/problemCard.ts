@@ -16,6 +16,8 @@ export interface CardResult {
   skipped: boolean;
   revealed: boolean;
   wrongAnswer?: string;
+  hints: number;
+  seconds: number;
 }
 
 export interface CardOptions {
@@ -36,6 +38,7 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
   const coach = new Coach(problem, new Rng(randomSeed()));
   const topic = topicById(problem.topicId)!;
   let finished = false;
+  const startedAt = Date.now();
   let destroyed = false;
   let listening = false;
 
@@ -89,9 +92,10 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     }
   }
 
-  function finish(r: CardResult) {
+  function finish(partial: Omit<CardResult, 'hints' | 'seconds'>) {
     if (finished) return;
     finished = true;
+    const r: CardResult = { ...partial, hints: coach.hintsUsed, seconds: Math.round((Date.now() - startedAt) / 1000) };
     input.disabled = true;
     board?.disable();
     checkBtn.disabled = true;

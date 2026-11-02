@@ -22,6 +22,12 @@ src/
   voice/
     speech.ts        TTS: sentence chunking, maths-to-speech ("−" → "minus", "$1.25" → "1 dollar and 25 cents")
     recognition.ts   STT: up to 5 alternatives, interim results, voice-command parser
+functions/api/sync.ts, parent.ts  Parent dashboard API (thin wrappers around server/parent.ts → Cloudflare D1)
+server/parent.ts  sync / read / delete logic, PIN hashing + lockout (unit-tested on SQLite)
+migrations/  D1 schema
+src/sync/sync.ts  offline-first sync of the attempt log (debounced, batched, beacon on hide)
+src/core/insights.ts  dashboard numbers: weeks, daily series, topic status, tips
+src/ui/parent.ts, charts.ts  dashboard page and SVG charts
 functions/api/tts.ts  Cloudflare Pages Function: Workers AI (Aura-2) text-to-speech with edge caching
   ui/placementBoard.ts  tap-a-circle, tap-a-digit board for magic-sum puzzles (touch + keyboard)
   ui/              hash router + views (home, practice, review, meet, learn, toolkit, progress, settings)

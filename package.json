@@ -14,6 +14,7 @@
     "prompts:consolidate": "node scripts/consolidate-prompts.mjs"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "typescript": "^5.9.3",
     "vite": "^6.4.5",
     "vite-plugin-pwa": "^2.0.0",

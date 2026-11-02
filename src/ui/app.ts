@@ -5,6 +5,7 @@ import { h } from './dom';
 import { homeView, learnView, progressView, settingsView, toolkitView, topicView } from './views';
 import { practiceView, reviewView } from './practice';
 import { meetView } from './meet';
+import { parentView } from './parent';
 
 export interface View {
   title: string;
@@ -22,6 +23,7 @@ function route(hash: string): View {
     case 'toolkit': return toolkitView();
     case 'progress': return progressView();
     case 'settings': return settingsView();
+    case 'parent': return b ? parentView(b) : settingsView();
     default: return homeView();
   }
 }

@@ -61,5 +61,16 @@ Workers AI pricing for current rates).
 - If Workers AI is unavailable or the device is offline, the app automatically uses the device voice.
 - Local testing with the function: `npm run build && npx wrangler pages dev dist` (needs `wrangler login`).
 
+## Parent dashboard storage (D1)
+The dashboard data lives in a Cloudflare **D1** database named `cml-math-coach`. The deploy workflow runs
+[`scripts/ensure-d1.mjs`](../scripts/ensure-d1.mjs), which creates the database if it's missing, applies
+[`migrations/`](../migrations) (idempotent), and binds it as `DB` for that deploy.
+
+- **Token permission needed:** add **Account → D1 → Edit** to `CLOUDFLARE_API_TOKEN`. Without it the site still deploys,
+  but turning on the dashboard shows "storage is not set up yet".
+- Endpoints: `POST /api/sync` (the child's device uploads results, which needs the private family id) and `POST /api/parent` (read or delete, which needs the family id **and** the PIN).
+- Security: only `sha256(familyId)` and a PBKDF2 hash of the PIN are stored. After 5 wrong PINs the family is locked for 15 minutes. Requests must be same-origin.
+- Privacy: stored data is the child's first name, grade, topic results, answers given, time spent and mock meet scores. "Turn off and delete online data" in Settings erases it.
+
 ## Rollback
 Workers & Pages → cml-math-coach → **Deployments** → choose an earlier deployment → **Rollback**.

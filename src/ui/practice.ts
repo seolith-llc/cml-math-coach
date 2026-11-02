@@ -54,7 +54,10 @@ export function practiceView(topicId?: string): View {
           streak++;
           best = Math.max(best, streak);
         } else streak = 0;
-        recordAttempt(state, grade, problem.topicId, success);
+        recordAttempt(state, grade, problem.topicId, success, {
+          problemId: problem.id, level: problem.level, correct: r.correct, firstTry: success, skipped: r.skipped,
+          hints: r.hints, seconds: r.seconds, answer: r.wrongAnswer, mode: 'practice'
+        });
         if (!success) addToReview(state, problem.id, r.wrongAnswer);
         updateScore();
       },
@@ -123,7 +126,10 @@ export function reviewView(): View {
       onDone: (res) => {
         const ok = res.correct && res.firstTry;
         reviewResult(state, r.problemId, ok);
-        recordAttempt(state, grade, p!.topicId, ok);
+        recordAttempt(state, grade, p!.topicId, ok, {
+          problemId: p!.id, level: p!.level, correct: res.correct, firstTry: ok, skipped: res.skipped,
+          hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
+        });
       },
       onNext: next,
       nextLabel: i < queue.length ? 'Next review →' : 'Finish'

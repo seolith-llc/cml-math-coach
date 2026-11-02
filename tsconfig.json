@@ -9,9 +9,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "vite-plugin-pwa/client"],
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"],
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "functions"]
+  "include": ["src", "tests", "functions", "server"]
 }

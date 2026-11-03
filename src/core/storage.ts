@@ -29,15 +29,31 @@ export interface MeetRecord {
 export interface Settings {
   name: string;
   grade: Grade;
+  /** Talking speed, 0.6–1.4. */
   rate: number;
-  voiceURI?: string;
-  autoRead: boolean;
+  /** "natural:<aura speaker>" (cloud, falls back to the device offline) or "device:<voiceURI>" ("device:" = best available). */
+  voice: string;
+  /** Read questions, feedback and solutions aloud. */
+  speak: boolean;
+  /** Listen for answers automatically after each question is read. */
   handsFree: boolean;
-  /** Say feedback out loud. */
-  speakFeedback: boolean;
-  /** 'premium' = natural cloud voice (falls back to the device voice when offline). */
-  voiceEngine: 'premium' | 'device';
-  premiumVoice: string;
+}
+
+/** Settings stored by older versions (before 2026-11-03). */
+interface LegacySettings {
+  autoRead?: boolean;
+  speakFeedback?: boolean;
+  voiceEngine?: 'premium' | 'device';
+  premiumVoice?: string;
+  voiceURI?: string;
+}
+
+export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: Settings): Settings {
+  const { autoRead, speakFeedback, voiceEngine, premiumVoice, voiceURI, ...rest } = raw;
+  const out: Settings = { ...base, ...rest };
+  if (raw.speak === undefined && (autoRead !== undefined || speakFeedback !== undefined)) out.speak = autoRead !== false || speakFeedback !== false;
+  if (raw.voice === undefined && voiceEngine) out.voice = voiceEngine === 'device' ? `device:${voiceURI ?? ''}` : `natural:${premiumVoice || 'luna'}`;
+  return out;
 }
 
 /** One answered problem, kept for the parent dashboard (synced when enabled). */
@@ -82,7 +98,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, autoRead: true, handsFree: false, speakFeedback: true, voiceEngine: 'premium', premiumVoice: 'luna' },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],
@@ -99,7 +115,8 @@ export function load(): AppState {
     if (raw) {
       const parsed = JSON.parse(raw) as AppState;
       const base = defaultState();
-      memory = { ...base, ...parsed, settings: { ...base.settings, ...parsed.settings }, stats: { ...base.stats, ...parsed.stats } };
+      memory = { ...base, ...parsed, settings: migrateSettings(parsed.settings ?? {}, base.settings), stats: { ...base.stats, ...parsed.stats } };
+      if ('autoRead' in (parsed.settings ?? {}) || 'voiceEngine' in (parsed.settings ?? {})) save(memory); // persist the migration once
       return memory;
     }
   } catch {

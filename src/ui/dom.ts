@@ -1,3 +1,5 @@
+import { icon as iconSvg, type IconName } from './icons';
+
 type Child = Node | string | number | false | null | undefined;
 type Attrs = Record<string, unknown> & { class?: string; style?: string };
 
@@ -41,4 +43,48 @@ export function toast(msg: string): void {
     t.classList.remove('show');
     setTimeout(() => t.remove(), 300);
   }, 2600);
+}
+
+/** Icon-only button with an accessible name. */
+export function iconButton(name: IconName, label: string, onclick: (e: MouseEvent) => void, cls = ''): HTMLButtonElement {
+  return h('button', { class: `icon-btn ${cls}`.trim(), type: 'button', 'aria-label': label, title: label, onclick, html: iconSvg(name) });
+}
+
+export interface RowSpec {
+  label: string | Node;
+  /** Data shown on the right (a count, a time). Never an explanation. */
+  value?: string | number | Node;
+  href?: string;
+  onclick?: () => void;
+}
+
+/** Grouped list (iOS settings style). Rows with href or onclick get a chevron. */
+export function list(rows: (RowSpec | false | null | undefined)[], title?: string, action?: Node): HTMLElement {
+  const items = rows.filter(Boolean) as RowSpec[];
+  return h('section', { class: 'group' },
+    title ? h('div', { class: 'group-head' }, h('h2', { class: 'group-title' }, title), action ?? null) : null,
+    h('ul', { class: 'list' }, ...items.map((r) => {
+      const inner = [h('span', { class: 'row-label' }, r.label), r.value !== undefined ? h('span', { class: 'row-value' }, r.value as Node | string) : null];
+      const nav = r.href || r.onclick;
+      const chev = nav ? h('span', { class: 'row-chevron', html: iconSvg('chevron') }) : null;
+      return h('li', {}, r.href
+        ? h('a', { class: 'row', href: r.href }, ...inner, chev)
+        : r.onclick ? h('button', { class: 'row', type: 'button', onclick: r.onclick }, ...inner, chev) : h('div', { class: 'row' }, ...inner));
+    })));
+}
+
+/** A plain group container for free-form content. */
+export function group(title: string | null, ...children: (Node | string | null | false)[]): HTMLElement {
+  return h('section', { class: 'group' }, title ? h('h2', { class: 'group-title' }, title) : null, h('div', { class: 'panel' }, ...children));
+}
+
+/** Small mastery bar, 0..1 (null = not tried). */
+export function meter(value: number | null | undefined): HTMLElement {
+  const pct = value === null || value === undefined ? 0 : Math.max(6, Math.round(value * 100));
+  return h('span', { class: 'meter', role: 'img', 'aria-label': value === null || value === undefined ? 'Not tried' : `Mastery ${Math.round(value * 100)}%` }, h('span', { style: `width:${pct}%` }));
+}
+
+/** replaceChildren that skips null/false (for conditional sections). */
+export function fill(el: Element, ...children: (Node | string | null | false | undefined)[]): void {
+  el.replaceChildren(...(children.filter((c) => c !== null && c !== false && c !== undefined) as (Node | string)[]));
 }

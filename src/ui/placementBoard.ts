@@ -22,7 +22,6 @@ export function placementBoard(figure: string, spec: PlacementSpec): PlacementBo
   const fixed = slots.map((g) => g.dataset.fixed !== undefined);
   let selected = values.findIndex((v) => v === null);
   let disabled = false;
-  const status = h('p', { class: 'muted small', 'aria-live': 'polite' });
 
   const palette = h('div', { class: 'palette', role: 'group', 'aria-label': 'Digits' });
   const digitBtns = spec.digits.map((d) =>
@@ -37,8 +36,6 @@ export function placementBoard(figure: string, spec: PlacementSpec): PlacementBo
       g.setAttribute('aria-label', `Circle ${slotName(i)}${values[i] === null ? ', empty' : `, ${values[i]}`}${fixed[i] ? ', given' : ''}`);
     });
     digitBtns.forEach((b, i) => b.classList.toggle('used', values.includes(spec.digits[i])));
-    status.textContent = selected >= 0 && !disabled ? `Choose a digit for circle ${slotName(selected)}.` : '';
-    // line totals help children see progress
     board.onChange?.();
   }
 
@@ -92,7 +89,7 @@ export function placementBoard(figure: string, spec: PlacementSpec): PlacementBo
   });
 
   const board: PlacementBoard = {
-    el: h('div', { class: 'placement-wrap' }, wrap, palette, status),
+    el: h('div', { class: 'placement-wrap' }, wrap, palette),
     value: () => values.map((v) => (v === null ? '_' : String(v))).join(''),
     fill: (digits: string) => {
       const ds = digits.replace(/\D/g, '').split('').map(Number);

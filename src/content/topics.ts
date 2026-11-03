@@ -1,6 +1,5 @@
 import type { Grade, Level, Problem, Topic } from '../core/types';
 import { Rng, randomSeed } from '../core/rng';
-import { speakable } from './generators/helpers';
 import * as number from './generators/number';
 import * as word from './generators/word';
 import * as money from './generators/money';
@@ -67,8 +66,7 @@ export function makeProblem(topic: Topic, grade: Grade, level: Level, seed = ran
     topicId: topic.id,
     grade,
     level,
-    ...body,
-    speech: body.speech ?? speakable(body.text)
+    ...body
   };
 }
 

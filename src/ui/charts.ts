@@ -43,7 +43,7 @@ function withTooltip(svg: SVGSVGElement) {
 
 function table(headers: string[], rows: (string | number)[][]) {
   return h('details', { class: 'viz-table' },
-    h('summary', {}, 'Show as table'),
+    h('summary', {}, 'Table'),
     h('div', { class: 'table-scroll' },
       h('table', {},
         h('thead', {}, h('tr', {}, ...headers.map((x) => h('th', { scope: 'col' }, x)))),
@@ -94,11 +94,10 @@ export function dailyChart(daily: { date: string; firstTry: number; other: numbe
     hit.addEventListener('blur', hide);
     svg.append(hit);
   });
-  return h('figure', { class: 'viz-figure' },
-    h('figcaption', {}, h('strong', {}, 'Problems per day'), ' · last 30 days'),
+  return h('figure', { class: 'viz-figure', 'aria-label': 'Problems per day, last 30 days' },
     h('div', { class: 'viz-legend' },
-      h('span', {}, h('i', { class: 'swatch s1' }), 'Right on the first try'),
-      h('span', {}, h('i', { class: 'swatch s2' }), 'Needed a hint, a retry, or missed')),
+      h('span', {}, h('i', { class: 'swatch s1' }), 'First try'),
+      h('span', {}, h('i', { class: 'swatch s2' }), 'With help')),
     wrap,
     table(['Date', 'First try', 'With help / missed', 'Minutes'], daily.filter((d) => d.firstTry + d.other).map((d) => [shortDate(d.date), d.firstTry, d.other, d.minutes])));
 }
@@ -131,8 +130,7 @@ export function meetChart(meets: { date: number; score: number; total: number; s
   const lbl = s('text', { x: Math.min(x(meets.length - 1) + 10, W - R - 40), y: y(last.score) - 10, class: 'viz-label' });
   lbl.textContent = `${last.score}/6`;
   svg.append(lbl);
-  return h('figure', { class: 'viz-figure' },
-    h('figcaption', {}, h('strong', {}, 'Mock meet scores'), ' · out of 6'),
+  return h('figure', { class: 'viz-figure', 'aria-label': 'Mock meet scores out of 6' },
     wrap,
     table(['Date', 'Score', 'Minutes'], meets.map((m) => [new Date(m.date).toLocaleDateString(), `${m.score} / ${m.total}`, Math.round(m.seconds / 60)])));
 }

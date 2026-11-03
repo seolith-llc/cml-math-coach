@@ -15,6 +15,12 @@ export interface SpeakOptions {
   premiumVoice?: string;
 }
 
+/** Turns the stored voice setting ("natural:luna" / "device:<uri>") into speak options. */
+export function voiceOptions(voice: string, rate: number): SpeakOptions {
+  const [kind, id = ''] = voice.split(/:(.*)/s);
+  return kind === 'device' ? { rate, engine: 'device', voiceURI: id || undefined } : { rate, engine: 'premium', premiumVoice: id || 'luna' };
+}
+
 /** A short, kid-friendly selection of the Aura-2 voices (all 40 work). */
 export const PREMIUM_VOICES = ['luna', 'thalia', 'asteria', 'athena', 'helena', 'aurora', 'iris', 'apollo', 'orion', 'arcas', 'hermes', 'atlas'];
 
@@ -109,6 +115,7 @@ export function prepareForSpeech(text: string): string {
     .replace(/−/g, ' minus ')
     .replace(/(\d) - (\d)/g, '$1 minus $2')
     .replace(/(\d)\s*\+\s*(\d)/g, '$1 plus $2')
+    .replace(/\s\+\s/g, ' plus ')
     .replace(/=/g, ' equals ')
     .replace(/■/g, ' square ')
     .replace(/●/g, ' circle ')
@@ -144,14 +151,6 @@ export function unlockSpeechOnFirstGesture(): void {
   window.addEventListener('pointerdown', unlock, true);
   window.addEventListener('keydown', unlock, true);
 }
-
-/** True for iPad/iPhone, including iPadOS which reports itself as a Mac. */
-export const isAppleMobile = (): boolean =>
-  typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
-
-export const isStandalone = (): boolean =>
-  typeof window !== 'undefined' &&
-  ((navigator as Navigator & { standalone?: boolean }).standalone === true || matchMedia('(display-mode: standalone)').matches);
 
 export function stopSpeaking(): void {
   token++;

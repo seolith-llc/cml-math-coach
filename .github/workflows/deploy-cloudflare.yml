@@ -35,8 +35,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - run: npm run check
 
       - name: Check Cloudflare secrets
         id: secrets

@@ -1,14 +1,12 @@
 import type { Problem } from '../core/types';
 import { Coach } from '../core/coach';
 import { Rng, randomSeed } from '../core/rng';
-import { answerPlaceholder, formatAnswer } from '../core/answer';
+import { answerPlaceholder, formatAnswer, parseDigits } from '../core/answer';
 import { load, save } from '../core/storage';
-import { topicById } from '../content/topics';
 import { configureSpeech, speak, stopSpeaking } from '../voice/speech';
-import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported } from '../voice/recognition';
-import { h, rich, svg } from './dom';
+import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported, type VoiceCommand } from '../voice/recognition';
+import { h, iconButton, rich, svg } from './dom';
 import { placementBoard } from './placementBoard';
-import { parseDigits } from '../core/answer';
 
 export interface CardResult {
   correct: boolean;
@@ -24,208 +22,168 @@ export interface CardOptions {
   problem: Problem;
   onDone: (r: CardResult) => void;
   onNext: () => void;
-  /** Label for the button that appears when finished. */
-  nextLabel?: string;
 }
 
-const LEVEL_LABEL = ['', 'Warm-up', 'Contest', 'Challenge'];
-
-/** Interactive problem card with typing, voice answers, hints, mistake coaching and a step-by-step solution. */
-export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () => void } {
-  const { problem } = opts;
+/**
+ * One problem: question, answer field, check. Voice (read aloud, spoken answers and commands),
+ * hints, mistake coaching and the step-by-step solution all live here.
+ */
+export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTMLElement; destroy: () => void } {
   const state = load();
   const settings = state.settings;
   const coach = new Coach(problem, new Rng(randomSeed()));
-  const topic = topicById(problem.topicId)!;
-  let finished = false;
   const startedAt = Date.now();
+  let finished = false;
   let destroyed = false;
   let listening = false;
 
+  const board = problem.answer.kind === 'placement' && problem.figure ? placementBoard(problem.figure, problem.answer) : undefined;
   const input = h('input', {
-    class: 'answer-input',
+    class: 'answer',
     type: 'text',
     inputmode: problem.answer.kind === 'number' ? 'numeric' : 'text',
     placeholder: answerPlaceholder(problem.answer),
-    'aria-label': 'Your answer',
+    'aria-label': 'Answer',
     autocomplete: 'off',
-    onkeydown: (e: KeyboardEvent) => e.key === 'Enter' && submit([currentAnswer()])
+    onkeydown: (e: KeyboardEvent) => e.key === 'Enter' && submit([current()])
   });
-  const board = problem.answer.kind === 'placement' && problem.figure ? placementBoard(problem.figure, problem.answer) : undefined;
-  const currentAnswer = () => (board ? board.value() : input.value);
-  const heard = h('div', { class: 'heard', 'aria-live': 'polite' });
-  const feedback = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
-  const solution = h('ol', { class: 'solution', hidden: true });
-  const hintsBox = h('ul', { class: 'hints' });
-  const micBtn = h('button', { class: 'mic', type: 'button', title: 'Answer by voice', 'aria-label': 'Answer by voice', onclick: () => (listening ? stopListening() : startListening()) }, '🎤');
-  const checkBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => submit([currentAnswer()]) }, 'Check');
-  const nextBtn = h('button', { class: 'btn primary big', type: 'button', hidden: true, onclick: () => opts.onNext() }, opts.nextLabel ?? 'Next problem →');
+  const current = () => (board ? board.value() : input.value);
+  const check = h('button', { class: 'btn primary', type: 'button', onclick: () => submit([current()]) }, 'Check');
+  const next = h('button', { class: 'btn primary wide', type: 'button', hidden: true, onclick: () => onNext() }, 'Next');
+  const status = h('p', { class: 'status-line', 'aria-live': 'polite' });
+  const feedback = h('p', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
+  const hints = h('ul', { class: 'hints' });
+  const solution = h('ol', { class: 'steps', hidden: true });
+  const mic = sttSupported() ? iconButton('mic', 'Answer by voice', () => (listening ? stopListening() : startListening()), 'mic') : null;
+  const hintBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void showHint() }, 'Hint');
+  const answerBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void reveal(false) }, 'Answer');
 
-  const say = (text: string) => (destroyed ? Promise.resolve() : speak(text, { rate: settings.rate, voiceURI: settings.voiceURI }));
+  const say = (text: string) => (destroyed || !settings.speak ? Promise.resolve() : speak(text));
+  const sayAlways = (text: string) => (destroyed ? Promise.resolve() : speak(text)); // explicit taps
 
-  function setFeedback(kind: 'good' | 'bad' | 'info', msg: string) {
+  function setFeedback(kind: 'good' | 'bad' | 'info', text: string) {
     feedback.className = `feedback ${kind}`;
-    feedback.textContent = msg;
+    feedback.textContent = text;
   }
 
-  function showHint() {
+  async function showHint() {
+    if (finished) return;
     const hint = coach.nextHint();
-    if (!hint) {
-      setFeedback('info', 'No more hints. Try "Show solution" if you are stuck.');
-      return say('No more hints. You can ask me to explain.');
-    }
-    hintsBox.append(h('li', {}, '💡 ', hint));
-    return say(hint);
+    if (!hint) return setFeedback('info', 'No more hints.');
+    hints.append(h('li', {}, hint));
+    await say(hint);
   }
 
-  async function revealSolution(readAloud = true) {
-    if (!solution.hidden) return;
+  async function readSolution() {
     solution.hidden = false;
     solution.replaceChildren(...problem.steps.map((s) => h('li', {}, s)));
-    if (readAloud && settings.speakFeedback) {
-      for (const [i, s] of problem.steps.entries()) {
-        if (destroyed) return;
-        solution.children[i]?.classList.add('reading');
-        await say(s);
-        solution.children[i]?.classList.remove('reading');
-      }
+    for (const [i, s] of problem.steps.entries()) {
+      if (destroyed || !settings.speak) return;
+      solution.children[i]?.classList.add('reading');
+      await speak(s);
+      solution.children[i]?.classList.remove('reading');
     }
   }
 
   function finish(partial: Omit<CardResult, 'hints' | 'seconds'>) {
     if (finished) return;
     finished = true;
-    const r: CardResult = { ...partial, hints: coach.hintsUsed, seconds: Math.round((Date.now() - startedAt) / 1000) };
     input.disabled = true;
     board?.disable();
-    checkBtn.disabled = true;
-    nextBtn.hidden = false;
-    opts.onDone(r);
-    nextBtn.focus({ preventScroll: true });
+    check.hidden = true;
+    hintBtn.hidden = answerBtn.hidden = true;
+    next.hidden = false;
+    onDone({ ...partial, hints: coach.hintsUsed, seconds: Math.round((Date.now() - startedAt) / 1000) });
+    next.focus({ preventScroll: true });
   }
 
-  async function handleCommand(cmd: NonNullable<ReturnType<typeof parseCommand>>) {
+  /** "Answer" button, or the skip/explain voice commands: show the answer and walk through it. */
+  async function reveal(skipped: boolean) {
+    if (finished) return;
+    setFeedback('info', formatAnswer(problem.answer));
+    finish({ correct: false, firstTry: false, skipped, revealed: true });
+    await readSolution();
+    afterReveal();
+  }
+
+  async function afterReveal() {
+    if (destroyed || !settings.handsFree) return;
+    await say('Say next when you are ready.');
+    for (let i = 0; i < 3 && !destroyed; i++) {
+      const alts = await listenOnce();
+      if (!alts) return;
+      const cmd = parseCommand(alts[0] ?? '');
+      if (cmd === 'next' || cmd === 'skip') return onNext();
+      if (cmd === 'repeat') for (const s of problem.steps) await say(s);
+      if (cmd === 'stop') return command('stop');
+    }
+  }
+
+  async function submit(alternatives: string[]) {
+    if (finished) return;
+    if (!alternatives.join('').trim()) return;
+    stopSpeaking();
+    const fb = coach.answer(alternatives);
+    if (fb.verdict === 'correct') {
+      setFeedback('good', fb.message);
+      finish({ correct: true, firstTry: coach.firstTryCorrect, skipped: false, revealed: false, wrongAnswer: coach.wrongAnswers[0] });
+      await say(fb.message);
+      if (settings.handsFree && !destroyed) setTimeout(() => !destroyed && onNext(), 600);
+      return;
+    }
+    setFeedback(fb.verdict === 'unclear' ? 'info' : 'bad', fb.message);
+    if (fb.verdict === 'wrong' && !fb.reveal) {
+      hints.replaceChildren(...problem.hints.slice(0, coach.hintsUsed).map((x) => h('li', {}, x)));
+      if (!board) input.select();
+    }
+    if (fb.reveal) {
+      finish({ correct: false, firstTry: false, skipped: false, revealed: true, wrongAnswer: coach.wrongAnswers[0] });
+      await say(fb.message);
+      await readSolution();
+      return afterReveal();
+    }
+    await say(fb.message);
+    if (settings.handsFree && !destroyed) startListening();
+  }
+
+  async function command(cmd: VoiceCommand) {
     switch (cmd) {
-      case 'repeat':
-        await say(problem.speech ?? problem.text);
-        break;
-      case 'hint':
-        await showHint();
-        break;
-      case 'explain':
-      case 'skip':
-        await skip(cmd === 'skip');
-        return;
-      case 'next':
-        if (finished) return opts.onNext();
-        await say('Answer this one first, or say skip.');
-        break;
+      case 'repeat': await sayAlways(problem.speech ?? problem.text); break;
+      case 'hint': await showHint(); break;
+      case 'explain': return reveal(false);
+      case 'skip': return reveal(true);
+      case 'next': if (finished) return onNext(); break;
       case 'stop':
         settings.handsFree = false;
         save(state);
-        updateHandsFree();
-        await say('Okay, hands-free mode is off. Tap the microphone when you want to talk.');
-        return;
-      case 'help':
-        await say(COMMAND_HELP);
-        break;
+        return sayAlways('Okay, I will stop listening.');
+      case 'help': await sayAlways(COMMAND_HELP); break;
       case 'slower':
       case 'faster':
         settings.rate = Math.min(1.4, Math.max(0.6, settings.rate + (cmd === 'slower' ? -0.15 : 0.15)));
         configureSpeech({ rate: settings.rate });
         save(state);
-        await say(cmd === 'slower' ? 'Okay, I will talk slower.' : 'Okay, I will talk faster.');
+        await sayAlways(cmd === 'slower' ? 'Okay, slower.' : 'Okay, faster.');
         break;
     }
     if (settings.handsFree && !finished) startListening();
   }
 
-  async function skip(isSkip: boolean) {
-    setFeedback('info', `The answer is ${formatAnswer(problem.answer)}.`);
-    finish({ correct: false, firstTry: false, skipped: isSkip, revealed: true });
-    await say(isSkip ? `That's okay. The answer is ${formatAnswer(problem.answer)}. Here's how to solve it.` : `Let's solve it together.`);
-    await revealSolution();
-    afterReveal();
-  }
-
-  async function afterReveal() {
-    if (destroyed) return;
-    if (settings.handsFree) {
-      await say('Say next when you are ready.');
-      waitForNext();
-    }
-  }
-
-  async function waitForNext() {
-    for (let i = 0; i < 3 && !destroyed; i++) {
-      const res = await listenOnce();
-      if (!res) return;
-      const cmd = parseCommand(res[0] ?? '');
-      if (cmd === 'next' || cmd === 'skip') return opts.onNext();
-      if (cmd === 'repeat') await revealSolutionAgain();
-      if (cmd === 'stop') return handleCommand('stop');
-    }
-  }
-
-  async function revealSolutionAgain() {
-    for (const s of problem.steps) await say(s);
-  }
-
-  async function submit(alternatives: string[]) {
-    if (finished) return;
-    if (!alternatives.join('').trim()) {
-      setFeedback('info', 'Type or say an answer first.');
-      return;
-    }
-    stopSpeaking();
-    const fb = coach.answer(alternatives);
-    if (fb.heard && alternatives.length > 1) heard.textContent = `I heard: "${fb.heard}"`;
-    if (fb.verdict === 'correct') {
-      setFeedback('good', `✔ ${fb.message}`);
-      finish({ correct: true, firstTry: coach.firstTryCorrect, skipped: false, revealed: false, wrongAnswer: coach.wrongAnswers[0] });
-      if (settings.speakFeedback) await say(fb.message);
-      if (settings.handsFree && !destroyed) {
-        await new Promise((r) => setTimeout(r, 600));
-        if (!destroyed) opts.onNext();
-      }
-      return;
-    }
-    setFeedback(fb.verdict === 'unclear' ? 'info' : 'bad', (fb.verdict === 'wrong' ? '✘ ' : '') + fb.message);
-    if (fb.verdict === 'wrong' && !fb.reveal) {
-      if (!board) input.select();
-      hintsBox.replaceChildren(...problem.hints.slice(0, coach.hintsUsed).map((x) => h('li', {}, '💡 ', x)));
-    }
-    if (fb.reveal) {
-      finish({ correct: false, firstTry: false, skipped: false, revealed: true, wrongAnswer: coach.wrongAnswers[0] });
-      if (settings.speakFeedback) await say(fb.message);
-      await revealSolution();
-      afterReveal();
-      return;
-    }
-    if (settings.speakFeedback) await say(fb.message);
-    if (settings.handsFree && !destroyed) startListening();
-  }
-
   async function listenOnce(): Promise<string[] | null> {
     if (!sttSupported() || destroyed) return null;
     listening = true;
-    micBtn.classList.add('on');
-    heard.textContent = 'Listening…';
-    const res = await listen((t) => (heard.textContent = `… ${t}`));
+    mic?.classList.add('on');
+    status.textContent = '…';
+    const res = await listen((t) => (status.textContent = t));
     listening = false;
-    micBtn.classList.remove('on');
+    mic?.classList.remove('on');
     if (destroyed) return null;
     if (res.error === 'not-allowed' || res.error === 'service-not-allowed') {
-      heard.textContent = 'Microphone is blocked. Allow it in your browser settings, or type your answer.';
+      status.textContent = 'Microphone blocked';
       settings.handsFree = false;
-      updateHandsFree();
       return null;
     }
-    if (!res.alternatives.length) {
-      heard.textContent = res.error === 'network' ? 'Voice needs an internet connection in this browser. Please type.' : 'I did not hear anything.';
-      return [];
-    }
-    heard.textContent = `I heard: "${res.alternatives[0]}"`;
+    status.textContent = res.alternatives[0] ?? '';
     return res.alternatives;
   }
 
@@ -233,16 +191,13 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
     if (finished || destroyed) return;
     stopSpeaking();
     const alts = await listenOnce();
-    if (alts === null) return;
+    if (!alts) return;
     if (!alts.length) {
-      if (settings.handsFree) {
-        await say('Say your answer, or say repeat.');
-        return startListening();
-      }
+      if (settings.handsFree) return startListening();
       return;
     }
     const cmd = parseCommand(alts[0]);
-    if (cmd) return handleCommand(cmd);
+    if (cmd) return command(cmd);
     if (board) {
       const digits = alts.map((a) => parseDigits(a)).find(Boolean);
       if (!digits) return submit(alts);
@@ -250,56 +205,27 @@ export function problemCard(opts: CardOptions): { el: HTMLElement; destroy: () =
       return submit([board.value()]);
     }
     input.value = alts[0];
-    submit(alts);
+    return submit(alts);
   }
 
-  const handsFreeToggle = h('input', {
-    type: 'checkbox',
-    checked: settings.handsFree,
-    disabled: !sttSupported(),
-    onchange: () => {
-      settings.handsFree = handsFreeToggle.checked;
-      save(state);
-      if (settings.handsFree) startListening();
-      else stopListening();
-    }
-  });
-  function updateHandsFree() {
-    handsFreeToggle.checked = settings.handsFree;
-  }
-
-  const el = h(
-    'article',
-    { class: 'card problem' },
-    h('div', { class: 'chips' },
-      h('span', { class: 'chip' }, topic.title),
-      h('span', { class: `chip level-${problem.level}` }, LEVEL_LABEL[problem.level]),
-      h('span', { class: 'chip ghost', title: 'Suggested strategy' }, '🧭 ', topic.strategy)
-    ),
+  const el = h('article', { class: 'card problem' },
     h('p', { class: 'question' }, rich(problem.text)),
     board ? board.el : problem.figure ? svg(problem.figure) : null,
-    h('div', { class: 'answer-row' }, board ? null : input, checkBtn, sttSupported() ? micBtn : null),
-    heard,
+    h('div', { class: 'answer-row' }, board ? null : input, check, next),
     feedback,
-    hintsBox,
-    h('div', { class: 'tools' },
-      h('button', { class: 'btn ghost', type: 'button', onclick: () => say(problem.speech ?? problem.text) }, '🔊 Read'),
-      h('button', { class: 'btn ghost', type: 'button', onclick: () => !finished && showHint() }, '💡 Hint'),
-      h('button', { class: 'btn ghost', type: 'button', onclick: () => (finished ? revealSolution() : skip(false)) }, '📖 Solution'),
-      h('button', { class: 'btn ghost', type: 'button', onclick: () => (finished ? opts.onNext() : skip(true)) }, '⏭ Skip')
-    ),
+    hints,
     solution,
-    nextBtn,
-    sttSupported()
-      ? h('label', { class: 'handsfree' }, handsFreeToggle, ' Hands-free voice mode ', h('small', {}, '(I read the question, then listen for your answer)'))
-      : h('p', { class: 'muted small' }, 'Voice answers are not available in this browser. Try Chrome, Edge or Safari. You can still type your answers and listen to the questions.')
-  );
+    h('div', { class: 'tools' },
+      iconButton('speaker', 'Read aloud', () => void sayAlways(problem.speech ?? problem.text)),
+      mic,
+      status,
+      hintBtn,
+      answerBtn));
 
-  // Kick off
   queueMicrotask(async () => {
-    if (settings.autoRead || settings.handsFree) await say(problem.speech ?? problem.text);
+    if (settings.speak || settings.handsFree) await sayAlways(problem.speech ?? problem.text);
     if (settings.handsFree && !destroyed) startListening();
-    else if (!destroyed && matchMedia('(pointer: fine)').matches) input.focus({ preventScroll: true });
+    else if (!destroyed && !board && matchMedia('(pointer: fine)').matches) input.focus({ preventScroll: true });
   });
 
   return {

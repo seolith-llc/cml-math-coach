@@ -153,29 +153,3 @@ export function vennFigure(labels: [string, string, string], r: number[]): strin
   );
 }
 
-export const SHAPES = {
-  square: { glyph: '■', say: 'square' },
-  circle: { glyph: '●', say: 'circle' },
-  triangle: { glyph: '▲', say: 'triangle' },
-  star: { glyph: '★', say: 'star' }
-} as const;
-
-/** Replace shape glyphs and the empty box with words for text-to-speech. */
-export function speakable(text: string): string {
-  return text
-    .replace(/■/g, ' square ')
-    .replace(/●/g, ' circle ')
-    .replace(/▲/g, ' triangle ')
-    .replace(/□/g, ' box ')
-    .replace(/×/g, ' times ')
-    .replace(/÷/g, ' divided by ')
-    .replace(/−/g, ' minus ')
-    .replace(/ - /g, ' minus ')
-    .replace(/\+/g, ' plus ')
-    .replace(/=/g, ' equals ')
-    .replace(/_{2,}/g, ' blank ')
-    .replace(/¢/g, ' cents')
-    .replace(/\*\*/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}

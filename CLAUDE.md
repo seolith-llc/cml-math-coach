@@ -23,7 +23,7 @@ src/
 server/             backend logic shared by functions/ (unit-tested on SQLite): parent, email, digest, ses, env
 functions/api/      Cloudflare Pages Functions: tts, sync, parent, weekly, email/{confirm,unsubscribe}
 migrations/         D1 schema, applied once each by scripts/ensure-d1.mjs on deploy
-scripts/            CI helpers: ensure-d1, ensure-domain, status (read-only prod report), consolidate-prompts
+scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), consolidate-prompts
 tests/              vitest, including a sweep of every topic × grade × level × 120 seeds
 ```
 

@@ -1,4 +1,5 @@
-# Read-only production health report: families, sync, email state and recent sends (emails masked).
+# Production health report: database state and recent sends (emails masked), then a live probe of the
+# dashboard API on the real domain (creates and deletes a throwaway family).
 name: Status
 
 on:
@@ -21,3 +22,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node scripts/status.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Probe the live site like the app does
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+        run: node scripts/probe.mjs | tee -a "$GITHUB_STEP_SUMMARY"

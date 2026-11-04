@@ -44,10 +44,14 @@ async function useQuota(db: DB, row: FamilyRow, now: number) {
 
 const page = (title: string, body: string) =>
   `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
-<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f7fb;color:#1d2433;margin:0;padding:40px 16px}
-main{max-width:460px;margin:auto;background:#fff;border:1px solid #dde2ee;border-radius:16px;padding:28px;text-align:center}
-button,a.btn{font:inherit;font-weight:700;background:#3b5bdb;color:#fff;border:0;border-radius:12px;padding:12px 20px;cursor:pointer;text-decoration:none;display:inline-block}
-p{line-height:1.5;color:#5f6b80}</style></head><body><main>${body}</main></body></html>`;
+<style>
+:root{--bg:#f2f2f7;--surface:#fff;--text:#1c1c1e;--muted:#6e6e73;--accent:#2f6fed;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--surface:#1c1c1e;--text:#f5f5f7;--muted:#98989d;--accent:#4c8dff}}
+body{font:17px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:64px 16px}
+main{max-width:420px;margin:auto;background:var(--surface);border-radius:12px;padding:32px 24px;text-align:center}
+h1{font-size:22px;margin:0 0 8px}p{margin:0 0 20px;color:var(--muted)}
+button,a.btn{font:inherit;font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:12px;min-height:48px;padding:0 24px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+</style></head><body><main>${body}</main></body></html>`;
 
 export const htmlResponse = (status: number, html: string) =>
   new Response(html, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' } });
@@ -117,30 +121,30 @@ export async function testEmail(ctx: EmailCtx, body: Record<string, unknown>) {
 /* ---------------- public links (from email) ---------------- */
 
 export async function confirmEmail(db: DB, token: string, now = Date.now()): Promise<Response> {
-  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return htmlResponse(400, page('Link not valid', '<h1>Link not valid</h1><p>This confirmation link is incomplete. Please request a new one from the parent dashboard.</p>'));
+  if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return htmlResponse(400, page('Link not valid', '<h1>Link not valid</h1>'));
   const row = await db.prepare('SELECT * FROM families WHERE email_token = ?').bind(await sha256Hex('confirm:' + token)).first<FamilyRow>();
   if (!row || !row.email_token_expires || row.email_token_expires < now) {
-    return htmlResponse(410, page('Link expired', '<h1>Link expired</h1><p>This link has expired or was already used. Request a new one from the parent dashboard.</p>'));
+    return htmlResponse(410, page('Link expired', '<h1>Link expired</h1>'));
   }
   await db.prepare('UPDATE families SET email_verified = 1, email_token = NULL, email_token_expires = NULL WHERE key = ?').bind(row.key).run();
-  return htmlResponse(200, page('Email confirmed', `<h1>✅ You're all set</h1><p>Weekly updates will go to <strong>${row.email!.replace(/[<>&]/g, '')}</strong> every Sunday evening.</p>`));
+  return htmlResponse(200, page('Email confirmed', `<h1>You're all set</h1><p>${row.email!.replace(/[<>&]/g, '')} · Sundays</p>`));
 }
 
 export async function unsubscribe(db: DB, token: string): Promise<Response> {
   if (!/^[A-Za-z0-9_-]{20,64}$/.test(token)) return htmlResponse(400, page('Link not valid', '<h1>Link not valid</h1>'));
   const row = await db.prepare('SELECT key, email FROM families WHERE unsub_token = ?').bind(token).first<FamilyRow>();
   if (row?.email) await db.prepare('UPDATE families SET email = NULL, email_verified = 0, email_token = NULL WHERE key = ?').bind(row.key).run();
-  return htmlResponse(200, page('Unsubscribed', '<h1>You are unsubscribed</h1><p>No more weekly emails will be sent. You can turn them back on any time from the parent dashboard.</p>'));
+  return htmlResponse(200, page('Unsubscribed', '<h1>Unsubscribed</h1>'));
 }
 
 /** GET pages only show a button; the change happens on POST, so link scanners in email clients can't trigger it. */
 export function confirmButtonPage(action: 'confirm' | 'unsubscribe', token: string): Response {
   const t = token.replace(/[^A-Za-z0-9_-]/g, '');
-  const [title, text, label, param] =
+  const [title, label, param] =
     action === 'confirm'
-      ? ['Confirm email', 'Confirm that you want a weekly Math Coach progress email.', 'Confirm email', 't']
-      : ['Unsubscribe', 'Stop the weekly Math Coach progress email?', 'Unsubscribe', 'u'];
-  return htmlResponse(200, page(title, `<h1>${title}</h1><p>${text}</p><form method="post" action="?${param}=${t}"><button type="submit">${label}</button></form>`));
+      ? ['Weekly email', 'Confirm email', 't']
+      : ['Weekly email', 'Unsubscribe', 'u'];
+  return htmlResponse(200, page(title, `<h1>${title}</h1><form method="post" action="?${param}=${t}"><button type="submit">${label}</button></form>`));
 }
 
 /* ---------------- weekly batch ---------------- */

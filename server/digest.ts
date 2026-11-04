@@ -88,7 +88,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     .join('')}</tr><tr>${last7
     .map((x) => `<td align="center" style="font-size:12px;color:${C.muted};padding-top:4px">${dayName(x.date)}<br>${x.firstTry + x.other || '·'}</td>`)
     .join('')}</tr></table>
-    <p style="font-size:12px;color:${C.muted};margin:6px 0 0"><span style="color:${C.blue}">■</span> right first try &nbsp; <span style="color:${C.orange}">■</span> needed help or missed</p>`;
+    <p style="font-size:12px;color:${C.muted};margin:6px 0 0"><span style="color:${C.blue}">■</span> first try &nbsp; <span style="color:${C.orange}">■</span> with help</p>`;
 
   const weekMeets = s.meets.filter((m) => m.date >= now - 7 * 86_400_000);
   const mistakes = s.mistakes.filter((m) => m.ts >= now - 7 * 86_400_000).slice(0, 3);
@@ -99,14 +99,13 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
 
   const parts: string[] = [];
   parts.push(`<tr><td style="padding:24px 24px 0">
-    <p style="margin:0;color:${C.muted};font-size:13px">CML Math Coach · weekly update · Grade ${s.grade}</p>
-    <h1 style="margin:6px 0 0;font-size:22px;color:${C.ink}">${practiced ? `${nameEsc}'s math week` : `A quiet week for ${nameEsc}`}</h1></td></tr>`);
+    <h1 style="margin:0;font-size:22px;color:${C.ink}">${practiced ? `${nameEsc}'s math week` : `A quiet week for ${nameEsc}`}</h1></td></tr>`);
   parts.push(`<tr><td style="padding:16px 18px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${kpis
     .map(([v, l, sub]) => `<td style="padding:6px;width:25%" valign="top"><div style="border:1px solid ${C.line};border-radius:12px;padding:10px">
       <div style="font-size:22px;font-weight:800;color:${C.ink}">${v}</div><div style="font-size:12px;color:${C.muted}">${l}</div>
       ${sub ? `<div style="font-size:11px;color:${C.muted};margin-top:2px">${esc(sub)}</div>` : ''}</div></td>`)
     .join('')}</tr></table></td></tr>`);
-  if (practiced) parts.push(section('This week, day by day', chart));
+  if (practiced) parts.push(section('This week', chart));
   if (s.needsHelp.length || s.strong.length) {
     const items: string[] = [];
     if (s.needsHelp.length) items.push(`<strong style="color:${C.bad}">Needs help:</strong> ${s.needsHelp.slice(0, 3).map((t) => esc(t.title)).join(', ')}`);
@@ -115,7 +114,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
   }
   if (weekMeets.length) parts.push(section('Mock meet', list(weekMeets.map((m) => `${m.score} out of ${m.total} in ${Math.round(m.seconds / 60)} minutes`))));
   if (mistakes.length) {
-    parts.push(section('Worth going over together', mistakes.map((m) => {
+    parts.push(section('Mistakes', mistakes.map((m) => {
       const p = problemFromId(m.problemId);
       return `<div style="border-left:3px solid ${C.line};padding:4px 0 4px 12px;margin:0 0 12px;font-size:14px;color:${C.ink}">
         <div style="font-size:12px;color:${C.muted}">${esc(topicTitle(m.topicId))}</div>
@@ -123,12 +122,10 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
         <div style="font-size:13px">${m.answer ? `Answered <strong>${esc(m.answer)}</strong> · ` : m.skipped ? 'Skipped · ' : ''}${p ? `Correct: <strong>${esc(formatAnswer(p.answer))}</strong>` : ''}</div></div>`;
     }).join('')));
   }
-  if (s.tips.length) parts.push(section('Ideas for next week', list(s.tips.slice(0, 3).map(esc))));
-  parts.push(`<tr><td style="padding:22px 24px 6px"><a href="${esc(links.appUrl)}" style="display:inline-block;background:${C.blue};color:#fff;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:10px">Open Math Coach</a>
-    <p style="font-size:12px;color:${C.muted};margin:10px 0 0">For the full dashboard, use the private parent link you bookmarked (it needs your PIN).</p></td></tr>`);
+  if (s.tips.length) parts.push(section('Next week', list(s.tips.slice(0, 3).map(esc))));
+  parts.push(`<tr><td style="padding:22px 24px 6px"><a href="${esc(links.appUrl)}" style="display:inline-block;background:${C.blue};color:#fff;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:10px">Open Math Coach</a></td></tr>`);
   parts.push(`<tr><td style="padding:16px 24px 24px;font-size:11px;color:${C.muted};line-height:1.5;border-top:1px solid ${C.line}">
-    You get this because you turned on weekly emails in the CML Math Coach parent dashboard.
-    <a href="${esc(links.unsubscribeUrl)}" style="color:${C.muted}">Unsubscribe</a> with one click.</td></tr>`);
+    Sent because you turned on weekly email in the Math Coach parent dashboard. <a href="${esc(links.unsubscribeUrl)}" style="color:${C.muted}">Unsubscribe</a></td></tr>`);
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
 <body style="margin:0;background:${C.bg};font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
@@ -138,20 +135,20 @@ ${parts.join('\n')}
 </table></td></tr></table></body></html>`;
 
   const t: string[] = [];
-  t.push(`${practiced ? `${name}'s math week` : `A quiet week for ${name}`} (Grade ${s.grade})`, '');
+  t.push(practiced ? `${name}'s math week` : `A quiet week for ${name}`, '');
   for (const [v, l, sub] of kpis) t.push(`- ${l}: ${v}${sub ? ` (${sub})` : ''}`);
   if (practiced) t.push('', 'Day by day: ' + last7.map((x) => `${dayName(x.date)} ${x.firstTry + x.other}`).join(', '));
   if (s.needsHelp.length) t.push('', `Needs help: ${s.needsHelp.slice(0, 3).map((x) => x.title).join(', ')}`);
   if (s.strong.length) t.push(`Strong: ${s.strong.slice(0, 3).map((x) => x.title).join(', ')}`);
   if (weekMeets.length) t.push('', ...weekMeets.map((m) => `Mock meet: ${m.score}/${m.total}`));
   if (mistakes.length) {
-    t.push('', 'Worth going over together:');
+    t.push('', 'Mistakes:');
     for (const m of mistakes) {
       const p = problemFromId(m.problemId);
       t.push(`* ${p ? plain(p.text) : topicTitle(m.topicId)}`, `  ${m.answer ? `Answered ${m.answer}. ` : ''}${p ? `Correct: ${formatAnswer(p.answer)}` : ''}`);
     }
   }
-  if (s.tips.length) t.push('', 'Ideas for next week:', ...s.tips.slice(0, 3).map((x) => `- ${x}`));
+  if (s.tips.length) t.push('', 'Next week:', ...s.tips.slice(0, 3).map((x) => `- ${x}`));
   t.push('', `Open Math Coach: ${links.appUrl}`, '', `Unsubscribe: ${links.unsubscribeUrl}`);
 
   return { subject, html, text: t.join('\n') };

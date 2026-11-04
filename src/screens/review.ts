@@ -21,7 +21,7 @@ export function reviewScreen(): View {
     if (!item) {
       slot.replaceChildren(queue.length
         ? done(`${results.filter(Boolean).length} of ${queue.length}`, [h('a', { class: 'btn primary', href: '#/practice' }, 'Practice')])
-        : h('p', { class: 'empty' }, 'Nothing to review'));
+        : h('div', { class: 'stack' }, h('p', { class: 'empty' }, 'Nothing to review'), h('a', { class: 'btn primary hero', href: '#/practice' }, 'Practice')));
       return;
     }
     const card = problemCard({

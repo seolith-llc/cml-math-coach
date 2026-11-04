@@ -1,3 +1,4 @@
+import { load } from '../core/storage';
 import { speak } from '../voice/speech';
 import { h } from './dom';
 
@@ -14,6 +15,6 @@ export function progressDots(total: number) {
 
 /** End-of-round card: one big number, then actions. */
 export function done(score: string, actions: (Node | null)[]): HTMLElement {
-  void speak(`${score}.`);
+  if (load().settings.speak) void speak(`${score}.`);
   return h('div', { class: 'card done' }, h('p', { class: 'score' }, score), h('div', { class: 'actions' }, ...actions));
 }

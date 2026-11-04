@@ -74,7 +74,7 @@ describe('weekly email opt-in flow', () => {
     expect(t.html).toContain('Sam &lt;b&gt;');
     expect(t.html).toContain('Tues&lt;script&gt;');
     expect(t.html).not.toContain('<script>');
-    expect(t.text).toContain('Worth going over together');
+    expect(t.text).toContain('Mistakes:');
     expect(t.text).toMatch(/Answered Tues<script>\. Correct: \w+day/);
   });
 
@@ -133,7 +133,7 @@ describe('weekly batch', () => {
     const test = await testEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING + 86_400_000 }, { familyId: FAMILY, pin: PIN });
     expect(test.sent).toBe(true);
     const unsub = await unsubscribe(db, unsubTokenFrom(sent[sent.length - 1].text));
-    expect(await unsub.text()).toContain('unsubscribed');
+    expect(await unsub.text()).toContain('<h1>Unsubscribed</h1>');
     const r3 = await sendWeekly({ db, mailer, origin: ORIGIN, now: SUN_EVENING + 7 * 86_400_000 });
     expect(r3.sent + r3.skipped).toBe(0);
 

@@ -197,7 +197,7 @@ a.row:active, button.row:active { background: var(--fill); }
 .placement .slot.fixed circle { fill: var(--fill); }
 .placement .slot.selected circle, .placement .slot:focus-visible circle { stroke: var(--accent); stroke-width: 4; }
 .palette { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
-.digit-btn { width: 52px; height: 52px; border-radius: var(--radius); border: 0; background: var(--fill); font-size: 22px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+.digit-btn { width: 46px; height: 46px; border-radius: var(--radius); border: 0; background: var(--fill); font-size: 22px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 .digit-btn.used { opacity: 0.35; }
 .digit-btn:disabled { cursor: default; }
 

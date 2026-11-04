@@ -21,8 +21,24 @@ const when = (t) => (t ? new Date(Number(t)).toISOString().replace('T', ' ').sli
 const db = (await cf('GET', `/accounts/${account}/d1/database?name=${NAME}`)).find((d) => d.name === NAME);
 if (!db) throw new Error(`D1 ${NAME} not found`);
 const q = async (sql) => (await cf('POST', `/accounts/${account}/d1/database/${db.uuid}/query`, { sql }))[0].results;
+
+// Which database is the live site actually using? (Cloudflare's own record of the Pages bindings.)
+const all = await cf('GET', `/accounts/${account}/d1/database?per_page=100`);
+console.log(`D1 databases on the account: ${all.map((d) => `${d.name} (${d.uuid.slice(0, 8)})`).join(', ')}`);
+try {
+  const project = await cf('GET', `/accounts/${account}/pages/projects/${process.env.PROJECT_NAME || 'cml-math-coach'}`);
+  for (const env of ['production', 'preview']) {
+    const b = project.deployment_configs?.[env]?.d1_databases ?? {};
+    console.log(`Pages ${env} D1 bindings: ${Object.entries(b).map(([k, v]) => `${k} → ${String(v.id).slice(0, 8)}`).join(', ') || 'none'}`);
+  }
+} catch (e) {
+  console.log(`Pages project bindings: unavailable (${e.message})`);
+}
+console.log(`This report reads: ${db.name} (${db.uuid.slice(0, 8)})\n`);
 const tables = new Set((await q("SELECT name FROM sqlite_master WHERE type='table'")).map((r) => r.name));
 
+const migs = tables.has('_migrations') ? (await q('SELECT name FROM _migrations ORDER BY name')).map((r) => r.name) : [];
+console.log(`Tables: ${[...tables].sort().join(', ')} · migrations: ${migs.join(', ') || '–'}`);
 const [f] = await q('SELECT COUNT(*) AS families, SUM(email IS NOT NULL) AS with_email, SUM(email_verified) AS verified, MAX(last_sync) AS last_sync FROM families');
 const [a] = await q('SELECT COUNT(*) AS attempts, MAX(ts) AS last_attempt FROM attempts');
 console.log(`Families: ${f.families} · with email: ${f.with_email ?? 0} · confirmed: ${f.verified ?? 0} · last sync: ${when(f.last_sync)}`);

@@ -119,6 +119,18 @@ jobs:
           echo "tts API: $tts, $(wc -c < /tmp/tts.bin) bytes"
           case "$tts" in "200 audio/"*) echo "✔ Premium voice (Workers AI) works" ;; *) echo "::warning::Premium voice returned $tts" ;; esac
 
+      - name: Check the production domain
+        if: steps.secrets.outputs.ok == 'true' && github.ref == 'refs/heads/main'
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+        run: |
+          host=$(echo "$APP_URL" | sed -E 's#https?://([^/]+).*#\1#')
+          echo "DNS $host: CNAME=$(dig +short CNAME "$host" | tr '\n' ' ') A=$(dig +short A "$host" | tr '\n' ' ')"
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$APP_URL/")
+          echo "GET $APP_URL/ -> HTTP $code"
+          if [ "$code" = "200" ]; then echo "✔ Production domain serves the app"
+          else echo "::warning::$APP_URL returned $code. In Cloudflare: Workers & Pages → $PROJECT_NAME → Custom domains, attach $host (a CNAME to $PROJECT_NAME.pages.dev added by hand first can give 522)."; fi
+
       - name: Summary
         if: steps.secrets.outputs.ok == 'true'
         run: echo "Deployed to ${{ steps.deploy.outputs.deployment-url }}" >> "$GITHUB_STEP_SUMMARY"

@@ -87,6 +87,7 @@ function parentGroup(): HTMLElement {
       draw();
     };
     wrap.replaceChildren(list([
+      { label: 'Open dashboard', href: `#/parent/${sync.familyId}` },
       { label: 'Share dashboard link', onclick: () => void share() },
       sync.lastError ? { label: 'Last sync', value: h('span', { class: 'danger' }, sync.lastError) } : null,
       { label: 'Turn off', onclick: () => void off() }

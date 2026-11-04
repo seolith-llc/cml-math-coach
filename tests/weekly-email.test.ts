@@ -176,3 +176,23 @@ describe('digest content', () => {
     expect(d.text).toMatch(/No practice in the last 7 days/);
   });
 });
+
+describe('email log', () => {
+  it('records every send with the SES message id or the error', async () => {
+    const db = makeDb();
+    await seed(db);
+    const { sent, mailer } = fakeMailer();
+    await setEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN, email: 'p@example.com' });
+    await confirmEmail(db, confirmTokenFrom(sent[0].text), SUN_EVENING);
+    await testEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN });
+    const failing: Mailer = async () => { throw new Error('Email address is not verified'); };
+    await expect(testEmail({ db, mailer: failing, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN })).rejects.toThrow();
+    const { results } = await db.prepare('SELECT kind, ok, detail FROM email_log ORDER BY rowid').all();
+    expect(results).toEqual([
+      { kind: 'confirm', ok: 1, detail: 'msg-1' },
+      { kind: 'test', ok: 1, detail: 'msg-2' },
+      { kind: 'test', ok: 0, detail: 'Email address is not verified' }
+    ]);
+    expect(JSON.stringify(results)).not.toContain('p@example.com');
+  });
+});

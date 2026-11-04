@@ -33,6 +33,21 @@ function needMailer(ctx: EmailCtx): Mailer {
   return ctx.mailer;
 }
 
+/** Sends through the mailer and records the outcome in email_log (MessageId or error). */
+async function send(ctx: EmailCtx, family: string, kind: 'confirm' | 'test' | 'weekly', m: Parameters<Mailer>[0]): Promise<string> {
+  const mailer = needMailer(ctx);
+  const log = (ok: boolean, detail: string) =>
+    ctx.db.prepare('INSERT INTO email_log (ts, family, kind, ok, detail) VALUES (?, ?, ?, ?, ?)').bind(ctx.now ?? Date.now(), family, kind, ok ? 1 : 0, detail.slice(0, 300)).run().catch(() => {});
+  try {
+    const id = await mailer(m);
+    await log(true, id);
+    return id;
+  } catch (e) {
+    await log(false, (e as Error).message);
+    throw e;
+  }
+}
+
 /** Caps confirmation/test emails so the feature can't be used to spam an address. */
 async function useQuota(db: DB, row: FamilyRow, now: number) {
   const day = new Date(now).toISOString().slice(0, 10);
@@ -63,7 +78,7 @@ export async function setEmail(ctx: EmailCtx, body: Record<string, unknown>) {
   const row = await authorize(ctx.db, body, now);
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
   if (email.length > 254 || !EMAIL_RE.test(email)) throw new HttpError(400, 'Please enter a valid email address');
-  const mailer = needMailer(ctx);
+  needMailer(ctx);
   await useQuota(ctx.db, row, now);
   const token = randomToken();
   const unsub = row.unsub_token ?? randomToken();
@@ -73,7 +88,7 @@ export async function setEmail(ctx: EmailCtx, body: Record<string, unknown>) {
     .run();
   const link = `${ctx.origin}/api/email/confirm?t=${token}`;
   const who = row.child_name ? `${row.child_name}'s` : "your child's";
-  await mailer({
+  await send(ctx, row.key, 'confirm', {
     to: email,
     subject: 'Confirm your weekly Math Coach email',
     html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:520px;margin:auto;color:#1d2433">
@@ -110,11 +125,11 @@ export async function testEmail(ctx: EmailCtx, body: Record<string, unknown>) {
   const now = ctx.now ?? Date.now();
   const row = await authorize(ctx.db, body, now);
   if (!row.email || !row.email_verified) throw new HttpError(400, 'Confirm your email address first');
-  const mailer = needMailer(ctx);
+  needMailer(ctx);
   await useQuota(ctx.db, row, now);
   const data = (await loadData(ctx.db, row, now)) as DashboardData;
   const digest = buildDigest(data, { appUrl: ctx.origin + '/', unsubscribeUrl: unsubscribeUrl(ctx.origin, row.unsub_token!) }, now, { test: true })!;
-  await mailer(mailFor(ctx.origin, row, digest));
+  await send(ctx, row.key, 'test', mailFor(ctx.origin, row, digest));
   return { ok: true, sent: true, week: currentWeekKey(now) };
 }
 
@@ -163,7 +178,7 @@ export async function sendWeekly(ctx: EmailCtx, opts: { force?: boolean; limit?:
   const now = ctx.now ?? Date.now();
   const week = opts.force ? currentWeekKey(now) : sendWindow(now);
   if (!week) return { week: null, sent: 0, skipped: 0, failed: 0, remaining: 0, errors: [], reason: 'Outside the Sunday-evening send window (America/Chicago)' };
-  const mailer = needMailer(ctx);
+  needMailer(ctx);
   const limit = Math.min(Math.max(opts.limit ?? 25, 1), 40);
   const due = (n: number) =>
     ctx.db
@@ -176,7 +191,7 @@ export async function sendWeekly(ctx: EmailCtx, opts: { force?: boolean; limit?:
       const data = (await loadData(ctx.db, row, now)) as DashboardData;
       const digest = buildDigest(data, { appUrl: ctx.origin + '/', unsubscribeUrl: unsubscribeUrl(ctx.origin, row.unsub_token!) }, now);
       if (digest) {
-        await mailer(mailFor(ctx.origin, row, digest));
+        await send(ctx, row.key, 'weekly', mailFor(ctx.origin, row, digest));
         out.sent++;
       } else out.skipped++; // inactive for 4+ weeks: don't nag
       await ctx.db.prepare('UPDATE families SET email_last_week = ? WHERE key = ?').bind(week, row.key).run();

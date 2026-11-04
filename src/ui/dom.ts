@@ -88,3 +88,14 @@ export function meter(value: number | null | undefined): HTMLElement {
 export function fill(el: Element, ...children: (Node | string | null | false | undefined)[]): void {
   el.replaceChildren(...(children.filter((c) => c !== null && c !== false && c !== undefined) as (Node | string)[]));
 }
+
+/** iOS-style segmented control. */
+export function segmented<T extends string | number>(label: string, options: { value: T; label: string }[], value: T, onChange: (v: T) => void): HTMLElement {
+  const el = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': label, style: `grid-template-columns: repeat(${options.length}, 1fr)` });
+  const draw = (current: T) =>
+    el.replaceChildren(...options.map((o) =>
+      h('button', { type: 'button', role: 'radio', 'aria-checked': String(o.value === current), class: o.value === current ? 'on' : '',
+        onclick: () => { draw(o.value); onChange(o.value); } }, o.label)));
+  draw(value);
+  return el;
+}

@@ -120,7 +120,7 @@ function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
     s.needsHelp.length ? list(topicRows(s.needsHelp), 'Needs help') : null,
     building.length ? list(topicRows(building), 'Building') : null,
     s.strong.length ? list(topicRows(s.strong), 'Strong') : null,
-    s.meets.length ? group('Mock meets', meetChart(s.meets)) : null,
+    s.meets.length ? group('Tests', meetChart(s.meets)) : null,
     s.mistakes.length
       ? group('Mistakes', ...s.mistakes.map((m) => {
           const p = problemFromId(m.problemId);

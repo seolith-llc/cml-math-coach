@@ -1,6 +1,7 @@
 import type { Grade } from '../core/types';
 import { dayStreak, dueReviews, load, save } from '../core/storage';
-import { h, list } from '../ui/dom';
+import { h, list, segmented } from '../ui/dom';
+import { summary } from '../core/session';
 import type { View } from '../app';
 
 export function homeScreen(): View {
@@ -9,16 +10,11 @@ export function homeScreen(): View {
   const due = dueReviews(state, grade).length;
   const streak = dayStreak(state);
 
-  const segment = h('div', { class: 'segmented', role: 'radiogroup', 'aria-label': 'Grade' },
-    ...([2, 3] as Grade[]).map((g) =>
-      h('button', {
-        type: 'button', role: 'radio', 'aria-checked': String(g === grade), class: g === grade ? 'on' : '',
-        onclick: () => {
-          state.settings.grade = g;
-          save(state);
-          window.dispatchEvent(new HashChangeEvent('hashchange'));
-        }
-      }, `Grade ${g}`)));
+  const segment = segmented<Grade>('Grade', [{ value: 2, label: 'Grade 2' }, { value: 3, label: 'Grade 3' }], grade, (g) => {
+    state.settings.grade = g;
+    save(state);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  });
 
   return {
     title: 'Math Coach',
@@ -26,7 +22,7 @@ export function homeScreen(): View {
       segment,
       h('a', { class: 'btn primary hero', href: '#/practice' }, 'Practice'),
       list([
-        { label: 'Mock meet', value: '30 min', href: '#/meet' },
+        { label: 'Test', value: summary(state.settings.test), href: '#/test' },
         { label: 'Review', value: due || undefined, href: '#/review' },
         { label: 'Learn', href: '#/learn' },
         { label: 'Progress', value: streak ? `${streak} day${streak === 1 ? '' : 's'}` : undefined, href: '#/progress' }

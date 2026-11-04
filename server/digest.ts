@@ -112,7 +112,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     if (s.strong.length) items.push(`<strong style="color:${C.good}">Strong:</strong> ${s.strong.slice(0, 3).map((t) => esc(t.title)).join(', ')}`);
     parts.push(section('Topics', list(items)));
   }
-  if (weekMeets.length) parts.push(section('Mock meet', list(weekMeets.map((m) => `${m.score} out of ${m.total} in ${Math.round(m.seconds / 60)} minutes`))));
+  if (weekMeets.length) parts.push(section('Tests', list(weekMeets.map((m) => `${m.score} of ${m.total} in ${Math.round(m.seconds / 60)} minutes`))));
   if (mistakes.length) {
     parts.push(section('Mistakes', mistakes.map((m) => {
       const p = problemFromId(m.problemId);
@@ -140,7 +140,7 @@ ${parts.join('\n')}
   if (practiced) t.push('', 'Day by day: ' + last7.map((x) => `${dayName(x.date)} ${x.firstTry + x.other}`).join(', '));
   if (s.needsHelp.length) t.push('', `Needs help: ${s.needsHelp.slice(0, 3).map((x) => x.title).join(', ')}`);
   if (s.strong.length) t.push(`Strong: ${s.strong.slice(0, 3).map((x) => x.title).join(', ')}`);
-  if (weekMeets.length) t.push('', ...weekMeets.map((m) => `Mock meet: ${m.score}/${m.total}`));
+  if (weekMeets.length) t.push('', ...weekMeets.map((m) => `Test: ${m.score} of ${m.total}`));
   if (mistakes.length) {
     t.push('', 'Mistakes:');
     for (const m of mistakes) {

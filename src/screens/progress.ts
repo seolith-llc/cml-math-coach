@@ -22,7 +22,7 @@ export function progressScreen(): View {
         tile(tried ? `${Math.round((right / tried) * 100)}%` : '–', 'First try'),
         tile(dayStreak(state), 'Day streak')),
       weak.length ? list(weak.map((t) => ({ label: t.title, value: meter(statFor(state, grade, t.id)?.mastery), href: `#/learn/${t.id}` })), 'Practice next') : null,
-      meets.length ? list(meets.map((m) => ({ label: new Date(m.date).toLocaleDateString(), value: `${m.score} of ${m.total}` })), 'Mock meets') : null,
+      meets.length ? list(meets.map((m) => ({ label: new Date(m.date).toLocaleDateString(), value: `${m.score} of ${m.total}` })), 'Tests') : null,
       tried ? null : h('p', { class: 'empty' }, 'No problems yet'))
   };
 }

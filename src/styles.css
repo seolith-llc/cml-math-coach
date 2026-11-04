@@ -153,6 +153,7 @@ a.row:active, button.row:active { background: var(--fill); }
 .dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
 .dots span.ok { background: var(--good); }
 .dots span.miss { background: var(--bad); }
+.dots span.done { background: var(--muted); }
 .done { text-align: center; padding: 32px 20px; }
 .score { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .done .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }

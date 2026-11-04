@@ -1,4 +1,5 @@
 import type { Grade } from './types';
+import { normalizeTest, type TestConfig } from './session';
 
 export interface TopicStat {
   attempts: number;
@@ -23,6 +24,8 @@ export interface MeetRecord {
   score: number;
   total: number;
   seconds: number;
+  /** Setup used (absent on records from before 2026-11-04 = a 6-question, 30-minute meet). */
+  config?: TestConfig;
   topics: { topicId: string; correct: boolean }[];
 }
 
@@ -37,6 +40,8 @@ export interface Settings {
   speak: boolean;
   /** Listen for answers automatically after each question is read. */
   handsFree: boolean;
+  /** Last test setup (questions, feedback, clock). */
+  test: TestConfig;
 }
 
 /** Settings stored by older versions (before 2026-11-03). */
@@ -53,6 +58,7 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   const out: Settings = { ...base, ...rest };
   if (raw.speak === undefined && (autoRead !== undefined || speakFeedback !== undefined)) out.speak = autoRead !== false || speakFeedback !== false;
   if (raw.voice === undefined && voiceEngine) out.voice = voiceEngine === 'device' ? `device:${voiceURI ?? ''}` : `natural:${premiumVoice || 'luna'}`;
+  out.test = normalizeTest(raw.test);
   return out;
 }
 
@@ -98,7 +104,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined) },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

@@ -2,11 +2,11 @@ import { load } from '../core/storage';
 import { speak } from '../voice/speech';
 import { h } from './dom';
 
-/** Row of dots: one per problem in the round, filled green/red as answered. */
+/** Row of dots, one per problem: green right, red missed, grey done-but-not-checked-yet (Test mode). */
 export function progressDots(total: number) {
   const el = h('div', { class: 'dots', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': total });
-  const update = (results: boolean[]) => {
-    el.replaceChildren(...Array.from({ length: total }, (_, i) => h('span', { class: i < results.length ? (results[i] ? 'ok' : 'miss') : '' })));
+  const update = (results: (boolean | null)[]) => {
+    el.replaceChildren(...Array.from({ length: total }, (_, i) => h('span', { class: i < results.length ? (results[i] === null ? 'done' : results[i] ? 'ok' : 'miss') : '' })));
     el.setAttribute('aria-valuenow', String(results.length));
   };
   update([]);

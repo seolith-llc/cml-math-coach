@@ -104,21 +104,23 @@ export function dailyChart(daily: { date: string; firstTry: number; other: numbe
 
 export function meetChart(meets: { date: number; score: number; total: number; seconds: number }[]): HTMLElement {
   const W = 640, H = 180, L = 30, R = 16, T = 14, B = 26;
-  const y = (v: number) => T + (H - T - B) * (1 - v / 6);
+  // Tests can have 6–20 questions, so plot the share correct (0–100%).
+  const pct = (m: { score: number; total: number }) => (m.total ? (m.score / m.total) * 100 : 0);
+  const y = (v: number) => T + (H - T - B) * (1 - v / 100);
   const x = (i: number) => (meets.length === 1 ? (L + W - R) / 2 : L + (i * (W - L - R)) / (meets.length - 1));
-  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'viz', role: 'img', 'aria-label': 'Mock meet scores out of 6' });
-  for (const v of [0, 3, 6]) {
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'viz', role: 'img', 'aria-label': 'Test scores, percent correct' });
+  for (const v of [0, 50, 100]) {
     svg.append(s('line', { x1: L, x2: W - R, y1: y(v), y2: y(v), class: 'viz-grid' }));
     const t = s('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end', class: 'viz-axis' });
-    t.textContent = String(v);
+    t.textContent = `${v}%`;
     svg.append(t);
   }
-  if (meets.length > 1) svg.append(s('polyline', { points: meets.map((m, i) => `${x(i)},${y(m.score)}`).join(' '), class: 'viz-line' }));
+  if (meets.length > 1) svg.append(s('polyline', { points: meets.map((m, i) => `${x(i)},${y(pct(m))}`).join(' '), class: 'viz-line' }));
   const { wrap, show, hide } = withTooltip(svg);
   meets.forEach((m, i) => {
-    svg.append(s('circle', { cx: x(i), cy: y(m.score), r: 5, class: 'viz-dot' }));
-    const hit = s('circle', { cx: x(i), cy: y(m.score), r: 14, class: 'viz-hit', tabindex: 0 });
-    const html = `<strong>${new Date(m.date).toLocaleDateString()}</strong><br>${m.score} / ${m.total} correct<br>${Math.round(m.seconds / 60)} min used`;
+    svg.append(s('circle', { cx: x(i), cy: y(pct(m)), r: 5, class: 'viz-dot' }));
+    const hit = s('circle', { cx: x(i), cy: y(pct(m)), r: 14, class: 'viz-hit', tabindex: 0 });
+    const html = `<strong>${new Date(m.date).toLocaleDateString()}</strong><br>${m.score} of ${m.total}<br>${Math.round(m.seconds / 60)} min`;
     hit.addEventListener('pointerenter', () => show(html, hit));
     hit.addEventListener('focus', () => show(html, hit));
     hit.addEventListener('click', () => show(html, hit));
@@ -127,10 +129,10 @@ export function meetChart(meets: { date: number; score: number; total: number; s
     svg.append(hit);
   });
   const last = meets[meets.length - 1];
-  const lbl = s('text', { x: Math.min(x(meets.length - 1) + 10, W - R - 40), y: y(last.score) - 10, class: 'viz-label' });
-  lbl.textContent = `${last.score}/6`;
+  const lbl = s('text', { x: Math.min(x(meets.length - 1) + 10, W - R - 40), y: y(pct(last)) - 10, class: 'viz-label' });
+  lbl.textContent = `${last.score}/${last.total}`;
   svg.append(lbl);
-  return h('figure', { class: 'viz-figure', 'aria-label': 'Mock meet scores out of 6' },
+  return h('figure', { class: 'viz-figure', 'aria-label': 'Test scores, percent correct' },
     wrap,
-    table(['Date', 'Score', 'Minutes'], meets.map((m) => [new Date(m.date).toLocaleDateString(), `${m.score} / ${m.total}`, Math.round(m.seconds / 60)])));
+    table(['Date', 'Score', 'Minutes'], meets.map((m) => [new Date(m.date).toLocaleDateString(), `${m.score} of ${m.total}`, Math.round(m.seconds / 60)])));
 }

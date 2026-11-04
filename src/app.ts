@@ -6,7 +6,7 @@ import { icon } from './ui/icons';
 import { homeScreen } from './screens/home';
 import { practiceScreen } from './screens/practice';
 import { reviewScreen } from './screens/review';
-import { meetScreen } from './screens/meet';
+import { testScreen } from './screens/test';
 import { learnScreen, strategiesScreen, topicScreen } from './screens/learn';
 import { progressScreen } from './screens/progress';
 import { privacyScreen, settingsScreen } from './screens/settings';
@@ -24,7 +24,8 @@ const routes: Record<string, (param?: string) => View> = {
   '': homeScreen,
   practice: practiceScreen,
   review: reviewScreen,
-  meet: meetScreen,
+  test: testScreen,
+  meet: testScreen, // old link
   learn: (p) => (p === 'strategies' ? strategiesScreen() : p ? topicScreen(p) : learnScreen()),
   toolkit: strategiesScreen, // old link
   progress: progressScreen,

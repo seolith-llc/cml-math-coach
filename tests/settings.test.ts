@@ -16,6 +16,11 @@ describe('settings', () => {
     expect(migrateSettings({ voice: 'natural:orion', speak: false }, base)).toEqual({ ...base, voice: 'natural:orion', speak: false });
     expect(migrateSettings({}, base)).toEqual(base);
   });
+  it('adds and cleans the test setup', () => {
+    expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
+    expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)
+      .toEqual({ count: 10, feedback: 'test', clock: 'each', totalMinutes: 30, eachSeconds: 90 });
+  });
   it('maps the voice setting to speech options', () => {
     expect(voiceOptions('natural:orion', 1.1)).toEqual({ rate: 1.1, engine: 'premium', premiumVoice: 'orion' });
     expect(voiceOptions('device:urn:voice:a:b', 1)).toEqual({ rate: 1, engine: 'device', voiceURI: 'urn:voice:a:b' });

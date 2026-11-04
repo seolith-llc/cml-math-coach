@@ -110,7 +110,7 @@ export function summarize(data: DashboardData, now = Date.now()) {
   else if (week.days < 3) tips.push(`Practiced on ${week.days} day${week.days === 1 ? '' : 's'} this week. Little and often (4–5 days a week) works better than one long session.`);
   if (needsHelp[0]) tips.push(`Sit together for "${needsHelp[0].title}": open its Learn page, do the worked example out loud, then 3 practice problems.`);
   if (week.pct !== null && prevWeek.pct !== null && week.pct - prevWeek.pct >= 10) tips.push(`First-try accuracy is up ${week.pct - prevWeek.pct} points on last week. Worth celebrating!`);
-  if (!meets.length && all.problems >= 30) tips.push('Ready for a first Mock meet (6 questions, 30 minutes), just like contest day.');
+  if (!meets.length && all.problems >= 30) tips.push('Ready for a first Test: 6 questions in 30 minutes, like contest day.');
   if ((data.snapshot?.reviewDue ?? 0) >= 5) tips.push(`${data.snapshot!.reviewDue} missed problems are waiting in Review. Fixing old mistakes is the fastest win.`);
   if (untried.length && all.problems >= 20) tips.push(`${untried.length} topics are untried yet, for example "${untried[0].title}".`);
   if (all.problems && hinted / all.problems > 0.4) tips.push('Hints are used often. Encourage trying the problem for a minute before asking for a hint.');

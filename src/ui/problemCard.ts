@@ -28,7 +28,7 @@ export interface CardOptions {
  * One problem: question, answer field, check. Voice (read aloud, spoken answers and commands),
  * hints, mistake coaching and the step-by-step solution all live here.
  */
-export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTMLElement; destroy: () => void } {
+export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTMLElement; destroy: () => void; expire: () => void } {
   const state = load();
   const settings = state.settings;
   const coach = new Coach(problem, new Rng(randomSeed()));
@@ -230,6 +230,8 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
 
   return {
     el,
+    /** Time ran out: show the answer and solution; counts as missed. */
+    expire: () => void reveal(false),
     destroy: () => {
       destroyed = true;
       stopSpeaking();

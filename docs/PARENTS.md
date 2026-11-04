@@ -23,7 +23,7 @@ On the dashboard you can add an email for a Sunday-evening summary.
 |---|---|
 | Most days | Review, then one round of Practice (10 problems) |
 | Twice a week | One Learn topic: read it together, do the example out loud |
-| Weekend | One Mock meet: quiet room, pencil, paper |
+| Weekend | One **Test** at 6 questions in 30 minutes (the CML meet). Quiet room, pencil, paper. |
 
 Ask "How do you know?" more than "Is that right?". Praise the strategy, not just the answer.
 
@@ -38,4 +38,4 @@ Ask "How do you know?" more than "Is that right?". Praise the strategy, not just
 | 5 | Heads and legs, same rate, work backwards | Guess and check |
 | 6 | Triangles, rectangles, Venn diagrams, digits | Number the sections |
 | 7 | Ordering, matching, brothers and sisters, letter puzzles | Logical reasoning |
-| 8 | Mock meets, plus the topics under *Needs help* on the dashboard | All four steps |
+| 8 | Timed tests (Total, then Each at 5 min), plus the topics under *Needs help* | All four steps |

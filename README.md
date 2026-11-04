@@ -3,7 +3,7 @@
 Practice for the Continental Math League, Grades 2 and 3, by voice or touch. Live at **https://cml-math-coach.seolith.com**.
 
 - **Practice:** endless original problems across 40 topics, adapting to what your child needs.
-- **Mock meet:** 6 questions in 30 minutes, like contest day.
+- **Test:** 6 to 20 questions. Learn or Test mode, and no clock, a clock for the whole test, or one per question. The default is a CML meet: 6 in 30 minutes.
 - **Coach:** reads aloud, listens to answers, gives hints, explains mistakes, and brings missed problems back later.
 - **Parent dashboard** and weekly email.
 

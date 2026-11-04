@@ -70,7 +70,7 @@ The dashboard data lives in a Cloudflare **D1** database named `cml-math-coach`.
   but turning on the dashboard shows "storage is not set up yet".
 - Endpoints: `POST /api/sync` (the child's device uploads results, which needs the private family id) and `POST /api/parent` (read or delete, which needs the family id **and** the PIN).
 - Security: only `sha256(familyId)` and a PBKDF2 hash of the PIN are stored. After 5 wrong PINs the family is locked for 15 minutes. Requests must be same-origin.
-- Privacy: stored data is the child's first name, grade, topic results, answers given, time spent and mock meet scores. "Turn off and delete online data" in Settings erases it.
+- Privacy: stored data is the child's first name, grade, topic results, answers given, time spent and test scores. "Turn off and delete online data" in Settings erases it.
 
 ## Weekly progress email (Amazon SES)
 How it works: the scheduled workflow [`weekly-email.yml`](../.github/workflows/weekly-email.yml) calls `POST /api/weekly`

@@ -78,22 +78,29 @@ export function problemFromId(id: string): Problem | undefined {
 }
 
 /**
- * A mock contest meet: 6 questions in 30 minutes, getting harder, as on real CML papers.
- * Questions come from different categories, and logic or counting puzzles go near the end.
+ * A test of `count` questions (6 = a CML meet). Difficulty ramps up: the first sixth is warm-up, the last third is
+ * challenge (Grade 2 caps at contest level). Topics never repeat, and categories rotate so neighbours differ.
+ * Logic, counting and puzzle topics lean towards the end, as on real papers.
  */
-export function makeMeet(grade: Grade, seed = randomSeed()): Problem[] {
+export function makeMeet(grade: Grade, seed = randomSeed(), count = 6): Problem[] {
   const rng = new Rng(seed);
   const pool = topicsForGrade(grade);
-  const levels: Level[] = [1, 2, 2, 2, 3, 3].map((l) => (grade === 2 && l === 3 ? 2 : l)) as Level[];
-  const late = rng.shuffle(pool.filter((t) => ['Logic', 'Counting', 'Puzzles'].includes(t.category)));
-  const early = rng.shuffle(pool.filter((t) => !['Logic', 'Counting', 'Puzzles'].includes(t.category)));
-  const chosen: Topic[] = [];
-  const usedCats = new Set<string>();
-  const take = (list: Topic[]) => {
-    const t = list.find((x) => !chosen.includes(x) && !usedCats.has(x.category)) ?? list.find((x) => !chosen.includes(x))!;
-    chosen.push(t);
-    usedCats.add(t.category);
+  const n = Math.min(count, pool.length);
+  const levelAt = (i: number): Level => {
+    const l: Level = i < Math.max(1, Math.round(n / 6)) ? 1 : i >= n - Math.max(2, Math.round(n / 3)) ? 3 : 2;
+    return grade === 2 && l === 3 ? 2 : l;
   };
-  take(early); take(early); take(early); take(late); take(early); take(late);
-  return chosen.map((t, i) => makeProblem(t, grade, levels[i], rng.int(1, 2 ** 31)));
+  const isLate = (t: Topic) => ['Logic', 'Counting', 'Puzzles'].includes(t.category);
+  const late = rng.shuffle(pool.filter(isLate));
+  const early = rng.shuffle(pool.filter((t) => !isLate(t)));
+  const chosen: Topic[] = [];
+  const take = (preferLate: boolean) => {
+    const [first, second] = preferLate ? [late, early] : [early, late];
+    const prev = chosen[chosen.length - 1]?.category;
+    const fresh = (l: Topic[]) => l.find((t) => !chosen.includes(t) && t.category !== prev) ?? l.find((t) => !chosen.includes(t));
+    chosen.push((fresh(first) ?? fresh(second))!);
+  };
+  // About 1 in 3 questions is a logic/counting/puzzle one, mostly in the second half.
+  for (let i = 0; i < n; i++) take(i >= n / 2 ? i % 2 === 1 : i % 3 === 2);
+  return chosen.map((t, i) => makeProblem(t, grade, levelAt(i), rng.int(1, 2 ** 31)));
 }

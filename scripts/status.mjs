@@ -48,6 +48,17 @@ console.log('\nEmail per family:');
 for (const r of await q('SELECT email, email_verified, email_quota, email_last_week, last_sync FROM families WHERE email IS NOT NULL'))
   console.log(`  ${mask(r.email)} · ${r.email_verified ? 'confirmed' : 'unconfirmed'} · sends today: ${r.email_quota ?? '–'} · last weekly: ${r.email_last_week ?? '–'}`);
 
+if (tables.has('push_subs')) {
+  const [p] = await q('SELECT COUNT(*) AS subs, SUM(failures > 0) AS failing, MAX(last_sent_day) AS last_sent FROM push_subs');
+  console.log(`\nDevice reminders: ${p.subs} subscribed · failing: ${p.failing ?? 0} · last sent: ${p.last_sent ?? '–'}`);
+  for (const r of await q('SELECT tz, hour, last_active_day, last_sent_day FROM push_subs LIMIT 20'))
+    console.log(`  ${r.tz} at ${r.hour}:00 · last practice: ${r.last_active_day ?? '–'} · last reminder: ${r.last_sent_day ?? '–'}`);
+}
+if (tables.has('families') && (await q("SELECT COUNT(*) AS n FROM pragma_table_info('families') WHERE name = 'email_nudges'"))[0].n) {
+  for (const r of await q('SELECT email, email_weekly, email_nudges, nudges_sent, nudged_day FROM families WHERE email IS NOT NULL'))
+    console.log(`  ${mask(r.email)} · weekly: ${r.email_weekly ? 'on' : 'off'} · nudges: ${r.email_nudges ? 'on' : 'off'} (${r.nudges_sent} sent this break, last ${r.nudged_day ?? '–'})`);
+}
+
 if (tables.has('email_log')) {
   console.log('\nRecent email sends:');
   const rows = await q('SELECT ts, kind, ok, detail FROM email_log ORDER BY ts DESC LIMIT 20');

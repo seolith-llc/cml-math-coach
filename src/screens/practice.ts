@@ -4,7 +4,8 @@ import { levelFor, pickTopic } from '../core/mastery';
 import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
-import { done as doneScreen, progressDots } from '../ui/session';
+import { celebrate, done as doneScreen, progressDots } from '../ui/session';
+import { today } from '../core/progress';
 import type { View } from '../app';
 
 const SESSION = 10;
@@ -36,11 +37,12 @@ export function practiceScreen(topicId?: string): View {
         const ok = r.correct && r.firstTry;
         results.push(ok);
         dots.update(results);
-        recordAttempt(state, grade, problem.topicId, ok, {
+        const ev = recordAttempt(state, grade, problem.topicId, ok, {
           problemId: problem.id, level: problem.level, correct: r.correct, firstTry: ok, skipped: r.skipped,
           hints: r.hints, seconds: r.seconds, answer: r.wrongAnswer, mode: 'practice'
         });
         if (!ok) addToReview(state, problem.id, r.wrongAnswer);
+        celebrate(ev);
       },
       onNext: next
     });
@@ -50,10 +52,12 @@ export function practiceScreen(topicId?: string): View {
 
   function finishRound() {
     const right = results.filter(Boolean).length;
-    slot.replaceChildren(doneScreen(`${right} of ${SESSION}`, [
-      h('button', { class: 'btn primary', type: 'button', onclick: () => { results.length = 0; dots.update(results); next(); } }, 'Keep going'),
-      right < SESSION ? h('a', { class: 'btn', href: '#/review' }, 'Review') : null
-    ]));
+    const goalMet = today({ log: state.log, goal: state.settings.goal, reviewDue: 0, meets: [] }).goalMet;
+    const more = h('button', { class: `btn ${goalMet ? '' : 'primary'}`, type: 'button', onclick: () => { results.length = 0; dots.update(results); next(); } }, 'Keep going');
+    // Once today's goal is met, finishing is the main action: healthy stopping points, not endless play.
+    slot.replaceChildren(doneScreen(`${right} of ${SESSION}`, goalMet
+      ? [h('a', { class: 'btn primary', href: '#/' }, 'Done for today'), more]
+      : [more, right < SESSION ? h('a', { class: 'btn', href: '#/review' }, 'Review') : null]));
   }
 
   next();

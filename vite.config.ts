@@ -26,6 +26,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         navigateFallbackDenylist: [/^\/api\//],
+        importScripts: ['push-sw.js'], // practice reminders (public/push-sw.js)
         runtimeCaching: [
           {
             // Premium voice clips: replay instantly and offline once heard.

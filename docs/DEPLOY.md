@@ -73,8 +73,8 @@ The dashboard data lives in a Cloudflare **D1** database named `cml-math-coach`.
 - Privacy: stored data is the child's first name, grade, topic results, answers given, time spent and test scores. "Turn off and delete online data" in Settings erases it.
 
 ## Weekly progress email (Amazon SES)
-How it works: the scheduled workflow [`weekly-email.yml`](../.github/workflows/weekly-email.yml) calls `POST /api/weekly`
-with `Authorization: Bearer <CRON_SECRET>` at both Sunday-evening UTC slots. The function sends only inside
+How it works: the scheduled workflow [`hourly.yml`](../.github/workflows/hourly.yml) calls `POST /api/hourly`
+with `Authorization: Bearer <CRON_SECRET>` every hour. The same call sends device reminders and parent nudges. The function sends only inside
 **Sunday 5 pm – Monday 6 am America/Chicago**, at most once per family per week, and skips families with no practice for 4+ weeks.
 Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../server/ses.ts) (no SDK).
 
@@ -93,11 +93,16 @@ Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../
    - Variables (optional): `AWS_REGION` (default `us-east-1`), `MAIL_FROM` (default `CML Math Coach <coach@seolith.com>`), `MAIL_REPLY_TO`
 5. Re-run **Deploy to Cloudflare Pages**. It copies these into the Pages project's secrets. `APP_URL` is in `wrangler.toml`.
 6. On the parent dashboard, add your email, confirm it, and press **Send a test now**.
-   To try the weekly run itself: Actions → **Weekly progress email** → Run workflow with *force*.
+   To try the weekly run itself: Actions → **Hourly** → Run workflow with *force_weekly*.
 
 **Safety:** confirmation links expire after 3 days and only work once. Link opens show a button and the change happens on POST, so mail scanners can't
 confirm or unsubscribe on the parent's behalf. Confirmation and test emails are capped at 5 per family per day.
 Every weekly email has `List-Unsubscribe` and `List-Unsubscribe-Post` (one-click) headers.
+
+## Reminders (web push) and nudges
+- No setup is needed. The VAPID key pair is generated on first use and kept in D1 (`kv`). Subscriptions are stored in `push_subs`, and only real push-service endpoints (Apple, Google, Mozilla, Microsoft) are accepted.
+- Encryption (RFC 8291) and VAPID (RFC 8292) are in `server/push.ts`, tested against the independent `http_ece` decoder.
+- Check delivery with Actions → **Status** (subscriptions, last reminder, nudge state, email log).
 
 ## Rollback
 Workers & Pages → cml-math-coach → **Deployments** → choose an earlier deployment → **Rollback**.

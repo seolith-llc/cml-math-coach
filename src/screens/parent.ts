@@ -10,7 +10,7 @@ import type { View } from '../app';
  * Data comes from POST /api/parent (needs the PIN). The PIN is remembered for this tab only.
  */
 
-type Email = { address: string; verified: boolean } | null;
+type Email = { address: string; verified: boolean; weekly?: boolean; nudges?: boolean } | null;
 type Data = DashboardData & { email?: Email };
 
 const pinKey = (id: string) => `cml-parent-pin:${id}`;
@@ -78,7 +78,7 @@ function emailGroup(familyId: string, pin: string, initial: Email): HTMLElement 
         email = { address: String(r.email), verified: false };
         return 'Check your inbox to confirm.';
       });
-      fill(wrap, group('Weekly email', h('div', { class: 'row' }, input, add), msg));
+      fill(wrap, group('Email', h('div', { class: 'row' }, input, add), msg));
       return;
     }
     const test = h('button', { class: 'btn plain', type: 'button' }, email.verified ? 'Send test' : 'Resend');
@@ -91,8 +91,25 @@ function emailGroup(familyId: string, pin: string, initial: Email): HTMLElement 
       await post({ familyId, pin, action: 'email-stop' });
       email = null;
     });
-    fill(wrap, group('Weekly email',
-      h('div', { class: 'row' }, h('span', { class: 'row-label' }, email.address), h('span', { class: 'row-value' }, email.verified ? 'Sundays' : 'Unconfirmed')),
+    // Two switches: the Sunday summary, and a nudge after 3 (then 7) days without practice.
+    const pref = (label: string, key: 'weekly' | 'nudges') => {
+      const box = h('input', { type: 'checkbox', role: 'switch', checked: email![key] !== false, onchange: async () => {
+        box.disabled = true;
+        try {
+          await post({ familyId, pin, action: 'email-prefs', [key]: box.checked });
+          email![key] = box.checked;
+        } catch (e) {
+          box.checked = !box.checked;
+          draw({ ok: false, text: (e as Error).message });
+        }
+        box.disabled = false;
+      } });
+      return h('label', { class: 'row switch' }, h('span', { class: 'row-label' }, label), box);
+    };
+    fill(wrap, group('Email',
+      h('div', { class: 'row' }, h('span', { class: 'row-label' }, email.address), email.verified ? null : h('span', { class: 'row-value' }, 'Unconfirmed')),
+      email.verified ? pref('Weekly summary', 'weekly') : null,
+      email.verified ? pref('Practice reminders', 'nudges') : null,
       h('div', { class: 'row actions' }, test, stop),
       msg));
   };

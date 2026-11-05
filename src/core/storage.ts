@@ -1,5 +1,6 @@
 import type { Grade } from './types';
 import { normalizeTest, type TestConfig } from './session';
+import { GOALS, awardStars, localDay, streak } from './progress';
 
 export interface TopicStat {
   attempts: number;
@@ -8,6 +9,8 @@ export interface TopicStat {
   mastery: number;
   streak: number;
   lastSeen: number;
+  /** Earned stars 0–3 (never decrease). */
+  stars?: number;
 }
 
 export interface ReviewItem {
@@ -42,6 +45,10 @@ export interface Settings {
   handsFree: boolean;
   /** Last test setup (questions, feedback, clock). */
   test: TestConfig;
+  /** Problems per day. */
+  goal: number;
+  /** Daily practice reminder on this device (web push), at a local hour. */
+  reminder: { on: boolean; hour: number };
 }
 
 /** Settings stored by older versions (before 2026-11-03). */
@@ -59,6 +66,9 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   if (raw.speak === undefined && (autoRead !== undefined || speakFeedback !== undefined)) out.speak = autoRead !== false || speakFeedback !== false;
   if (raw.voice === undefined && voiceEngine) out.voice = voiceEngine === 'device' ? `device:${voiceURI ?? ''}` : `natural:${premiumVoice || 'luna'}`;
   out.test = normalizeTest(raw.test);
+  out.goal = (GOALS as readonly number[]).includes(Number(raw.goal)) ? Number(raw.goal) : base.goal;
+  const r = raw.reminder;
+  out.reminder = { on: !!r?.on, hour: Number.isInteger(r?.hour) && r!.hour >= 6 && r!.hour <= 21 ? r!.hour : base.reminder.hour };
   return out;
 }
 
@@ -104,7 +114,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined) },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 } },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],
@@ -149,7 +159,8 @@ export function reset(): void {
   save(memory);
 }
 
-export const today = (d = new Date()) => d.toISOString().slice(0, 10);
+/** Local calendar day (an evening session counts for today, not tomorrow's UTC date). */
+export const today = (d: Date | number = new Date()) => localDay(d);
 
 const DAY = 86_400_000;
 const BOX_DAYS = [0, 0, 1, 3, 7, 14];
@@ -158,7 +169,15 @@ const LOG_MAX = 4000;
 
 export type AttemptDetail = Omit<AttemptLog, 'ts' | 'topicId' | 'grade' | 'firstTry'> & { firstTry?: boolean };
 
-export function recordAttempt(state: AppState, grade: Grade, topicId: string, correct: boolean, detail?: AttemptDetail): void {
+/** What changed, so the screen can celebrate: a topic moved up a level, or today's goal was just met. */
+export interface ProgressEvent {
+  stars?: { topicId: string; stars: number };
+  goalReached?: boolean;
+}
+
+export function recordAttempt(state: AppState, grade: Grade, topicId: string, correct: boolean, detail?: AttemptDetail): ProgressEvent {
+  const day = today();
+  const before = state.log.filter((a) => today(a.ts) === day).length;
   if (detail) {
     const last = state.log[state.log.length - 1];
     const ts = Math.max(Date.now(), (last?.ts ?? 0) + 1); // unique, increasing
@@ -172,10 +191,15 @@ export function recordAttempt(state: AppState, grade: Grade, topicId: string, co
   s.mastery = s.mastery * 0.75 + (correct ? 1 : 0) * 0.25;
   s.streak = correct ? s.streak + 1 : 0;
   s.lastSeen = Date.now();
-  const d = today();
-  if (!state.activeDays.includes(d)) state.activeDays.push(d);
+  const up = awardStars(s);
+  if (!state.activeDays.includes(day)) state.activeDays.push(day);
   save(state);
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+  const after = detail ? before + 1 : before;
+  return {
+    ...(up ? { stars: { topicId, stars: up } } : {}),
+    ...(before < state.settings.goal && after >= state.settings.goal ? { goalReached: true } : {})
+  };
 }
 
 /** Put a missed problem in the review queue (or move it back to box 1). */
@@ -207,14 +231,7 @@ export function dueReviews(state: AppState, grade: Grade): ReviewItem[] {
 }
 
 /** Number of consecutive days with practice, ending today or yesterday. */
+/** Consecutive practice days; one missed day a week is forgiven (see core/progress.ts). */
 export function dayStreak(state: AppState): number {
-  const set = new Set(state.activeDays);
-  let n = 0;
-  const d = new Date();
-  if (!set.has(today(d))) d.setDate(d.getDate() - 1);
-  while (set.has(today(d))) {
-    n++;
-    d.setDate(d.getDate() - 1);
-  }
-  return n;
+  return streak(state.activeDays);
 }

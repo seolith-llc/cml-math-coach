@@ -9,7 +9,7 @@ import { fill, group, h, list, rich, segmented, svg } from '../ui/dom';
 import { answerCard } from '../ui/answerCard';
 import { clock } from '../ui/clock';
 import { problemCard } from '../ui/problemCard';
-import { done, progressDots } from '../ui/session';
+import { celebrate, done, progressDots } from '../ui/session';
 import type { View } from '../app';
 
 /**
@@ -126,10 +126,10 @@ export function testScreen(): View {
           results.push(ok);
           dots.update(results);
           if (cfg.clock === 'each') c?.stop();
-          recordAttempt(state, grade, p.topicId, ok, {
+          celebrate(recordAttempt(state, grade, p.topicId, ok, {
             problemId: p.id, level: p.level, correct: r.correct, firstTry: ok, skipped: r.skipped,
             hints: r.hints, seconds: r.seconds, answer: r.wrongAnswer, mode: 'practice'
-          });
+          }));
           if (!ok) addToReview(state, p.id, r.wrongAnswer);
         },
         onNext: next

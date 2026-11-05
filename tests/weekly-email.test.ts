@@ -58,7 +58,7 @@ describe('weekly email opt-in flow', () => {
     await expect(testEmail(ctx, { familyId: FAMILY, pin: PIN })).rejects.toThrow(/Confirm your email/);
 
     const dash1 = await readDashboard(db, { familyId: FAMILY, pin: PIN }, SUN_EVENING);
-    expect(dash1.email).toEqual({ address: 'parent@example.com', verified: false });
+    expect(dash1.email).toEqual({ address: 'parent@example.com', verified: false, weekly: true, nudges: true });
 
     const res = await confirmEmail(db, confirmTokenFrom(sent[0].text), SUN_EVENING + 1000);
     expect(res.status).toBe(200);

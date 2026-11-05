@@ -2,7 +2,9 @@ import { load, reset, save } from '../core/storage';
 import { PREMIUM_VOICES, listVoices, speak, voiceOptions, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported } from '../voice/recognition';
 import { disableSync, enableSync, parentLink } from '../sync/sync';
-import { group, h, list, toast } from '../ui/dom';
+import { disableReminder, enableReminder, reminderSupport } from '../notify/reminders';
+import { GOALS } from '../core/progress';
+import { group, h, list, segmented, toast } from '../ui/dom';
 import { applyVoiceSettings } from '../app';
 import type { View } from '../app';
 
@@ -44,12 +46,56 @@ export function settingsScreen(): View {
         h('label', { class: 'row' }, h('span', { class: 'row-label' }, 'Speed'), rate),
         toggle('Read aloud', s.speak, (v) => { s.speak = v; save(state); }),
         toggle('Hands-free', s.handsFree, (v) => { s.handsFree = v; save(state); }, !sttSupported())),
+      group('Daily goal', segmented<number>('Daily goal', GOALS.map((g) => ({ value: g, label: String(g) })), s.goal, (g) => {
+        s.goal = g;
+        save(state);
+        if (s.reminder.on && reminderSupport() === 'ok') void enableReminder(s.reminder.hour).catch(() => {}); // keep the reminder text in step
+      })),
+      reminderGroup(),
       parentGroup(),
       list([
         { label: 'Privacy', href: '#/privacy' },
         { label: h('span', { class: 'danger' }, 'Reset progress'), onclick: () => { if (confirm('Erase all progress on this device?')) { reset(); toast('Progress erased'); location.hash = '#/'; } } }
       ]))
   };
+}
+
+const hourLabel = (h: number) => `${h % 12 || 12} ${h < 12 ? 'am' : 'pm'}`;
+
+/** Daily reminder on this device: a switch, and the time when it's on. */
+function reminderGroup(): HTMLElement {
+  const state = load();
+  const r = state.settings.reminder;
+  const support = reminderSupport();
+  if (support === 'no') return h('div');
+  const wrap = h('div');
+  const draw = () => {
+    const time = h('select', { class: 'row-input', 'aria-label': 'Reminder time', onchange: async () => {
+      r.hour = Number(time.value);
+      save(state);
+      await enableReminder(r.hour).catch((e) => toast((e as Error).message));
+    } }, ...Array.from({ length: 14 }, (_, i) => i + 7).map((hr) => h('option', { value: String(hr), selected: hr === r.hour }, hourLabel(hr))));
+    const box = h('input', { type: 'checkbox', role: 'switch', checked: r.on && support === 'ok', disabled: support !== 'ok', onchange: async () => {
+      box.disabled = true;
+      try {
+        if (box.checked) await enableReminder(r.hour);
+        else await disableReminder();
+        r.on = box.checked;
+        save(state);
+      } catch (e) {
+        box.checked = !box.checked;
+        toast((e as Error).message);
+      }
+      box.disabled = false;
+      draw();
+    } });
+    const row = h('label', { class: 'row switch' }, h('span', { class: 'row-label' }, 'Daily reminder'),
+      support === 'install' ? h('span', { class: 'row-value' }, 'Home Screen app') : null, box);
+    wrap.replaceChildren(group('Reminder', row,
+      r.on && support === 'ok' ? h('label', { class: 'row' }, h('span', { class: 'row-label' }, 'Time'), time) : null));
+  };
+  draw();
+  return wrap;
 }
 
 /** Parent dashboard: off → PIN + Turn on. On → private link to share, Turn off. */

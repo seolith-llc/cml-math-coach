@@ -2,7 +2,7 @@ import { dueReviews, load, recordAttempt, reviewResult } from '../core/storage';
 import { problemFromId } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
-import { done, progressDots } from '../ui/session';
+import { celebrate, done, progressDots } from '../ui/session';
 import type { View } from '../app';
 
 /** Missed problems come back (same problem) on a spaced schedule: same day, 1, 3, 7, 14 days. */
@@ -31,10 +31,11 @@ export function reviewScreen(): View {
         results.push(ok);
         dots.update(results);
         reviewResult(state, item.r.problemId, ok);
-        recordAttempt(state, grade, item.p.topicId, ok, {
+        const ev = recordAttempt(state, grade, item.p.topicId, ok, {
           problemId: item.p.id, level: item.p.level, correct: res.correct, firstTry: ok, skipped: res.skipped,
           hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
         });
+        celebrate(ev);
       },
       onNext: next
     });

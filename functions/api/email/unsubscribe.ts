@@ -3,10 +3,11 @@ import { confirmButtonPage, htmlResponse, unsubscribe } from '../../../server/em
 import type { Env } from '../../../server/env';
 
 const token = (r: Request) => new URL(r.url).searchParams.get('u') ?? '';
+const kind = (r: Request) => new URL(r.url).searchParams.get('k');
 
-export const onRequestGet = ({ request }: { request: Request }) => confirmButtonPage('unsubscribe', token(request));
+export const onRequestGet = ({ request }: { request: Request }) => confirmButtonPage('unsubscribe', token(request), kind(request));
 
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!env.DB) return htmlResponse(503, 'Not available');
-  return unsubscribe(env.DB, token(request));
+  return unsubscribe(env.DB, token(request), kind(request));
 }

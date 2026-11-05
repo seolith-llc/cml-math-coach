@@ -35,14 +35,25 @@ export function svg(markup: string): HTMLElement {
   return h('div', { class: 'figure-wrap', html: markup });
 }
 
+let toastQueue: Promise<void> = Promise.resolve();
+
+/** Short message at the bottom. Several in a row show one after another, never on top of each other. */
 export function toast(msg: string): void {
-  const t = h('div', { class: 'toast', role: 'status' }, msg);
-  document.body.append(t);
-  setTimeout(() => t.classList.add('show'), 10);
-  setTimeout(() => {
-    t.classList.remove('show');
-    setTimeout(() => t.remove(), 300);
-  }, 2600);
+  toastQueue = toastQueue.then(
+    () =>
+      new Promise<void>((done) => {
+        const t = h('div', { class: 'toast', role: 'status' }, msg);
+        document.body.append(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => {
+          t.classList.remove('show');
+          setTimeout(() => {
+            t.remove();
+            done();
+          }, 250);
+        }, 2200);
+      })
+  );
 }
 
 /** Icon-only button with an accessible name. */

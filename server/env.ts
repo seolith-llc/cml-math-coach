@@ -25,3 +25,14 @@ export function originFor(env: Env, request: Request): string {
   const url = (env.APP_URL || new URL(request.url).origin).replace(/\/+$/, '');
   return url;
 }
+
+/** Constant-time check of `Authorization: Bearer <CRON_SECRET>` for scheduled jobs. */
+export function bearerOk(request: Request, secret?: string): boolean {
+  if (!secret || secret.length < 16) return false;
+  const got = request.headers.get('authorization') ?? '';
+  const want = `Bearer ${secret}`;
+  if (got.length !== want.length) return false;
+  let d = 0;
+  for (let i = 0; i < want.length; i++) d |= got.charCodeAt(i) ^ want.charCodeAt(i);
+  return d === 0;
+}

@@ -1,10 +1,11 @@
 import type { Category, Topic } from '../core/types';
 import { load } from '../core/storage';
 import { statFor } from '../core/mastery';
+import { starText } from '../core/progress';
 import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
 import { speak, stopSpeaking } from '../voice/speech';
-import { group, h, iconButton, list, meter, rich, svg } from '../ui/dom';
+import { group, h, iconButton, list, rich, svg } from '../ui/dom';
 import type { View } from '../app';
 
 const CATEGORY_ORDER: Category[] = ['Number sense', 'Word problems', 'Money', 'Time & calendar', 'Measurement', 'Logic', 'Counting', 'Puzzles'];
@@ -19,7 +20,7 @@ export function learnScreen(): View {
     el: h('div', { class: 'stack' },
       list([{ label: 'How to solve any problem', href: '#/learn/strategies' }]),
       ...CATEGORY_ORDER.filter((c) => byCat.has(c)).map((c) =>
-        list(byCat.get(c)!.map((t) => ({ label: t.title, value: meter(statFor(state, grade, t.id)?.mastery), href: `#/learn/${t.id}` })), c)))
+        list(byCat.get(c)!.map((t) => ({ label: t.title, value: h('span', { class: 'stars' }, starText(statFor(state, grade, t.id)?.stars ?? 0)), href: `#/learn/${t.id}` })), c)))
   };
 }
 

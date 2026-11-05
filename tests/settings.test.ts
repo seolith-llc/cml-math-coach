@@ -16,6 +16,12 @@ describe('settings', () => {
     expect(migrateSettings({ voice: 'natural:orion', speak: false }, base)).toEqual({ ...base, voice: 'natural:orion', speak: false });
     expect(migrateSettings({}, base)).toEqual(base);
   });
+  it('adds the daily goal and reminder with safe values', () => {
+    expect(base.goal).toBe(10);
+    expect(base.reminder).toEqual({ on: false, hour: 17 });
+    expect(migrateSettings({ goal: 7, reminder: { on: true, hour: 3 } } as never, base)).toMatchObject({ goal: 10, reminder: { on: true, hour: 17 } });
+    expect(migrateSettings({ goal: 15, reminder: { on: true, hour: 19 } } as never, base)).toMatchObject({ goal: 15, reminder: { on: true, hour: 19 } });
+  });
   it('adds and cleans the test setup', () => {
     expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
     expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)

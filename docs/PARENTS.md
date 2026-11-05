@@ -12,6 +12,13 @@ For a nicer device voice, download an *Enhanced* voice in **Accessibility → Sp
 
 **Voice commands:** say an answer, or *repeat*, *hint*, *explain*, *skip*, *next*, *slower*, *faster*, *stop*.
 
+## Goals, stars and reminders
+
+- **Daily goal:** Settings → Daily goal (5, 10, 15 or 20 problems). Home shows today's progress. When it reaches *Done for today*, that's a good place to stop.
+- **Stars:** each topic earns up to three stars as your child moves up a level, and they never lose them. The streak forgives one missed day a week.
+- **Daily reminder on the iPad:** add the app to the Home Screen first. Then Settings → Reminder → Daily reminder, and pick a time. It's skipped on days your child already practiced.
+- **Reminder emails:** after 3 days without practice (and again at 7), you get one short email. Turn it off on the dashboard (*Practice reminders*) or from the link in the email.
+
 ## Parent dashboard
 
 On the iPad: **Settings → Parent dashboard**. Choose a PIN, then **Share dashboard link** to your own phone and bookmark it.

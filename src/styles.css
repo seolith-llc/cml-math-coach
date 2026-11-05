@@ -12,6 +12,7 @@
   --good: #248a3d;
   --bad: #d70015;
   --warn: #b25000;
+  --star: #e09b00;
   --series-1: #2a78d6; /* chart slots, validated for light */
   --series-2: #eb6834;
   --radius: 12px;
@@ -20,13 +21,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #000000; --surface: #1c1c1e; --text: #f5f5f7; --muted: #98989d; --line: #2c2c2e; --fill: #2c2c2e;
-    --accent: #4c8dff; --accent-ink: #ffffff; --good: #30d158; --bad: #ff453a; --warn: #ff9f0a;
+    --accent: #4c8dff; --accent-ink: #ffffff; --good: #30d158; --bad: #ff453a; --warn: #ff9f0a; --star: #ffcc00;
     --series-1: #3987e5; --series-2: #d95926; color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
   --bg: #000000; --surface: #1c1c1e; --text: #f5f5f7; --muted: #98989d; --line: #2c2c2e; --fill: #2c2c2e;
-  --accent: #4c8dff; --accent-ink: #ffffff; --good: #30d158; --bad: #ff453a; --warn: #ff9f0a;
+  --accent: #4c8dff; --accent-ink: #ffffff; --good: #30d158; --bad: #ff453a; --warn: #ff9f0a; --star: #ffcc00;
   --series-1: #3987e5; --series-2: #d95926; color-scheme: dark;
 }
 
@@ -236,3 +237,14 @@ a.row:active, button.row:active { background: var(--fill); }
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; transition: opacity 0.2s, transform 0.2s; max-width: calc(100% - 32px);
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- today & stars ---------- */
+.today { display: flex; flex-direction: column; gap: 14px; }
+.today-row { display: flex; align-items: baseline; justify-content: space-between; }
+.today-count { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.today-streak { font-size: 17px; font-weight: 600; color: var(--warn); font-variant-numeric: tabular-nums; }
+.bar-track { height: 8px; border-radius: 4px; background: var(--fill); overflow: hidden; }
+.bar-track span { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s; }
+.today.met .bar-track span { background: var(--good); }
+.today.met .today-count { color: var(--good); }
+.stars { color: var(--star); letter-spacing: 1px; }

@@ -81,6 +81,10 @@ export interface FamilyRow {
   unsub_token?: string | null;
   email_last_week?: string | null;
   email_quota?: string | null;
+  email_weekly?: number;
+  email_nudges?: number;
+  nudges_sent?: number;
+  nudged_day?: string | null;
   pin_salt: string;
   pin_hash: string;
   child_name: string | null;
@@ -144,6 +148,8 @@ export async function sync(db: DB, body: Record<string, unknown>, now = Date.now
         )
     );
   }
+  // New practice ends a break: the next break can get nudges again.
+  if (attempts.length) stmts.push(db.prepare('UPDATE families SET nudges_sent = 0 WHERE key = ?').bind(key));
   await db.batch(stmts);
   return { ok: true, received: attempts.length, created: !existing };
 }
@@ -175,7 +181,10 @@ export async function authorize(db: DB, body: Record<string, unknown>, now: numb
 /** POST /api/parent: read the dashboard data. */
 export async function readDashboard(db: DB, body: Record<string, unknown>, now = Date.now()) {
   const row = await authorize(db, body, now);
-  return { ...(await loadData(db, row, now)), email: row.email ? { address: row.email, verified: !!row.email_verified } : null };
+  return {
+    ...(await loadData(db, row, now)),
+    email: row.email ? { address: row.email, verified: !!row.email_verified, weekly: row.email_weekly !== 0, nudges: row.email_nudges !== 0 } : null
+  };
 }
 
 /** Dashboard data for one family (shared by the dashboard and the weekly email). */

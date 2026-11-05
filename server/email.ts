@@ -33,11 +33,16 @@ function needMailer(ctx: EmailCtx): Mailer {
   return ctx.mailer;
 }
 
+type Kind = 'confirm' | 'test' | 'weekly';
+
+function logEmail(ctx: EmailCtx, family: string, kind: Kind, ok: boolean, detail: string) {
+  return ctx.db.prepare('INSERT INTO email_log (ts, family, kind, ok, detail) VALUES (?, ?, ?, ?, ?)').bind(ctx.now ?? Date.now(), family, kind, ok ? 1 : 0, detail.slice(0, 300)).run().catch(() => {});
+}
+
 /** Sends through the mailer and records the outcome in email_log (MessageId or error). */
-async function send(ctx: EmailCtx, family: string, kind: 'confirm' | 'test' | 'weekly', m: Parameters<Mailer>[0]): Promise<string> {
+async function send(ctx: EmailCtx, family: string, kind: Kind, m: Parameters<Mailer>[0]): Promise<string> {
   const mailer = needMailer(ctx);
-  const log = (ok: boolean, detail: string) =>
-    ctx.db.prepare('INSERT INTO email_log (ts, family, kind, ok, detail) VALUES (?, ?, ?, ?, ?)').bind(ctx.now ?? Date.now(), family, kind, ok ? 1 : 0, detail.slice(0, 300)).run().catch(() => {});
+  const log = (ok: boolean, detail: string) => logEmail(ctx, family, kind, ok, detail);
   try {
     const id = await mailer(m);
     await log(true, id);
@@ -124,9 +129,14 @@ function mailFor(origin: string, row: FamilyRow, digest: { subject: string; html
 export async function testEmail(ctx: EmailCtx, body: Record<string, unknown>) {
   const now = ctx.now ?? Date.now();
   const row = await authorize(ctx.db, body, now);
-  if (!row.email || !row.email_verified) throw new HttpError(400, 'Confirm your email address first');
-  needMailer(ctx);
-  await useQuota(ctx.db, row, now);
+  // Log refusals too, so "I pressed Send test" always leaves a trace in the Status report.
+  const refuse = async (e: HttpError) => {
+    await logEmail(ctx, row.key, 'test', false, `not sent: ${e.message}`);
+    throw e;
+  };
+  if (!row.email || !row.email_verified) return refuse(new HttpError(400, 'Confirm your email address first'));
+  if (!ctx.mailer) return refuse(new HttpError(503, 'Email is not set up on the server yet'));
+  await useQuota(ctx.db, row, now).catch((e) => refuse(e as HttpError));
   const data = (await loadData(ctx.db, row, now)) as DashboardData;
   const digest = buildDigest(data, { appUrl: ctx.origin + '/', unsubscribeUrl: unsubscribeUrl(ctx.origin, row.unsub_token!) }, now, { test: true })!;
   await send(ctx, row.key, 'test', mailFor(ctx.origin, row, digest));

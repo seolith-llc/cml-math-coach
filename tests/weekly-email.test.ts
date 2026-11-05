@@ -196,3 +196,15 @@ describe('email log', () => {
     expect(JSON.stringify(results)).not.toContain('p@example.com');
   });
 });
+
+describe('email log: refusals', () => {
+  it('logs a Send test that is refused before reaching SES', async () => {
+    const db = makeDb();
+    await seed(db);
+    const { mailer } = fakeMailer();
+    await setEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN, email: 'p@example.com' });
+    await expect(testEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN })).rejects.toThrow(/Confirm/);
+    const { results } = await db.prepare("SELECT kind, ok, detail FROM email_log WHERE kind = 'test'").all();
+    expect(results).toEqual([{ kind: 'test', ok: 0, detail: 'not sent: Confirm your email address first' }]);
+  });
+});

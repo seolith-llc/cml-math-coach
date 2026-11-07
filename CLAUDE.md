@@ -16,7 +16,7 @@ src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          home, practice, review, test, learn (+ topic, strategies), progress, settings (+ privacy), parent
   ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, clock, charts, session, player (animated explanations)
-  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback)
+  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands)
   sync/             offline-first upload of the attempt log to /api/sync

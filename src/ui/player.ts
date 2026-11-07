@@ -1,4 +1,5 @@
 import type { Scene, Shape } from '../core/scene';
+import { pace, minSpeech } from '../core/pacing';
 import { load } from '../core/storage';
 import { speak, stopSpeaking, voiceOptions } from '../voice/speech';
 import { h, iconButton } from './dom';
@@ -145,12 +146,17 @@ export function scenePlayer(scene: Scene, opts: { hintOnly?: boolean } = {}): Pl
 
   async function narrate(k: number, token: number) {
     const say = steps[k].say;
-    if (voice) {
-      const s = load().settings;
-      await speak(say, voiceOptions(s.voice, s.rate * SPEEDS[speedIx]));
-      return token === run && (await wait(350 / SPEEDS[speedIx], token));
-    }
-    return wait(Math.max(1600, say.length * 55) / SPEEDS[speedIx], token);
+    const sp = SPEEDS[speedIx];
+    const p = pace(say, { first: k === 0, reveal: k === firstReveal && steps[k].reveal, last: k === steps.length - 1 });
+    if (!voice) return wait(p.read / sp, token);
+    if (!(await wait(p.lead / sp, token))) return false;
+    const s = load().settings;
+    const started = Date.now();
+    await speak(say, voiceOptions(s.voice, s.rate * sp));
+    if (token !== run) return false;
+    // If the voice gave up early (no audio, blocked autoplay), still leave time to read.
+    const short = Math.max(0, minSpeech(say) / (s.rate * sp) - (Date.now() - started));
+    return wait(short + p.after / sp, token);
   }
 
   async function loop(from: number) {

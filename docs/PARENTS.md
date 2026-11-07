@@ -12,6 +12,8 @@ For a nicer device voice, download an *Enhanced* voice in **Accessibility → Sp
 
 **Voice commands:** say an answer, or *repeat*, *hint*, *explain*, *skip*, *next*, *slower*, *faster*, *stop*.
 
+**Explanations:** *Hint* plays the picture up to just before the answer. *Answer* (or a second wrong try) plays all of it with the voice-over. Use ◀ ▶ to go step by step, ↺ to watch again, and the speaker button to turn the voice off. The same player is in Learn and in test results (*Explain*).
+
 ## Goals, stars and reminders
 
 - **Daily goal:** Settings → Daily goal (5, 10, 15 or 20 problems). Home shows today's progress. When it reaches *Done for today*, that's a good place to stop.

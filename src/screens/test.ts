@@ -9,6 +9,8 @@ import { fill, group, h, list, rich, segmented, svg } from '../ui/dom';
 import { answerCard } from '../ui/answerCard';
 import { clock } from '../ui/clock';
 import { problemCard } from '../ui/problemCard';
+import { scenePlayer } from '../ui/player';
+import { sceneFor } from '../core/explain';
 import { celebrate, done, progressDots } from '../ui/session';
 import type { View } from '../app';
 
@@ -178,11 +180,12 @@ export function testScreen(): View {
   }
 
   function result(p: Problem, i: number, given: string, ok: boolean) {
-    const steps = h('ol', { class: 'steps', hidden: true }, ...p.steps.map((s) => h('li', {}, s)));
-    const explain = h('button', { class: 'btn plain', type: 'button', onclick: async () => {
-      steps.hidden = false;
+    const steps = h('div');
+    const explain = h('button', { class: 'btn plain', type: 'button', onclick: () => {
       explain.hidden = true;
-      for (const s of p.steps) await speak(s);
+      const player = scenePlayer(sceneFor(p));
+      steps.replaceChildren(player.el);
+      void player.play();
     } }, 'Explain');
     return h('article', { class: `card problem ${ok ? 'right' : 'wrong'}` },
       h('p', { class: 'qnum' }, String(i + 1)),

@@ -2,6 +2,7 @@ import type { Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { ordinal } from '../../core/numberWords';
 import { SURNAMES, names, num, permutations, word } from './helpers';
+import { orderScene, matchScene } from '../scenes/logic-puzzles';
 
 /* ---------- ordering puzzles ---------- */
 
@@ -69,6 +70,7 @@ export const orderingLogic: Topic = {
     const target = askPosition ? rng.pick(people) : truth[0];
     const pos = truth.indexOf(target) + 1;
     return {
+      scene: orderScene(truth, clues, permutations(people)),
       text: `${ctx.story} ${clues.map((c) => c.text).join(' ')} ${askPosition ? `In what place was ${target}? (1st, 2nd, …)` : `Who was the first ${ctx.role}?`}`,
       answer: askPosition ? num(pos) : word(target, people),
       hints: [`Draw ${n} spaces: ${Array.from({ length: n }, (_, i) => ordinal(i + 1)).join(', ')}.`, 'Use the "before" and "after" clues to put people in order.', 'Try each person in the open spot and check every clue.'],
@@ -110,6 +112,7 @@ export const matchingLogic: Topic = {
     const chosen = buildPuzzle(rng, truth, all, clues);
     const target = rng.pick(people);
     return {
+      scene: matchScene(people, theme.roles, truth, chosen, all),
       text: `${theme.intro} ${chosen.map((c) => c.text).join(' ')} ${theme.ask(target)}`,
       answer: word(roleOf(truth, target), theme.roles),
       hints: ['Draw a 3 × 3 grid: names down the side, choices across the top.', 'Put ✗ in each box a clue rules out. People who do things together are different people!', 'A row with two ✗s has its ✓ in the last box.'],

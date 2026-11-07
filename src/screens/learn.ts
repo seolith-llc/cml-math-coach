@@ -6,6 +6,8 @@ import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
 import { speak, stopSpeaking } from '../voice/speech';
 import { group, h, iconButton, list, rich, svg } from '../ui/dom';
+import { scenePlayer } from '../ui/player';
+import { sceneFor } from '../core/explain';
 import type { View } from '../app';
 
 const CATEGORY_ORDER: Category[] = ['Number sense', 'Word problems', 'Money', 'Time & calendar', 'Measurement', 'Logic', 'Counting', 'Puzzles'];
@@ -30,14 +32,7 @@ export function topicScreen(id: string): View {
   const grade = load().settings.grade;
   const g = t.grades.includes(grade) ? grade : t.grades[0];
   const example = makeProblem(t, g, 2, 20261101 + id.length);
-  const steps = h('ol', { class: 'steps' });
-  const nextStep = h('button', { class: 'btn', type: 'button', onclick: () => {
-    const s = example.steps[steps.children.length];
-    if (!s) return;
-    steps.append(h('li', {}, s));
-    void speak(s);
-    nextStep.hidden = steps.children.length >= example.steps.length;
-  } }, 'Next step');
+  const player = scenePlayer(sceneFor(example));
   const lesson = [t.guide.idea, ...t.guide.tips, ...t.guide.traps].join(' ');
   return {
     title: t.title,
@@ -49,10 +44,9 @@ export function topicScreen(id: string): View {
       group('Example',
         h('div', { class: 'lead-row' }, h('p', { class: 'question' }, rich(example.text)), iconButton('speaker', 'Read aloud', () => void speak(example.speech ?? example.text))),
         example.figure ? svg(example.figure) : null,
-        steps,
-        nextStep),
+        player.el),
       h('a', { class: 'btn primary hero', href: `#/practice/${t.id}` }, 'Practice')),
-    destroy: stopSpeaking
+    destroy: () => { player.destroy(); stopSpeaking(); }
   };
 }
 

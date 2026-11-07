@@ -2,6 +2,7 @@ import type { AnswerSpec, Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { slotName } from '../../core/answer';
 import { misNum, num, permutations, until } from './helpers';
+import { spotPalScene, nextPalScene, palindromeScene, cornerScene, boardScene } from '../scenes/logic-puzzles';
 
 /* ======================= figures ======================= */
 
@@ -135,6 +136,7 @@ export const palindromes: Topic = {
       const letter = String.fromCharCode(97 + options.indexOf(pal.toLocaleString('en-US')));
       const answer: AnswerSpec = { kind: 'choice', value: letter, options };
       return {
+        scene: spotPalScene(options, options.indexOf(pal.toLocaleString('en-US'))),
         text: `A palindrome is a number that reads the same forward or backward. Which of these is a palindrome? ${options.map((o, i) => `(${String.fromCharCode(97 + i)}) ${o}`).join('   ')}`,
         speech: `A palindrome is a number that reads the same forward or backward. Which of these is a palindrome? ${options.map((o, i) => `${String.fromCharCode(65 + i)}: ${o}.`).join(' ')}`,
         answer,
@@ -148,6 +150,7 @@ export const palindromes: Topic = {
       while (!isPal(next)) next++;
       const firstTry = +(String(n).slice(0, 2) + String(n).slice(0, 2).split('').reverse().join(''));
       return {
+        scene: nextPalScene(n, firstTry, next),
         text: `A palindrome reads the same forward or backward, like 4,334. What is the smallest palindrome that is greater than ${n.toLocaleString('en-US')}?`,
         answer: num(next),
         hints: [`Copy the first two digits of ${n} onto the end, backwards: ${firstTry}.`, `Is ${firstTry} bigger than ${n}? If not, make the middle digits 1 bigger and try again.`],
@@ -166,6 +169,7 @@ export const palindromes: Topic = {
       .map((d, i) => (d !== null && p.template[p.full.length - 1 - i] === null ? `${d} also goes in place ${p.full.length - i}` : ''))
       .filter(Boolean);
     return {
+      scene: palindromeScene(p.template, p.full, p.digits),
       text: `A palindrome is a number that reads the same forward or backward, like 252 or 3,443. Using all ${k} digits ${p.digits.join(', ')}, complete the ${p.full.length}-digit palindrome: **${shown}**`,
       speech: `A palindrome reads the same forward or backward, like 2 5 2. Using all ${k} digits ${p.digits.join(', ')}, complete the ${p.full.length} digit palindrome. The boxes show: ${p.template.map((d) => (d === null ? 'blank' : d)).join(', ')}. Say every digit, from left to right.`,
       figure: palindromeFigure(p.template),
@@ -224,6 +228,7 @@ export const digitPlacement: Topic = {
         return [a, m - a] as [number, number];
       });
       return {
+        scene: cornerScene(sides, T, x),
         text: `Find the one number that can be placed in all 4 corners of the square so that each side adds to ${T}.`,
         speech: `Look at the square. Each side has two numbers and two corners. The same mystery number goes in all 4 corners. Which number makes each side add to ${T}? The sides have ${sides.map((p) => `${p[0]} and ${p[1]}`).join('; ')}.`,
         figure: cornerSquareFigure(sides),
@@ -239,6 +244,7 @@ export const digitPlacement: Topic = {
       const { target, solution } = solveLayout(digits, TRI_LINES, rng);
       const corners = solution[0] + solution[2] + solution[4];
       return {
+        scene: boardScene(TRI, TRI_LINES, target, solution, [0, 2, 4], [`1 + 2 + 3 + 4 + 5 + 6 = 21. The three sides together need 3 × ${target} = ${3 * target}.`, `The corners are counted twice, so they add to ${3 * target} − 21 = ${3 * target - 21}.`]),
         text: `Place each of the digits 1 to 6 in a different circle so that the three numbers along each side of the triangle add to ${target}.`,
         speech: `Place each digit from 1 to 6 in a different circle, so the three numbers on each side of the triangle add to ${target}. Tap a circle, then a digit. Or say the digits for circles A to F in order.`,
         figure: board(TRI, TRI_LINES, {}, 300, 252, 'a triangle with six circles'),
@@ -257,6 +263,7 @@ export const digitPlacement: Topic = {
     const total = digits.reduce((a, b) => a + b, 0);
     const middle = 2 * target - total;
     return {
+      scene: boardScene(CROSS, CROSS_LINES, target, solution, [2], [`${digits.join(' + ')} = ${total}. Both lines together need ${2 * target}.`, `The middle is counted twice, so it is ${2 * target} − ${total} = ${middle}.`]),
       text: `Place each of the 5 digits ${digits.join(', ')} in a different circle so that the sum of the 3 numbers in each direction (across and down) is ${target}.`,
       speech: `Place each of the digits ${digits.join(', ')} in a different circle, so the 3 numbers across add to ${target} and the 3 numbers down add to ${target}. Tap a circle, then a digit. Or say the digits for circles A to E in order.`,
       figure: board(CROSS, CROSS_LINES, {}, 260, 260, 'five circles in a plus shape'),

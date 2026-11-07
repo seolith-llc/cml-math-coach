@@ -2,6 +2,7 @@ import type { Topic } from '../../core/types';
 import { DAYS, formatTime } from '../../core/answer';
 import { ordinal } from '../../core/numberWords';
 import { mis, misNum, num, segmentFigure, until } from './helpers';
+import { calendarScene, daysAheadScene, elapsedScene, halfwayScene, handsTravelScene, lengthScene, midpointsScene, minutesScene, roastScene, segmentsScene, watchesScene } from '../scenes/money-time';
 
 export const calendar: Topic = {
   id: 'calendar',
@@ -22,6 +23,7 @@ export const calendar: Topic = {
       const off = DAYS[(start + n - 1) % 7];
       return {
         text: `If today is a ${DAYS[start]}, what day of the week will it be ${n} days from today?`,
+        scene: daysAheadScene(start, n),
         answer: { kind: 'day', value: ans },
         hints: ['Every 7 days it is the same weekday again.', `${n} ÷ 7 = ${Math.floor(n / 7)} weeks with ${n % 7} left over.`, `Move ${n % 7} day${n % 7 === 1 ? '' : 's'} forward from ${DAYS[start]}.`],
         steps: [`${n} = ${Math.floor(n / 7)} × 7 + ${n % 7}.`, `After ${Math.floor(n / 7) * 7} days it is ${DAYS[start]} again.`, `${n % 7} more day${n % 7 === 1 ? '' : 's'}: ${ans}.`],
@@ -34,6 +36,7 @@ export const calendar: Topic = {
     const off = DAYS[(start + n) % 7];
     return {
       text: `If the 1st day of the month is a ${DAYS[start]}, then the ${ordinal(n)} day of that month is a ______.`,
+      scene: calendarScene(start, n),
       answer: { kind: 'day', value: ans },
       hints: [`The ${sames.map(ordinal).join(', ')} are all ${DAYS[start]}s.`, `Count from the ${ordinal(sames[sames.length - 1])} to the ${ordinal(n)}.`],
       steps: [`${sames.map(ordinal).join(', ')} are ${DAYS[start]}s (add 7 each time).`, `${n} − ${sames[sames.length - 1]} = ${n - sames[sames.length - 1]} more day${n - sames[sames.length - 1] === 1 ? '' : 's'}.`, `The ${ordinal(n)} is a ${ans}.`],
@@ -63,6 +66,7 @@ export const elapsedTime: Topic = {
       const dur = addM === 30 && grade === 2 ? `${addH} ½ hours` : `${addH} hour${addH > 1 ? 's' : ''}${addM ? ` and ${addM} minutes` : ''}`;
       return {
         text: `It is now ${formatTime(start)} What time will it be ${dur} from now?`,
+        scene: elapsedScene(start, addH, addM),
         speech: `It is now ${formatTime(start).replace('A.M.', 'A M')}. What time will it be ${dur.replace('½', 'and a half')} from now?`,
         answer: { kind: 'time', minutes: end, ampm: true },
         hints: [`Add ${addH} hour${addH > 1 ? 's' : ''} first.`, addM ? `Then add ${addM} minutes. Remember, 60 minutes make an hour.` : 'Watch out for crossing 12 noon.'],
@@ -78,6 +82,7 @@ export const elapsedTime: Topic = {
       const now = mid - wait;
       return {
         text: `In ${wait} minutes it will be halfway between ${formatTime(t1)} and ${formatTime(t1 + gap)} What time is it now?`,
+        scene: halfwayScene(t1, gap, wait),
         answer: { kind: 'time', minutes: now, ampm: false },
         hints: [`Find halfway first. The gap is ${gap} minutes.`, `Halfway is ${gap / 2} minutes after ${formatTime(t1)}.`, `Now go BACK ${wait} minutes.`],
         steps: [`Halfway: ${formatTime(t1)} + ${gap / 2} min = ${formatTime(mid)}.`, `${wait} minutes earlier: ${formatTime(now)}.`],
@@ -91,6 +96,7 @@ export const elapsedTime: Topic = {
     const end = (start + hours * 60) % 1440;
     return {
       text: `Two watches are both set correctly at ${formatTime(start)} One gains ${p.f} minute${p.f > 1 ? 's' : ''} every hour. The other loses ${p.s} minute${p.s > 1 ? 's' : ''} every hour. At what real time will the fast watch be exactly 1 hour ahead of the slow watch?`,
+      scene: watchesScene(p.f, p.s, start, hours),
       answer: { kind: 'time', minutes: end, ampm: true },
       hints: [`Each hour they move ${p.f} + ${p.s} = ${p.f + p.s} minutes further apart.`, `How many hours until they are 60 minutes apart?`],
       steps: [`They drift ${p.f + p.s} minutes apart every hour.`, `60 ÷ ${p.f + p.s} = ${hours} hours.`, `${formatTime(start)} + ${hours} hours = ${formatTime(end)}.`]
@@ -115,6 +121,7 @@ export const timeUnits: Topic = {
       const mins = rng.int(2, 11) * 5;
       return {
         text: `How many hours does it take the hour hand to travel as far around the clock as the minute hand travels in ${mins} minutes?`,
+        scene: handsTravelScene(mins),
         answer: num(mins / 5),
         hints: [`In ${mins} minutes the minute hand moves past ${mins / 5} numbers on the clock.`, 'The hour hand moves 1 number every hour.'],
         steps: [`${mins} minutes moves the minute hand ${mins} ÷ 5 = ${mins / 5} numbers.`, `The hour hand takes ${mins / 5} hours to move ${mins / 5} numbers.`],
@@ -128,6 +135,7 @@ export const timeUnits: Topic = {
       const ans = h * 60 + q * 15;
       return {
         text: `1 hour = 60 minutes. How many minutes are there in ${h}${frac} hours?`,
+        scene: minutesScene(h, q * 15),
         speech: `One hour is 60 minutes. How many minutes are there in ${h}${['', ' and a quarter', ' and a half', ' and three quarters'][q]} hours?`,
         answer: num(ans),
         hints: [`${h} hours = ${h} × 60 minutes.`, ...(q ? [`${frac.trim()} hour = ${q * 15} minutes.`] : [])],
@@ -141,6 +149,7 @@ export const timeUnits: Topic = {
     const lbs = perHour * hours;
     return {
       text: `A turkey needs to roast for ${per} minutes for each pound it weighs. A ${lbs}-pound turkey should roast for ______ hours.`,
+      scene: roastScene(per, lbs),
       answer: num(hours),
       hints: [`How many ${per}-minute blocks fit in 1 hour?`, `So ${perHour} pounds take 1 hour.`],
       steps: [`60 ÷ ${per} = ${perHour}, so ${perHour} pounds roast in 1 hour.`, `${lbs} ÷ ${perHour} = ${hours} hours.`],
@@ -165,6 +174,7 @@ export const lengthUnits: Topic = {
     const ans = 36 * y + 12 * f + i;
     return {
       text: `1 yard = 3 feet and 1 foot = 12 inches. How many inches are there altogether in ${y} yard${y > 1 ? 's' : ''} + ${f} feet + ${i} inches?`.replace('1 feet', '1 foot'),
+      scene: lengthScene(y, f, i),
       answer: num(ans, 'inches'),
       hints: [`${y} yard${y > 1 ? 's' : ''} = ${y * 3} feet = ${y * 36} inches.`, `${f} ${f > 1 ? 'feet' : 'foot'} = ${f * 12} inches.`],
       steps: [`${y} yd = ${36 * y} in.`, `${f} ft = ${12 * f} in.`, `${36 * y} + ${12 * f} + ${i} = ${ans} inches.`],
@@ -190,6 +200,7 @@ export const segments: Topic = {
       const ans = pr / 2 + rt / 2;
       return {
         text: `Point Q is halfway between P and R. Point S is halfway between R and T. P to R is ${pr} inches and R to T is ${rt} inches. What is the distance from Q to S?`,
+        scene: midpointsScene(pr, rt),
         figure: segmentFigure(['P', 'Q', 'R', 'S', 'T'], [0, pr / 2, pr, pr + rt / 2, pr + rt], [{ from: 0, to: 2, label: `${pr}"` }, { from: 2, to: 4, label: `${rt}"` }], []),
         answer: num(ans, 'inches'),
         hints: [`Q to R is half of ${pr}.`, `R to S is half of ${rt}.`],
@@ -202,6 +213,7 @@ export const segments: Topic = {
     const unit = grade === 2 ? '"' : ' mi';
     return {
       text: `The distance from A to B is ${ab}${unit}, from B to D is ${bd}${unit} and from A to C is ${ac}${unit}, as shown. What is the distance from C to D?`,
+      scene: segmentsScene(ab, bc, cd, unit),
       figure: segmentFigure(['A', 'B', 'C', 'D'], [0, ab, ac, ac + cd], [{ from: 0, to: 1, label: `${ab}${unit}` }, { from: 1, to: 3, label: `${bd}${unit}` }], [{ from: 0, to: 2, label: `${ac}${unit}` }]),
       answer: num(cd),
       hints: [`First find B to C: A to C take away A to B.`, `Then C to D is B to D take away B to C.`],

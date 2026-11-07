@@ -1,5 +1,6 @@
 import type { Topic } from '../../core/types';
 import { fanFigure, gridFigure, misNum, num, vennFigure } from './helpers';
+import { trianglesScene, rectanglesScene, vennScene, handshakesScene } from '../scenes/logic-puzzles';
 
 const tri = (n: number) => (n * (n + 1)) / 2;
 
@@ -19,6 +20,7 @@ export const countTriangles: Topic = {
     const cross = grade === 3 && level >= 2 && rng.chance(0.4);
     const ans = cross ? 2 * tri(s) : tri(s);
     return {
+      scene: trianglesScene(s, cross),
       text: `How many triangles are there in the figure? (Hint: number the sections.)`,
       figure: fanFigure(s, cross),
       speech: `Look at the figure. A big triangle is cut by lines from the top corner into ${s} sections${cross ? ', and one line goes straight across' : ''}. How many triangles are there in all?`,
@@ -55,6 +57,7 @@ export const countRectangles: Topic = {
     for (let k = 1; k <= Math.min(rows, cols); k++) sq += (rows - k + 1) * (cols - k + 1);
     if (squares) ans = sq;
     return {
+      scene: rectanglesScene(rows, cols, squares),
       text: squares ? `The figure is a grid of equal squares. How many squares of any size are in it?` : `How many rectangles are there in the figure? (Squares count too.)`,
       figure: gridFigure(rows, cols),
       speech: `The figure is a grid with ${rows} row${rows > 1 ? 's' : ''} and ${cols} columns of boxes. ${squares ? 'How many squares of any size are there?' : 'How many rectangles are there in all? Squares count too.'}`,
@@ -96,6 +99,7 @@ export const venn: Topic = {
       const ci = circles[setName];
       const ans = ci.parts.reduce((s, v) => s + v, 0);
       return {
+        scene: vennScene(labels, r, [[0, 3, 4, 6], [1, 3, 5, 6], [2, 4, 5, 6]][setName], `Trace around ${ci.name} and add every number inside it.`),
         text: `The circles show the students in each club. How many students are in ${ci.name}?`,
         figure: vennFigure(labels, r),
         speech: `Look at the three circles: Soccer, Band and Chorus. How many students are in ${ci.name}?`,
@@ -114,6 +118,7 @@ export const venn: Topic = {
       const pr = pairs[setName];
       const ans = pr.parts[0] + pr.parts[1];
       return {
+        scene: vennScene(labels, r, [[3, 6], [4, 6], [5, 6]][setName], `Find where ${pr.names[0]} and ${pr.names[1]} overlap, including the very middle.`),
         text: `How many students are in BOTH ${pr.names[0]} and ${pr.names[1]}?`,
         figure: vennFigure(labels, r),
         speech: `Look at the three circles. How many students are in both ${pr.names[0]} and ${pr.names[1]}?`,
@@ -125,6 +130,7 @@ export const venn: Topic = {
     }
     const exactlyOne = a + b + c;
     return {
+      scene: vennScene(labels, r, [0, 1, 2], 'Exactly one club means the parts with no overlap.'),
       text: `How many students are in exactly ONE club?`,
       figure: vennFigure(labels, r),
       speech: 'Look at the three circles. How many students are in exactly one club?',
@@ -155,6 +161,7 @@ export const handshakes: Topic = {
       { t: `${n} teams are in a tournament. Each team plays every other team exactly once. How many games are played?` }
     ]);
     return {
+      scene: handshakesScene(n, ctx.t.includes('teams')),
       text: ctx.t,
       answer: num(ans),
       hints: [`The first one meets ${n - 1} others.`, `The next has only ${n - 2} new ones left.`, 'Keep going and add them up.'],

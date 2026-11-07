@@ -1,5 +1,6 @@
 import type { Topic } from '../../core/types';
 import { digitSum, fmtN, misNum, num, until } from './helpers';
+import { balanceEqScene, compareScene, depthScene, digitScene, distanceScene, factorScene, missingScene, patternScene, riddleScene, roundUpScene, sumDiffScene, temperatureScene, twiceFarScene } from '../scenes/number';
 
 export const missingNumber: Topic = {
   id: 'missing-number',
@@ -24,6 +25,7 @@ export const missingNumber: Topic = {
       const b = a - box;
       return {
         text: `If ${a} − □ = ${b}, what number goes in the □?`,
+        scene: missingScene(a, b),
         answer: num(box),
         hints: [`Ask: ${a} take away what gives ${b}?`, `Find the difference between ${a} and ${b}.`],
         steps: [`${a} − ${b} = ${box}.`, `Check: ${a} − ${box} = ${b}. ✔`],
@@ -38,6 +40,7 @@ export const missingNumber: Topic = {
       const box = left - c;
       return {
         text: `${a} − ${b} = ${c} + □. Find the number that belongs in the □.`,
+        scene: balanceEqScene(a, b, c),
         answer: num(box),
         hints: [`First work out the left side: ${a} − ${b}.`, `Now ask: ${c} plus what equals ${left}?`],
         steps: [`Left side: ${a} − ${b} = ${left}.`, `${c} + □ = ${left}, so □ = ${left} − ${c} = ${box}.`],
@@ -54,6 +57,7 @@ export const missingNumber: Topic = {
     const c = rng.int(20, 80);
     return {
       text: `If ${a} − □ = ${b}, then how much is ${c} + □?`,
+        scene: missingScene(a, b, { c }),
       answer: num(c + box),
       hints: ['Two steps: first find the box.', `${a} − □ = ${b} means □ = ${a} − ${b}.`],
       steps: [`□ = ${a} − ${b} = ${box}.`, `${c} + ${box} = ${c + box}.`],
@@ -88,6 +92,7 @@ export const compareResults: Topic = {
     const second = `${p.c} ${p.op2 === '+' ? '+' : '−'} ${p.d}`;
     return {
       text: `Look at the two problems: **${p.a} + ${p.b}** and **${second}**. The larger answer is ______ more than the smaller answer.`,
+        scene: compareScene(`${p.a} + ${p.b}`, p.r1, second, p.r2),
       answer: num(diff),
       hints: ['Work out both answers first.', `${p.a} + ${p.b} = ${p.r1}. Now do ${second}.`, 'Then subtract the smaller answer from the larger one.'],
       steps: [`${p.a} + ${p.b} = ${p.r1}.`, `${second} = ${p.r2}.`, `${Math.max(p.r1, p.r2)} − ${Math.min(p.r1, p.r2)} = ${diff}.`],
@@ -123,6 +128,7 @@ export const sumDifference: Topic = {
     if (grade === 2 || (level === 1 && rng.chance(0.5))) {
       return {
         text: `The sum of two numbers is ${s}. One number is ${d} more than the other. What is the larger number?`,
+        scene: sumDiffScene(small, d),
         answer: num(large),
         hints: [`Take away the extra ${d} first: ${s} − ${d}.`, 'Split what is left into two equal parts.', `Add the ${d} back to one part.`],
         steps: [`${s} − ${d} = ${s - d}.`, `${s - d} ÷ 2 = ${small} is the smaller number.`, `${small} + ${d} = ${large}.`, `Check: ${small} + ${large} = ${s}. ✔`],
@@ -134,6 +140,7 @@ export const sumDifference: Topic = {
     }
     return {
       text: `The sum of two numbers is ${s}. The difference between the two numbers is ${d}. The larger of the two numbers is ______.`,
+      scene: sumDiffScene(small, d),
       answer: num(large),
       hints: ['Picture the larger number as the smaller number plus an extra piece.', `Remove the extra piece: ${s} − ${d} = ${s - d}.`, 'Halve that, then add the difference back.'],
       steps: [`${s} − ${d} = ${s - d}.`, `${s - d} ÷ 2 = ${small} (smaller).`, `${small} + ${d} = ${large} (larger).`],
@@ -170,6 +177,7 @@ export const productSum: Topic = {
     for (let i = 1; i * i <= prod; i++) if (prod % i === 0) pairs.push(`${i} × ${prod / i} (sum ${i + prod / i})`);
     return {
       text: `Find 2 numbers that multiply to ${prod} and add to ${sum}.`,
+        scene: factorScene(prod, sum, p.a, p.b),
       answer: { kind: 'set', values: [p.a, p.b] },
       hints: [`List the pairs that multiply to ${prod}: 1 × ${prod}, 2 × …`, `Now add each pair. Which one makes ${sum}?`],
       steps: ['Pairs: ' + pairs.join(', ') + '.', `${Math.min(p.a, p.b)} and ${Math.max(p.a, p.b)} multiply to ${prod} and add to ${sum}.`]
@@ -197,6 +205,7 @@ export const distanceAway: Topic = {
       const outer = y + gap;
       return {
         text: `There are 2 numbers that are twice as far from ${x} as they are from ${y}. What are the 2 numbers?`,
+        scene: twiceFarScene(x, y),
         answer: { kind: 'set', values: [inner, outer] },
         hints: [`The gap from ${x} to ${y} is ${gap}. Cut it into 3 equal pieces.`, `One number is 1 piece from ${y} and 2 pieces from ${x}.`, `For the other, go past ${y} by the whole gap of ${gap}.`],
         steps: [`${y} − ${x} = ${gap}. Three pieces of ${gap / 3}.`, `${inner} is ${gap / 3} from ${y} and ${(2 * gap) / 3} from ${x}. ✔`, `${outer} is ${gap} from ${y} and ${2 * gap} from ${x}. ✔`]
@@ -219,6 +228,7 @@ export const distanceAway: Topic = {
     );
     return {
       text: `What number is ${p.a} away from ${p.x} and ${p.b} away from ${p.y}?`,
+        scene: distanceScene(p.n, p.a, p.x, p.b, p.y),
       answer: num(p.n),
       hints: [`Numbers ${p.a} away from ${p.x}: ${p.x - p.a} and ${p.x + p.a}.`, `Numbers ${p.b} away from ${p.y}: ${p.y - p.b} and ${p.y + p.b}.`, 'Which number is in both lists?'],
       steps: [`${p.a} away from ${p.x}: ${p.x - p.a} or ${p.x + p.a}.`, `${p.b} away from ${p.y}: ${p.y - p.b} or ${p.y + p.b}.`, `The number in both lists is ${p.n}.`]
@@ -255,6 +265,7 @@ export const digitCount: Topic = {
     }
     return {
       text: `How many times does the digit ${d} appear in the whole numbers from ${start} to ${end}?`,
+        scene: digitScene(start, end, d, ones, tens),
       answer: num(count),
       hints: [`Count ${d}s in the ones place first.`, `Now count ${d}s in the tens place.`, `Don't forget ${d}${d} has two of them!`],
       steps: [`Ones place: ${ones} times.`, `Tens place: ${tens} times.`, `Total: ${ones} + ${tens} = ${count}.`],
@@ -282,6 +293,7 @@ export const roundUp: Topic = {
     const ans = Math.ceil((fixed + 1) / unit) * unit;
     return {
       text: `What is the next whole number after ${fmtN(fixed)} that ends in ${zeros === 2 ? 'two' : 'three'} zeros?`,
+        scene: roundUpScene(fixed, ans, unit),
       answer: num(ans),
       hints: [`Numbers ending in ${zeros === 2 ? '00' : '000'} go up by ${fmtN(unit)}.`, `Which ${zeros === 2 ? 'hundred' : 'thousand'} comes right after ${fmtN(fixed)}?`],
       steps: [`${fmtN(fixed)} is between ${fmtN(ans - unit)} and ${fmtN(ans)}.`, `The next one is ${fmtN(ans)}.`],
@@ -313,6 +325,7 @@ export const patterns: Topic = {
       const jumps = shown.slice(1).map((v, i) => v - shown[i]);
       return {
         text: `What number comes next? ${shown.join(', ')}, ______`,
+        scene: patternScene(shown, 'Next jump:', ans),
         answer: num(ans),
         hints: ['Find the jump between each pair of numbers.', `The jumps are ${jumps.join(', ')}. What comes next?`],
         steps: [`Jumps: ${jumps.join(', ')}. Each jump is 1 bigger than the one before.`, `Next jump: ${j0 + 4}. ${shown[4]} + ${j0 + 4} = ${ans}.`],
@@ -342,6 +355,7 @@ export const patterns: Topic = {
     const list = [...p.terms, p.intruder].sort((a, b) => a - b);
     return {
       text: `Four of these numbers form a pattern. Which number does not belong? ${list.join(', ')}`,
+        scene: patternScene(list, '', p.intruder, p.intruder),
       answer: num(p.intruder),
       hints: ['Find the jump between the numbers.', `Try a jump of ${p.step}. Which number doesn't fit?`],
       steps: [`${p.terms.join(', ')} go up by ${p.step} each time.`, `${p.intruder} does not fit the pattern.`]
@@ -380,6 +394,7 @@ export const numberRiddle: Topic = {
     for (let k = 10; k < r.limit; k++) if (k % r.g === r.left) cands.push(k);
     return {
       text: `I am a two-digit number less than ${r.limit}. If you put me in groups of ${r.g}, ${leftText}. The sum of my digits is ${r.s}. Who am I?`,
+        scene: riddleScene(cands, r.g, r.left, r.s, r.n),
       answer: num(r.n),
       hints: [`List numbers under ${r.limit} that make groups of ${r.g} with ${r.left} left over.`, `Now check which of those has digits adding to ${r.s}.`],
       steps: [`Groups of ${r.g} with ${r.left} left: ${cands.join(', ')}.`, `Only ${r.n} has digits adding to ${r.s} (${String(r.n).split('').join(' + ')} = ${r.s}).`]
@@ -405,6 +420,7 @@ export const temperature: Topic = {
       const now = depth - up;
       return {
         text: `An underwater lab is ${fmtN(depth)} feet below the surface. It is raised ${fmtN(up)} feet. Now it is ______ feet below the surface.`,
+        scene: depthScene(depth, up),
         answer: num(now),
         hints: ['Being raised means it gets closer to the surface.', `So the depth gets smaller: ${fmtN(depth)} − ${fmtN(up)}.`],
         steps: [`${fmtN(depth)} − ${fmtN(up)} = ${fmtN(now)} feet below the surface.`],
@@ -420,6 +436,7 @@ export const temperature: Topic = {
       : `In the morning it was ${below}° below zero. By afternoon it was ${above}°. How many degrees did it rise?`;
     return {
       text,
+      scene: temperatureScene(above, below, falling),
       answer: num(drop),
       hints: ['Picture a thermometer with 0 in the middle.', falling ? `From ${above}° down to 0° is ${above}°. Then keep going.` : `From ${below}° below zero up to 0° is ${below}°. Then keep going.`],
       steps: falling

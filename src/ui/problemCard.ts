@@ -7,6 +7,8 @@ import { configureSpeech, speak, stopSpeaking } from '../voice/speech';
 import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported, type VoiceCommand } from '../voice/recognition';
 import { h, iconButton, rich, svg } from './dom';
 import { placementBoard } from './placementBoard';
+import { scenePlayer, type Player } from './player';
+import { sceneFor } from '../core/explain';
 
 export interface CardResult {
   correct: boolean;
@@ -53,7 +55,9 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
   const status = h('p', { class: 'status-line', 'aria-live': 'polite' });
   const feedback = h('p', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
   const hints = h('ul', { class: 'hints' });
-  const solution = h('ol', { class: 'steps', hidden: true });
+  const solution = h('div', { class: 'solution' });
+  const scene = sceneFor(problem);
+  let player: Player | undefined;
   const mic = sttSupported() ? iconButton('mic', 'Answer by voice', () => (listening ? stopListening() : startListening()), 'mic') : null;
   const hintBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void showHint() }, 'Hint');
   const answerBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void reveal(false) }, 'Answer');
@@ -71,18 +75,21 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     const hint = coach.nextHint();
     if (!hint) return setFeedback('info', 'No more hints.');
     hints.append(h('li', {}, hint));
-    await say(hint);
+    // The picture's setup steps illustrate the hints (never the answer). It narrates them itself.
+    if (!player) {
+      player = scenePlayer(scene, { hintOnly: true });
+      solution.replaceChildren(player.el);
+    }
+    if (!player.hintStep()) await say(hint);
   }
 
+  /** The full animated, voiced explanation (Answer button, second miss, time up). */
   async function readSolution() {
-    solution.hidden = false;
-    solution.replaceChildren(...problem.steps.map((s) => h('li', {}, s)));
-    for (const [i, s] of problem.steps.entries()) {
-      if (destroyed || !settings.speak) return;
-      solution.children[i]?.classList.add('reading');
-      await speak(s);
-      solution.children[i]?.classList.remove('reading');
-    }
+    player?.destroy();
+    player = scenePlayer(scene);
+    solution.replaceChildren(player.el);
+    player.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    await player.play();
   }
 
   function finish(partial: Omit<CardResult, 'hints' | 'seconds'>) {
@@ -234,6 +241,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     expire: () => void reveal(false),
     destroy: () => {
       destroyed = true;
+      player?.destroy();
       stopSpeaking();
       stopListening();
     }

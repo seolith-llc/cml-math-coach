@@ -248,3 +248,34 @@ a.row:active, button.row:active { background: var(--fill); }
 .today.met .bar-track span { background: var(--good); }
 .today.met .today-count { color: var(--good); }
 .stars { color: var(--star); letter-spacing: 1px; }
+
+/* ---------- explanation player ---------- */
+.player { --t: 0.6s; margin-top: 14px; border-radius: var(--radius); background: var(--bg); padding: 10px 10px 4px; outline: none; }
+.stage { width: 100%; height: auto; display: block; overflow: visible; font-family: inherit; }
+.stage g { transition: transform var(--t) cubic-bezier(.3,.7,.2,1), opacity var(--t) ease; transform-box: view-box; }
+.stage.instant g { transition: none; }
+.stage g.enter { animation: s-in var(--t) ease both; }
+.stage g.exit { opacity: 0 !important; }
+.stage g.pulse > * { animation: s-pulse calc(var(--t) * 1.4) ease; transform-box: fill-box; transform-origin: center; }
+.stage .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: s-draw calc(var(--t) * 1.3) ease forwards; }
+.stage .swap { animation: s-swap var(--t) ease; }
+.stage .dash { stroke-dasharray: 4 4; }
+@keyframes s-in { from { opacity: 0; } }
+@keyframes s-draw { to { stroke-dashoffset: 0; } }
+@keyframes s-pulse { 40% { transform: scale(1.18); } }
+@keyframes s-swap { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .stage g, .stage g.enter, .stage .draw, .stage .swap, .stage g.pulse > * { transition: none; animation: none; stroke-dashoffset: 0; } }
+.stage .f-ink { fill: var(--text); } .stage .f-muted { fill: var(--muted); } .stage .f-accent { fill: var(--accent); }
+.stage .f-good { fill: var(--good); } .stage .f-bad { fill: var(--bad); } .stage .f-warn { fill: var(--warn); } .stage .f-star { fill: var(--star); }
+.stage .f-fill { fill: var(--surface); } .stage .f-line { fill: var(--line); } .stage .f-none { fill: none; }
+.stage .f-s1 { fill: color-mix(in srgb, var(--series-1) 28%, var(--surface)); } .stage .f-s2 { fill: color-mix(in srgb, var(--series-2) 28%, var(--surface)); }
+.stage text.f-s1 { fill: var(--series-1); } .stage text.f-s2 { fill: var(--series-2); }
+.stage .s-ink { stroke: var(--text); } .stage .s-muted { stroke: var(--muted); } .stage .s-accent { stroke: var(--accent); }
+.stage .s-good { stroke: var(--good); } .stage .s-bad { stroke: var(--bad); } .stage .s-warn { stroke: var(--warn); } .stage .s-line { stroke: var(--line); }
+.stage .s-s1 { stroke: var(--series-1); } .stage .s-s2 { stroke: var(--series-2); } .stage .s-star { stroke: var(--star); } .stage .s-none { stroke: none; }
+.stage line, .stage path { stroke-linecap: round; stroke-linejoin: round; }
+.caption { min-height: 2.9em; margin: 8px 4px 2px; font-size: 17px; line-height: 1.4; }
+.player-bar { display: flex; align-items: center; gap: 0; margin: 0 -6px; }
+.player-bar .counter { flex: 1; text-align: center; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.player-bar .speed { min-width: 44px; padding: 0 6px; font-variant-numeric: tabular-nums; }
+.player-bar .icon-btn:disabled { opacity: 0.3; }

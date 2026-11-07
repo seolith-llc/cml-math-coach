@@ -15,9 +15,9 @@ Kid practices on an iPad; a parent follows along on their own device.
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          home, practice, review, test, learn (+ topic, strategies), progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, clock, charts, session
-  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights
-  content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family)
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, clock, charts, session, player (animated explanations)
+  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback)
+  content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands)
   sync/             offline-first upload of the attempt log to /api/sync
   notify/           daily reminder (web push subscribe, practiced-today touch) and app icon badge
@@ -36,6 +36,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 - **Styling:** tokens in `src/styles.css` `:root` (light and dark). One accent color. Lists use `list()` / `group()`.
 - **New topic:** add a `Topic` in `src/content/generators/*.ts` and register it in `content/topics.ts`. `tests/generators.test.ts` covers it automatically.
   Problems must be deterministic per seed (ids are `topic:grade:level:seed`). Include hints, steps, and misconceptions for likely wrong answers.
+- **Explanations:** every problem returns a `scene` (`content/scenes/*.ts`, drawn with `scenes/kit.ts`). A scene is steps of `say` (voice-over) + the full picture; the player animates between them by shape id. Mark the first step that gives the answer away `reveal: true`: hints stop before it. `tests/scenes.test.ts` requires a scene for every topic.
 - **Content:** original problems only. Never commit the CML contest papers.
 - **Settings** (`core/storage.ts`): when you change the shape, migrate it in `migrateSettings` and add a case to `tests/settings.test.ts`.
 - **API changes:** put the logic in `server/` with tests and keep `functions/` as thin wrappers. Schema changes go in a new `migrations/000N_*.sql`.

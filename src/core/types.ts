@@ -58,6 +58,8 @@ export interface Problem {
   /** Worked solution, one step per line. */
   steps: string[];
   misconceptions?: Misconception[];
+  /** Animated, voiced explanation. Absent = built from `steps` (see core/explain.ts). */
+  scene?: import('./scene').Scene;
 }
 
 export type Strategy =

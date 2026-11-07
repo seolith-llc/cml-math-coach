@@ -1,5 +1,6 @@
 import type { Topic } from '../../core/types';
 import { cents, mis, misNum, money, names, num, until } from './helpers';
+import { amountsScene, coinsScene, feeScene, fruitListsScene, nickelDimeScene, pickCoinsScene, twoFruitScene } from '../scenes/money-time';
 
 const COIN = { penny: 1, nickel: 5, dime: 10, quarter: 25, 'half-dollar': 50 } as const;
 type CoinName = keyof typeof COIN;
@@ -23,6 +24,7 @@ export const coinCount: Topic = {
       const total = p + 5 * n + 10 * d;
       return {
         text: `${x} has ${p} ${plural('penny', p)}, ${n} ${plural('nickel', n)} and ${d} ${plural('dime', d)}. How much money is that?`,
+        scene: coinsScene([[1, p], [5, n], [10, d]]),
         answer: money(total),
         hints: ['Count the dimes first by tens.', 'Then count the nickels by fives, then the pennies.'],
         steps: [`Dimes: ${d} × 10¢ = ${10 * d}¢.`, `Nickels: ${n} × 5¢ = ${5 * n}¢.`, `Pennies: ${p}¢.`, `Total: ${cents(total)}.`],
@@ -34,6 +36,7 @@ export const coinCount: Topic = {
       const total = (coins / 2) * 25 + (coins / 2) * 10;
       return {
         text: `${x} has ${coins} coins. Half of them are quarters and half are dimes. How much money does ${x} have?`,
+        scene: coinsScene([[25, coins / 2], [10, coins / 2]]),
         answer: money(total),
         hints: [`Half of ${coins} is ${coins / 2}.`, `${coins / 2} quarters and ${coins / 2} dimes.`],
         steps: [`${coins / 2} quarters = ${cents((coins / 2) * 25)}.`, `${coins / 2} dimes = ${cents((coins / 2) * 10)}.`, `Total: ${cents(total)}.`]
@@ -45,6 +48,7 @@ export const coinCount: Topic = {
     const left = have - cost;
     return {
       text: `${x} had ${q} ${plural('quarter', q)}, ${d} ${plural('dime', d)} and ${n} ${plural('nickel', n)}. ${x} bought supplies that cost ${cents(cost)}. How much money does ${x} have left?`,
+      scene: coinsScene([[25, q], [10, d], [5, n]], cost),
       answer: money(left),
       hints: ['First find how much money there was to start.', `Then subtract ${cents(cost)}.`],
       steps: [`${q} × 25¢ + ${d} × 10¢ + ${n} × 5¢ = ${cents(have)}.`, `${cents(have)} − ${cents(cost)} = ${cents(left)}.`],
@@ -77,6 +81,7 @@ export const smallestAmount: Topic = {
     if (q) list.push(`${q} ${plural('quarter', q)}`);
     return {
       text: `${x} has ${list.slice(0, -1).join(', ')} and ${list[list.length - 1]} in a pocket. ${x} pulls out ${take} coins. What is the ${smallest ? 'smallest' : 'largest'} amount of money ${x} could pull out?`,
+      scene: pickCoinsScene(all, take, smallest),
       answer: money(ans),
       hints: [smallest ? 'Take the coins worth the least first.' : 'Take the coins worth the most first.', `Pick ${take} coins in that order and add them.`],
       steps: [`Take: ${picked.map((c) => c + '¢').join(' + ')}.`, `Total: ${cents(ans)}.`]
@@ -103,6 +108,7 @@ export const coinCombos: Topic = {
       const ans = ways(price);
       return {
         text: `A machine sells a snack for ${price}¢. It only takes nickels and dimes. A nickel then a dime is a DIFFERENT way from a dime then a nickel. How many different ways can you pay exactly ${price}¢?`,
+        scene: nickelDimeScene(price),
         answer: num(ans),
         hints: ['Write D for dime and N for nickel.', `Start with as many dimes as possible. Then swap a dime for two nickels.`, 'For each mix of coins, count the different orders.'],
         steps: [`List them with N and D. For example 10¢: NN or D, which is 2 ways.`, `Ways(${price}) = ways(${price - 5}) + ways(${price - 10}), because the first coin is either N or D.`, `Total: ${ans} ways.`],
@@ -125,6 +131,7 @@ export const coinCombos: Topic = {
     const [x] = names(rng, 1);
     return {
       text: `${x} has ${set.length} coins: ${set.map((c) => `a ${c}`).join(', ').replace(/, ([^,]*)$/, ' and $1')}. How many different amounts of money can ${x} make using one or more of the coins?`,
+      scene: amountsScene(vals),
       answer: num(sums.size),
       hints: ['Make a list grouped by number of coins.', `Using 1 coin: ${vals.join('¢, ')}¢.`, 'Now list every pair, every group of three, and so on.'],
       steps: [`1 coin: ${set.length} amounts.`, 'Then all pairs, all groups of 3, … each one makes a new amount.', `All amounts: ${[...sums].sort((a, b) => a - b).join(', ')}.`, `That is ${sums.size} amounts.`],
@@ -150,6 +157,7 @@ export const pricePuzzle: Topic = {
       const fruit = rng.pick([['orange', 'grapefruit'], ['apple', 'mango'], ['pear', 'melon']]);
       return {
         text: `Two ${fruit[0]}s cost ${cents(2 * a)}. One ${fruit[0]} and one ${fruit[1]} cost ${cents(a + b)}. How much does one ${fruit[1]} cost?`,
+        scene: twoFruitScene(fruit[0], fruit[1], a, b),
         answer: money(b),
         hints: [`One ${fruit[0]} costs half of ${cents(2 * a)}.`, `Take that away from ${cents(a + b)}.`],
         steps: [`1 ${fruit[0]} = ${cents(2 * a)} ÷ 2 = ${cents(a)}.`, `1 ${fruit[1]} = ${cents(a + b)} − ${cents(a)} = ${cents(b)}.`],
@@ -163,6 +171,7 @@ export const pricePuzzle: Topic = {
       const t1 = fee + h1 * rate, t2 = fee + h2 * rate;
       return {
         text: `A repair person charges an hourly rate plus one "visit" fee. For ${h1} hour${h1 > 1 ? 's' : ''} the bill is $${t1}. For ${h2} hours the bill is $${t2}. How many dollars is the visit fee?`,
+        scene: feeScene(h1, h2, t1, t2, rate, fee),
         answer: num(fee, 'dollars'),
         hints: [`The difference between the bills is ${h2 - h1} extra hour${h2 - h1 > 1 ? 's' : ''}.`, 'Find the cost of 1 hour, then take the hours away from one bill.'],
         steps: [`$${t2} − $${t1} = $${t2 - t1} for ${h2 - h1} hour${h2 - h1 > 1 ? 's' : ''}.`, `1 hour = $${rate}.`, `$${t1} − ${h1} × $${rate} = $${fee}.`],
@@ -180,6 +189,7 @@ export const pricePuzzle: Topic = {
     const diffPears = 2 * p.y1 - p.y2;
     return {
       text: `${p.x1} banana${p.x1 > 1 ? 's' : ''} and ${p.y1} pears cost ${cents(t1)}. ${2 * p.x1} bananas and ${p.y2} pear${p.y2 > 1 ? 's' : ''} cost ${cents(t2)}. How much does 1 pear cost?`,
+      scene: fruitListsScene(p.x1, p.y1, p.y2, t1, t2, p.q),
       answer: money(p.q),
       hints: [`Double the first list: ${2 * p.x1} bananas and ${2 * p.y1} pears cost ${cents(2 * t1)}.`, `Now both lists have ${2 * p.x1} bananas. Compare the pears.`],
       steps: [`Double list 1: ${2 * p.x1} bananas + ${2 * p.y1} pears = ${cents(2 * t1)}.`, `Difference: ${diffPears} pear${diffPears > 1 ? 's' : ''} = ${cents(2 * t1)} − ${cents(t2)} = ${cents(2 * t1 - t2)}.`, `1 pear = ${cents(p.q)}.`]

@@ -1,6 +1,7 @@
 import type { Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { misNum, num, until } from './helpers';
+import { familyCountScene, familyTableScene } from '../scenes/logic-puzzles';
 
 const GIRLS = ['Jill', 'Ava', 'Maya', 'Sofia', 'Priya', 'Grace', 'Isla', 'Uma', 'Kiara', 'Wendy'];
 const BOYS = ['Jack', 'Ben', 'Leo', 'Noah', 'Theo', 'Ravi', 'Hiro', 'Carlos', 'Jamal', 'Zane'];
@@ -124,6 +125,7 @@ export const familyPuzzle: Topic = {
       const self = askGirl === askSisters; // asking about her own kind -> the trap
       const family = `The ${rng.pick(['Diaz', 'Kim', 'Patel', 'Brooks', 'Evans'])} family has ${boys} boy${boys > 1 ? 's' : ''} and ${girls} girl${girls > 1 ? 's' : ''}.`;
       return {
+        scene: familyCountScene(boys, girls, name, askGirl, askSisters),
         text: `${family} ${name} is one of the ${askGirl ? 'girls' : 'boys'}. How many ${askSisters ? 'sisters' : 'brothers'} does ${name} have?`,
         answer: num(ans),
         hints: [`Is ${name} a girl or a boy? ${name} is not ${askGirl ? 'her' : 'his'} own ${askGirl ? 'sister' : 'brother'}.`, self ? `Leave ${name} out when you count the ${askGirl ? 'girls' : 'boys'}.` : `Every one of the ${askSisters ? 'girls' : 'boys'} counts.`],
@@ -161,6 +163,7 @@ export const familyPuzzle: Topic = {
     const wrongAns = wrong ? (askWhat === 'children' ? wrong[0] + wrong[1] : askWhat === 'boys' ? wrong[0] : wrong[1]) : NaN;
     const gv = view(true, p.boys, p.girls), bv = view(false, p.boys, p.girls);
     return {
+      scene: familyTableScene(p.girl, p.boy, p.clues.map((c) => c.text), rows, p.boys, p.girls),
       text: `${p.boy} is ${p.girl}'s brother. ${p.clues[0].text} ${p.clues[1].text} How many ${askWhat} are in the family?`,
       answer: num(ans),
       hints: [

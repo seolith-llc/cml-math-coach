@@ -4,6 +4,7 @@ import { statFor } from '../core/mastery';
 import { starText } from '../core/progress';
 import { topicsForGrade } from '../content/topics';
 import { h, list } from '../ui/dom';
+import { savedScore } from './round';
 import type { View } from '../app';
 
 const BATTERIES: Category[] = ['Verbal', 'Quantitative', 'Nonverbal'];
@@ -13,10 +14,12 @@ export function cogatScreen(): View {
   const state = load();
   const grade = state.settings.grade;
   const topics = topicsForGrade(grade, 'cogat');
+  const last = savedScore('cogat');
   return {
     title: 'CogAT',
     el: h('div', { class: 'stack' },
       h('a', { class: 'btn primary hero', href: '#/practice/cogat' }, 'Practice'),
+      last ? list([{ label: 'Last round', value: last.score, href: last.href }]) : null,
       ...BATTERIES.map((b) => list(topics.filter((t) => t.category === b).map((t) => ({
         label: t.title,
         value: h('span', { class: 'stars' }, starText(statFor(state, grade, t.id)?.stars ?? 0)),

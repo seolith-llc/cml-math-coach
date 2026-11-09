@@ -1,5 +1,6 @@
 import type { Grade } from '../core/types';
-import { dayStreak, dueReviews, load, save } from '../core/storage';
+import { dayStreak, dueReviews, lastRound, load, save } from '../core/storage';
+import { savedScore } from './round';
 import { today } from '../core/progress';
 import { summary } from '../core/session';
 import { topicsForGrade } from '../content/topics';
@@ -14,6 +15,9 @@ export function homeScreen(): View {
   const streak = dayStreak(state);
   const stats = state.stats[String(grade)] ?? {};
   const stars = topicsForGrade(grade).reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
+  // The most recent of the last practice round and the last review round.
+  const last = (['cml', 'review'] as const).map((k) => ({ k, at: lastRound(state, grade, k)?.at ?? 0 })).sort((a, b) => b.at - a.at)[0];
+  const lastRow = last.at ? savedScore(last.k) : undefined;
   const cogatStars = topicsForGrade(grade, 'cogat').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
 
   const segment = segmented<Grade>('Grade', [{ value: 2, label: 'Grade 2' }, { value: 3, label: 'Grade 3' }], grade, (g) => {
@@ -37,6 +41,7 @@ export function homeScreen(): View {
       segment,
       todayCard,
       list([
+        lastRow ? { label: 'Last round', value: lastRow.score, href: lastRow.href } : null,
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', value: stars ? `${stars} ★` : undefined, href: '#/learn' },

@@ -1,15 +1,16 @@
 import type { Problem } from '../core/types';
 import { formatAnswer, parseChoice } from '../core/answer';
 import { roundFeedback, scoreText } from '../core/feedback';
-import { load } from '../core/storage';
+import { load, recordAttempt, reviewResult, saveRound, type AppState, type RoundKind, type SavedRound } from '../core/storage';
+import type { Grade } from '../core/types';
 import { sceneFor } from '../core/explain';
-import { topicById } from '../content/topics';
+import { problemFromId, topicById } from '../content/topics';
 import { speak } from '../voice/speech';
 import { h, list, rich, svg } from './dom';
 import { choicePicker } from './choicePicker';
 import { problemCard, type CardResult } from './problemCard';
 import { scenePlayer, type Player } from './player';
-import { progressDots } from './session';
+import { celebrate, progressDots } from './session';
 
 export interface RoundItem {
   problem: Problem;
@@ -61,6 +62,8 @@ export function roundEnd(o: {
   record: (item: RoundItem, res: CardResult) => void;
   /** Lets the screen clean up whatever is showing when it is left. */
   setCleanup: (fn: () => void) => void;
+  /** Called when the round first shows and after every fix, so it can be saved. */
+  onChange?: (items: RoundItem[]) => void;
 }): void {
   const { slot, items } = o;
   let cleanup = () => {};
@@ -117,7 +120,10 @@ export function roundEnd(o: {
         problem: it.problem,
         onDone: (res) => {
           const good = res.correct && res.firstTry;
-          if (good) it.fixed = true;
+          if (good) {
+            it.fixed = true;
+            o.onChange?.(items);
+          }
           results.push(good);
           dots.update(results);
           o.record(it, res);
@@ -130,5 +136,29 @@ export function roundEnd(o: {
     next();
   }
 
+  o.onChange?.(items);
   summary();
+}
+
+/** A second try from the summary counts as a review attempt (and moves it along the spaced Review queue). */
+export function recordSecondTry(state: AppState, grade: Grade, p: Problem, res: CardResult): void {
+  const good = res.correct && res.firstTry;
+  reviewResult(state, p.id, good);
+  celebrate(recordAttempt(state, grade, p.topicId, good, {
+    problemId: p.id, level: p.level, correct: res.correct, firstTry: good, skipped: res.skipped,
+    hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
+  }));
+}
+
+/** Save a round as the last one of its kind (reopened from Home or the CogAT screen). */
+export function keepRound(state: AppState, grade: Grade, kind: RoundKind, items: RoundItem[], at: number): void {
+  saveRound(state, { kind, grade, at, items: items.map((i) => ({ problemId: i.problem.id, ok: i.ok, ...(i.answer ? { answer: i.answer } : {}), ...(i.fixed ? { fixed: true } : {}) })) });
+}
+
+/** Rebuild a saved round (problems regenerate from their ids). */
+export function restoreRound(saved: SavedRound): RoundItem[] {
+  return saved.items.flatMap((i) => {
+    const problem = problemFromId(i.problemId);
+    return problem ? [{ problem, ok: i.ok, answer: i.answer, fixed: i.fixed }] : [];
+  });
 }

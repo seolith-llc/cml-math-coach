@@ -99,6 +99,18 @@ export interface SyncState {
   lastError?: string;
 }
 
+/** Which kind of round: CML practice, CogAT practice, or the Review queue. */
+export type RoundKind = 'cml' | 'cogat' | 'review';
+
+/** The last finished round of a kind, so its summary, explanations and retries can be reopened later. */
+export interface SavedRound {
+  kind: RoundKind;
+  grade: Grade;
+  /** When the round finished. */
+  at: number;
+  items: { problemId: string; ok: boolean; answer?: string; fixed?: boolean }[];
+}
+
 export interface AppState {
   version: 1;
   settings: Settings;
@@ -108,6 +120,8 @@ export interface AppState {
   activeDays: string[]; // yyyy-mm-dd
   log: AttemptLog[];
   sync?: SyncState;
+  /** Last round per `${grade}:${kind}`. */
+  rounds?: Record<string, SavedRound>;
 }
 
 const KEY = 'cml-coach-v1';
@@ -150,6 +164,15 @@ export function save(state: AppState = load()): void {
     /* storage full or blocked - keep in memory */
   }
 }
+
+export const roundKey = (grade: Grade, kind: RoundKind) => `${grade}:${kind}`;
+
+export function saveRound(state: AppState, round: SavedRound): void {
+  (state.rounds ??= {})[roundKey(round.grade, round.kind)] = round;
+  save(state);
+}
+
+export const lastRound = (state: AppState, grade: Grade, kind: RoundKind): SavedRound | undefined => state.rounds?.[roundKey(grade, kind)];
 
 /** Clears progress on this device. Keeps the parent-dashboard link so the online copy isn't orphaned. */
 export function reset(): void {

@@ -1,11 +1,11 @@
 import type { Problem } from '../core/types';
-import { addToReview, load, recordAttempt, reviewResult } from '../core/storage';
+import { addToReview, load, recordAttempt, type RoundKind } from '../core/storage';
 import { levelFor, pickTopic } from '../core/mastery';
 import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { celebrate, progressDots } from '../ui/session';
-import { roundEnd, type RoundItem } from '../ui/roundEnd';
+import { keepRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
 import { today } from '../core/progress';
 import type { View } from '../app';
 
@@ -58,6 +58,8 @@ export function practiceScreen(topicId?: string): View {
     const goalMet = today({ log: state.log, goal: state.settings.goal, reviewDue: 0, meets: [] }).goalMet;
     dots.el.hidden = true;
     const items = round;
+    const at = Date.now();
+    const kind = (fixed?.track ?? (cogat ? 'cogat' : 'cml')) as RoundKind;
     roundEnd({
       slot,
       items,
@@ -72,14 +74,8 @@ export function practiceScreen(topicId?: string): View {
           next();
         } }, 'Keep going')
       ],
-      record: (it, res) => {
-        const good = res.correct && res.firstTry;
-        reviewResult(state, it.problem.id, good);
-        celebrate(recordAttempt(state, grade, it.problem.topicId, good, {
-          problemId: it.problem.id, level: it.problem.level, correct: res.correct, firstTry: good, skipped: res.skipped,
-          hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
-        }));
-      },
+      record: (it, res) => recordSecondTry(state, grade, it.problem, res),
+      onChange: (all) => keepRound(state, grade, kind, all, at),
       setCleanup: (fn) => (destroyCard = fn)
     });
   }

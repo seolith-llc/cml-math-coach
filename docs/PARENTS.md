@@ -18,6 +18,8 @@ For a nicer device voice, download an *Enhanced* voice in **Accessibility → Sp
 
 After 10 questions (Practice, CogAT or Review) your child sees their score, one line of feedback and how each question type went. Tapping any question shows their answer next to the right one and plays its explanation. **Try missed again** gives the missed questions another go, and the score updates (for example *4 → 8 of 10*). Missed questions also come back later in **Review**.
 
+The last round is saved on the iPad: **Last round** on Home (math practice or review) and on the CogAT screen reopens it any time, with its explanations and **Try missed again**.
+
 ## CogAT practice
 
 Home → **CogAT**. **Practice** mixes all nine question types; tap a type to see its lesson and a worked example first.

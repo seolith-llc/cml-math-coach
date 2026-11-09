@@ -34,3 +34,4 @@ Run `npm run prompts:consolidate` at the start of each new month to file loose e
 - [2026-11-09T17-39-48Z_step027](2026/11/2026-11-09T17-39-48Z_step027.md)
 - [2026-11-09T19-01-07Z_step028](2026/11/2026-11-09T19-01-07Z_step028.md)
 - [2026-11-09T19-32-08Z_step029](2026/11/2026-11-09T19-32-08Z_step029.md)
+- [2026-11-09T19-41-46Z_step030](2026/11/2026-11-09T19-41-46Z_step030.md)

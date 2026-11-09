@@ -2,7 +2,7 @@
  * Weekly progress email: content (HTML + plain text) and scheduling helpers.
  * Numbers come from the same summarize() the dashboard uses, so both always agree.
  */
-import { summarize, topicTitle, type DashboardData } from '../src/core/insights';
+import { outcomeLabel, summarize, topicTitle, type DashboardData } from '../src/core/insights';
 import { formatAnswer } from '../src/core/answer';
 import { problemFromId } from '../src/content/topics';
 
@@ -119,7 +119,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
       return `<div style="border-left:3px solid ${C.line};padding:4px 0 4px 12px;margin:0 0 12px;font-size:14px;color:${C.ink}">
         <div style="font-size:12px;color:${C.muted}">${esc(topicTitle(m.topicId))}</div>
         ${p ? `<div style="margin:4px 0">${richHtml(p.text)}</div>` : ''}
-        <div style="font-size:13px">${m.answer ? `Answered <strong>${esc(m.answer)}</strong> · ` : m.skipped ? 'Skipped · ' : ''}${p ? `Correct: <strong>${esc(formatAnswer(p.answer))}</strong>` : ''}</div></div>`;
+        <div style="font-size:13px">Yours: <strong>${esc(outcomeLabel(m))}</strong>${p ? ` · Correct: <strong>${esc(formatAnswer(p.answer))}</strong>` : ''}</div></div>`;
     }).join('')));
   }
   if (s.tips.length) parts.push(section('Next week', list(s.tips.slice(0, 3).map(esc))));
@@ -145,7 +145,7 @@ ${parts.join('\n')}
     t.push('', 'Mistakes:');
     for (const m of mistakes) {
       const p = problemFromId(m.problemId);
-      t.push(`* ${p ? plain(p.text) : topicTitle(m.topicId)}`, `  ${m.answer ? `Answered ${m.answer}. ` : ''}${p ? `Correct: ${formatAnswer(p.answer)}` : ''}`);
+      t.push(`* ${p ? plain(p.text) : topicTitle(m.topicId)}`, `  Yours: ${outcomeLabel(m)}.${p ? ` Correct: ${formatAnswer(p.answer)}` : ''}`);
     }
   }
   if (s.tips.length) t.push('', 'Next week:', ...s.tips.slice(0, 3).map((x) => `- ${x}`));

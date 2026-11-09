@@ -1,5 +1,6 @@
 import type { Category, Grade } from './types';
-import { topicById, topicsForGrade } from '../content/topics';
+import { problemFromId, topicById, topicsForGrade } from '../content/topics';
+import { parseChoice } from './answer';
 import { roundFeedback, scoreText } from './feedback';
 import type { SavedRound } from './storage';
 
@@ -152,4 +153,20 @@ export function lastRounds(data: DashboardData): RoundView[] {
       });
       return { kind: r.kind, title: ROUND_TITLES[r.kind], grade: r.grade, at: r.at, score: scoreText(roundFeedback(items)), items };
     });
+}
+
+/**
+ * What the child did on a problem that wasn't right first time, in words a parent reads at a glance.
+ * A choice answer is shown as "(b) octopus", not a bare letter.
+ */
+export function outcomeLabel(a: { problemId: string; correct: boolean; skipped?: boolean; hints?: number; answer?: string }): string {
+  if (a.skipped) return 'Skipped';
+  let given = a.answer?.trim();
+  const spec = given ? problemFromId(a.problemId)?.answer : undefined;
+  if (given && spec?.kind === 'choice') {
+    const l = parseChoice(given, spec.options);
+    if (l) given = `(${l}) ${spec.options[l.charCodeAt(0) - 97]}`;
+  }
+  if (a.correct) return given ? `${given}, then right` : 'Right after a hint';
+  return given ?? 'Showed the answer';
 }

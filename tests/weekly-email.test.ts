@@ -75,7 +75,7 @@ describe('weekly email opt-in flow', () => {
     expect(t.html).toContain('Tues&lt;script&gt;');
     expect(t.html).not.toContain('<script>');
     expect(t.text).toContain('Mistakes:');
-    expect(t.text).toMatch(/Answered Tues<script>\. Correct: \w+day/);
+    expect(t.text).toMatch(/Yours: Tues<script>\. Correct: \w+day/);
   });
 
   it('expired confirmation links are rejected', async () => {

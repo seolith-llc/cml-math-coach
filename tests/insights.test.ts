@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { lastRounds, streak, summarize, type DashboardData } from '../src/core/insights';
+import { lastRounds, outcomeLabel, streak, summarize, type DashboardData } from '../src/core/insights';
+import { TOPICS, makeProblem } from '../src/content/topics';
 
 const NOW = Date.UTC(2026, 10, 15, 18, 0); // Sun 15 Nov 2026, evening
 const DAY = 86_400_000;
@@ -79,5 +80,24 @@ describe('last rounds on the dashboard', () => {
     expect(lastRounds({ ...base, snapshot: null })).toEqual([]);
     expect(lastRounds({ ...base, snapshot: { stats: {} } })).toEqual([]);
     expect(lastRounds({ ...base, snapshot: { rounds: { x: { kind: 'nope', grade: 3, at: 1, items: [{ problemId: 'a:3:1:1', ok: true }] }, y: { kind: 'cml', grade: 3, at: 1, items: [] } } as never } })).toEqual([]);
+  });
+});
+
+describe('what the child did (dashboard and weekly email)', () => {
+  const id = 'coins:3:1:1';
+  it('names each case instead of "✓ with help"', () => {
+    expect(outcomeLabel({ problemId: id, correct: false })).toBe('Showed the answer');
+    expect(outcomeLabel({ problemId: id, correct: false, skipped: true })).toBe('Skipped');
+    expect(outcomeLabel({ problemId: id, correct: true, hints: 1 })).toBe('Right after a hint');
+    expect(outcomeLabel({ problemId: id, correct: false, answer: '45¢' })).toBe('45¢');
+    expect(outcomeLabel({ problemId: id, correct: true, answer: '45¢' })).toBe('45¢, then right');
+  });
+
+  it('shows a choice answer as the option, not a bare letter', () => {
+    const t = TOPICS.find((x) => x.id === 'cogat-sentences')!;
+    const p = makeProblem(t, 3, 1, 7);
+    const spec = p.answer as { options: string[]; value: string };
+    const wrong = spec.value === 'a' ? 'b' : 'a';
+    expect(outcomeLabel({ problemId: p.id, correct: false, answer: wrong })).toBe(`(${wrong}) ${spec.options[wrong.charCodeAt(0) - 97]}`);
   });
 });

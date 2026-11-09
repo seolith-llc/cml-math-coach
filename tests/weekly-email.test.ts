@@ -3,6 +3,7 @@ import { makeDb } from './parent-server.test';
 import { sync, readDashboard } from '../server/parent';
 import { confirmEmail, sendWeekly, setEmail, stopEmail, testEmail, unsubscribe, type Mailer } from '../server/email';
 import { buildDigest, currentWeekKey, sendWindow } from '../server/digest';
+import type { DashboardData } from '../src/core/insights';
 import { onRequestPost as weeklyRoute } from '../functions/api/weekly';
 
 const FAMILY = 'FamilyIdForEmailTests_0001';
@@ -206,5 +207,27 @@ describe('email log: refusals', () => {
     await expect(testEmail({ db, mailer, origin: ORIGIN, now: SUN_EVENING }, { familyId: FAMILY, pin: PIN })).rejects.toThrow(/Confirm/);
     const { results } = await db.prepare("SELECT kind, ok, detail FROM email_log WHERE kind = 'test'").all();
     expect(results).toEqual([{ kind: 'test', ok: 0, detail: 'not sent: Confirm your email address first' }]);
+  });
+});
+
+describe('CogAT in the weekly email', () => {
+  const now = SUN_EVENING, DAY = 86_400_000;
+  const att = (ts: number, topicId: string, firstTry: boolean, i: number) => ({ ts, problemId: `${topicId}:3:1:${i}`, topicId, grade: 3, level: 1, correct: firstTry, firstTry, skipped: false, hints: 0, seconds: 30, mode: 'practice' });
+  const data = (attempts: ReturnType<typeof att>[], rounds?: object) => ({ child: { name: 'Ava', grade: 3 as const }, lastSync: now, snapshot: rounds ? { rounds } : null, attempts }) as DashboardData;
+
+  it('adds a CogAT section with the week, the last round and each question type', () => {
+    const d = data(
+      [att(now - DAY, 'cogat-paper-folding', false, 1), att(now - DAY, 'cogat-paper-folding', true, 2), att(now - 2 * DAY, 'cogat-matrices', true, 3), att(now - DAY, 'coins', true, 4), att(now - 9 * DAY, 'cogat-matrices', false, 5)],
+      { '3:cogat': { kind: 'cogat', grade: 3, at: now - DAY, items: [{ problemId: 'cogat-paper-folding:3:1:1', ok: false, fixed: true }, { problemId: 'cogat-matrices:3:1:3', ok: true }] } }
+    );
+    const g = buildDigest(d, { appUrl: ORIGIN, unsubscribeUrl: ORIGIN + '/u' }, now)!;
+    expect(g.html).toContain('>CogAT</h2>');
+    expect(g.text).toContain('CogAT:\n- 3 questions, 67% right first try\n- Last round (Saturday): 1 → 2 of 2\n- Paper folding: 1 of 2\n- Figure matrices: 1 of 1');
+  });
+
+  it('leaves it out in a week without CogAT', () => {
+    const g = buildDigest(data([att(now - DAY, 'coins', true, 1), att(now - 9 * DAY, 'cogat-matrices', true, 2)]), { appUrl: ORIGIN, unsubscribeUrl: ORIGIN + '/u' }, now)!;
+    expect(g.html).not.toContain('>CogAT</h2>');
+    expect(g.text).not.toContain('CogAT');
   });
 });

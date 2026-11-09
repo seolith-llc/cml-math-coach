@@ -170,3 +170,36 @@ export function outcomeLabel(a: { problemId: string; correct: boolean; skipped?:
   if (a.correct) return given ? `${given}, then right` : 'Right after a hint';
   return given ?? 'Showed the answer';
 }
+
+export interface CogatWeek {
+  problems: number;
+  firstTry: number;
+  pct: number;
+  /** Per question type, weakest first. */
+  byType: { topicId: string; title: string; right: number; total: number }[];
+  /** The latest saved CogAT round, if it finished in this window. */
+  lastRound?: { at: number; score: string };
+}
+
+/** CogAT practice in the last 7 days (for the weekly email). Null when there was none. */
+export function cogatWeek(data: DashboardData, now = Date.now()): CogatWeek | null {
+  const from = now - 7 * 86_400_000;
+  const atts = data.attempts.filter((a) => a.ts >= from && a.ts <= now && topicById(a.topicId)?.track === 'cogat');
+  const round = lastRounds(data).find((r) => r.kind === 'cogat' && r.at >= from && r.at <= now);
+  if (!atts.length && !round) return null;
+  const map = new Map<string, CogatWeek['byType'][number]>();
+  for (const a of atts) {
+    const r = map.get(a.topicId) ?? { topicId: a.topicId, title: topicTitle(a.topicId), right: 0, total: 0 };
+    r.total++;
+    if (a.firstTry) r.right++;
+    map.set(a.topicId, r);
+  }
+  const firstTry = atts.filter((a) => a.firstTry).length;
+  return {
+    problems: atts.length,
+    firstTry,
+    pct: atts.length ? Math.round((firstTry / atts.length) * 100) : 0,
+    byType: [...map.values()].sort((a, b) => a.right / a.total - b.right / b.total || b.total - a.total),
+    ...(round ? { lastRound: { at: round.at, score: round.score } } : {})
+  };
+}

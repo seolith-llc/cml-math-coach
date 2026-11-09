@@ -30,7 +30,7 @@ Home → **CogAT**. **Practice** mixes all nine question types; tap a type to se
 
 Grade 2 works like the Level 8 test: pictures, questions read aloud, 3 choices. Grade 3 works like Level 9: words and numbers, 5 choices. Every item is original, written for this app; it is practice in the CogAT style, not real test content. CogAT is a trademark of Riverside Assessments, LLC, which has no connection to this app.
 
-CogAT answers count toward the daily goal, the streak and the weekly totals (missed CogAT items show up with their type, e.g. *Paper folding*). The CML tests and the per-topic math lists don't include them.
+CogAT answers count toward the daily goal, the streak and the weekly totals, and the weekly email has its own **CogAT** section (questions, right first try, the last round's score and each question type) (missed CogAT items show up with their type, e.g. *Paper folding*). The CML tests and the per-topic math lists don't include them.
 
 ## Goals, stars and reminders
 

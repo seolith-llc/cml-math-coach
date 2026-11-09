@@ -2,7 +2,7 @@
  * Weekly progress email: content (HTML + plain text) and scheduling helpers.
  * Numbers come from the same summarize() the dashboard uses, so both always agree.
  */
-import { outcomeLabel, summarize, topicTitle, type DashboardData } from '../src/core/insights';
+import { cogatWeek, outcomeLabel, summarize, topicTitle, type DashboardData } from '../src/core/insights';
 import { formatAnswer } from '../src/core/answer';
 import { problemFromId } from '../src/content/topics';
 
@@ -91,6 +91,15 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     <p style="font-size:12px;color:${C.muted};margin:6px 0 0"><span style="color:${C.blue}">■</span> first try &nbsp; <span style="color:${C.orange}">■</span> with help</p>`;
 
   const weekMeets = s.meets.filter((m) => m.date >= now - 7 * 86_400_000);
+  const cogat = cogatWeek(data, now);
+  const cogatDay = (ts: number) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long', timeZone: DIGEST_TZ });
+  const cogatLines = cogat
+    ? [
+        ...(cogat.problems ? [`${cogat.problems} question${cogat.problems === 1 ? '' : 's'}, ${cogat.pct}% right first try`] : []),
+        ...(cogat.lastRound ? [`Last round (${cogatDay(cogat.lastRound.at)}): ${cogat.lastRound.score}`] : []),
+        ...cogat.byType.map((r) => `${r.title}: ${r.right} of ${r.total}`)
+      ]
+    : [];
   const mistakes = s.mistakes.filter((m) => m.ts >= now - 7 * 86_400_000).slice(0, 3);
 
   const section = (title: string, body: string) =>
@@ -112,6 +121,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     if (s.strong.length) items.push(`<strong style="color:${C.good}">Strong:</strong> ${s.strong.slice(0, 3).map((t) => esc(t.title)).join(', ')}`);
     parts.push(section('Topics', list(items)));
   }
+  if (cogatLines.length) parts.push(section('CogAT', list(cogatLines.map(esc))));
   if (weekMeets.length) parts.push(section('Tests', list(weekMeets.map((m) => `${m.score} of ${m.total} in ${Math.round(m.seconds / 60)} minutes`))));
   if (mistakes.length) {
     parts.push(section('Mistakes', mistakes.map((m) => {
@@ -140,6 +150,7 @@ ${parts.join('\n')}
   if (practiced) t.push('', 'Day by day: ' + last7.map((x) => `${dayName(x.date)} ${x.firstTry + x.other}`).join(', '));
   if (s.needsHelp.length) t.push('', `Needs help: ${s.needsHelp.slice(0, 3).map((x) => x.title).join(', ')}`);
   if (s.strong.length) t.push(`Strong: ${s.strong.slice(0, 3).map((x) => x.title).join(', ')}`);
+  if (cogatLines.length) t.push('', 'CogAT:', ...cogatLines.map((x) => `- ${x}`));
   if (weekMeets.length) t.push('', ...weekMeets.map((m) => `Test: ${m.score} of ${m.total}`));
   if (mistakes.length) {
     t.push('', 'Mistakes:');

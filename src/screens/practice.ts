@@ -10,12 +10,13 @@ import type { View } from '../app';
 
 const SESSION = 10;
 
-/** Smart mix (weakest topics more often), or one topic: #/practice/<topicId>. 10 problems per round. */
+/** Smart mix (weakest topics more often), the CogAT mix (#/practice/cogat), or one topic: #/practice/<topicId>. 10 problems per round. */
 export function practiceScreen(topicId?: string): View {
   const state = load();
   const grade = state.settings.grade;
-  const fixed = topicId ? topicById(topicId) : undefined;
-  const pool = topicsForGrade(grade);
+  const cogat = topicId === 'cogat';
+  const fixed = topicId && !cogat ? topicById(topicId) : undefined;
+  const pool = topicsForGrade(grade, cogat ? 'cogat' : 'cml');
   const results: boolean[] = [];
   let last: string | undefined;
   let destroyCard = () => {};
@@ -61,5 +62,5 @@ export function practiceScreen(topicId?: string): View {
   }
 
   next();
-  return { title: fixed ? fixed.title : 'Practice', el: h('div', { class: 'stack' }, dots.el, slot), destroy: () => destroyCard() };
+  return { title: fixed ? fixed.title : cogat ? 'CogAT' : 'Practice', el: h('div', { class: 'stack' }, dots.el, slot), destroy: () => destroyCard() };
 }

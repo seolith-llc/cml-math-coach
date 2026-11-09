@@ -11,6 +11,7 @@ import { learnScreen, strategiesScreen, topicScreen } from './screens/learn';
 import { progressScreen } from './screens/progress';
 import { privacyScreen, settingsScreen } from './screens/settings';
 import { parentScreen } from './screens/parent';
+import { cogatScreen } from './screens/cogat';
 
 /** What every screen returns. `destroy` stops timers, speech and listening. */
 export interface View {
@@ -28,6 +29,7 @@ const routes: Record<string, (param?: string) => View> = {
   meet: testScreen, // old link
   learn: (p) => (p === 'strategies' ? strategiesScreen() : p ? topicScreen(p) : learnScreen()),
   toolkit: strategiesScreen, // old link
+  cogat: cogatScreen,
   progress: progressScreen,
   settings: settingsScreen,
   privacy: privacyScreen,

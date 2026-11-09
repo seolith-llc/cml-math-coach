@@ -7,6 +7,7 @@ import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
 import { speak, stopSpeaking } from '../voice/speech';
 import { group, h, iconButton, list, rich, svg } from '../ui/dom';
 import { scenePlayer } from '../ui/player';
+import { choicePicker } from '../ui/choicePicker';
 import { sceneFor } from '../core/explain';
 import type { View } from '../app';
 
@@ -44,6 +45,7 @@ export function topicScreen(id: string): View {
       group('Example',
         h('div', { class: 'lead-row' }, h('p', { class: 'question' }, rich(example.text)), iconButton('speaker', 'Read aloud', () => void speak(example.speech ?? example.text))),
         example.figure ? svg(example.figure) : null,
+        example.answer.kind === 'choice' && example.answer.pictures ? choicePicker(example.answer, () => {}).el : null,
         player.el),
       h('a', { class: 'btn primary hero', href: `#/practice/${t.id}` }, 'Practice')),
     destroy: () => { player.destroy(); stopSpeaking(); }

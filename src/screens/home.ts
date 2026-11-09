@@ -14,6 +14,7 @@ export function homeScreen(): View {
   const streak = dayStreak(state);
   const stats = state.stats[String(grade)] ?? {};
   const stars = topicsForGrade(grade).reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
+  const cogatStars = topicsForGrade(grade, 'cogat').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
 
   const segment = segmented<Grade>('Grade', [{ value: 2, label: 'Grade 2' }, { value: 3, label: 'Grade 3' }], grade, (g) => {
     s.grade = g;
@@ -39,6 +40,7 @@ export function homeScreen(): View {
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', value: stars ? `${stars} ★` : undefined, href: '#/learn' },
+        { label: 'CogAT', value: cogatStars ? `${cogatStars} ★` : undefined, href: '#/cogat' },
         { label: 'Progress', href: '#/progress' }
       ]))
   };

@@ -1,4 +1,4 @@
-import type { Grade, Level, Problem, Topic } from '../core/types';
+import type { Grade, Level, Problem, Topic, Track } from '../core/types';
 import { Rng, randomSeed } from '../core/rng';
 import * as number from './generators/number';
 import * as word from './generators/word';
@@ -9,6 +9,9 @@ import * as counting from './generators/counting';
 import * as puzzles from './generators/puzzles';
 import * as placement from './generators/placement';
 import * as family from './generators/family';
+import * as verbal from './cogat/verbal';
+import * as quant from './cogat/quantitative';
+import * as nonverbal from './cogat/nonverbal';
 
 export const TOPICS: Topic[] = [
   number.missingNumber,
@@ -50,11 +53,22 @@ export const TOPICS: Topic[] = [
   puzzles.packages,
   puzzles.balance,
   placement.palindromes,
-  placement.digitPlacement
+  placement.digitPlacement,
+  // CogAT-style reasoning (track: 'cogat'), in battery order
+  verbal.verbalAnalogies,
+  verbal.sentenceCompletion,
+  verbal.classification,
+  quant.numberAnalogies,
+  quant.numberPuzzles,
+  quant.numberSeries,
+  nonverbal.figureMatrices,
+  nonverbal.paperFolding,
+  nonverbal.figureClassification
 ];
 
 export const topicById = (id: string) => TOPICS.find((t) => t.id === id);
-export const topicsForGrade = (grade: Grade) => TOPICS.filter((t) => t.grades.includes(grade));
+/** Topics of one track for a grade. CML is the default everywhere (practice mix, tests, progress, stars). */
+export const topicsForGrade = (grade: Grade, track: Track = 'cml') => TOPICS.filter((t) => t.grades.includes(grade) && (t.track ?? 'cml') === track);
 
 /** Problem ids encode everything needed to regenerate the same problem later (review queue). */
 export function makeProblem(topic: Topic, grade: Grade, level: Level, seed = randomSeed()): Problem {

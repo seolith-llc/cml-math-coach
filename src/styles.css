@@ -279,3 +279,17 @@ a.row:active, button.row:active { background: var(--fill); }
 .player-bar .counter { flex: 1; text-align: center; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .player-bar .speed { min-width: 44px; padding: 0 6px; font-variant-numeric: tabular-nums; }
 .player-bar .icon-btn:disabled { opacity: 0.3; }
+
+/* ---------- multiple choice (tap a picture or a word) ---------- */
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; margin-top: 14px; }
+.choices.wide { grid-template-columns: 1fr; }
+.choice { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; padding: 10px 8px 8px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 17px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.choices.wide .choice { justify-content: flex-start; padding-left: 40px; text-align: left; }
+.choice-letter { position: absolute; top: 4px; left: 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.choice-pic svg { display: block; width: auto; height: auto; max-width: 100%; max-height: 120px; }
+.choice-emoji { font-size: 40px; line-height: 1; }
+.choice.picked { border-color: var(--accent); background: var(--fill); }
+.choice.right { border-color: var(--good); }
+.choice.wrong { border-color: var(--bad); }
+.choice:disabled { cursor: default; }
+.choice:disabled:not(.right):not(.wrong):not(.picked) { opacity: 0.6; }

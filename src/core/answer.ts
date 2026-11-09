@@ -86,9 +86,15 @@ const LETTER_SOUNDS: Record<string, string> = {
   e: 'e', ee: 'e'
 };
 
-function parseChoice(input: string, options: string[]): string | undefined {
+export function parseChoice(input: string, options: string[]): string | undefined {
   const tokens = tokenize(input);
   const letters = options.map((_, i) => String.fromCharCode(97 + i));
+  // Saying the option itself wins ("bee" is an answer, not the letter B, when bee is an option).
+  const norm = (x: string) => tokenize(x).join(' ');
+  const named = options.findIndex((o) => norm(o) === norm(input));
+  if (named >= 0) return letters[named];
+  const marked = /^\s*\(([a-z])\)/i.exec(input)?.[1]?.toLowerCase();
+  if (marked && letters.includes(marked)) return marked;
   const flagged = tokens.findIndex((t) => ['letter', 'choice', 'option', 'answer'].includes(t));
   if (flagged >= 0 && tokens[flagged + 1] && LETTER_SOUNDS[tokens[flagged + 1]]) {
     return LETTER_SOUNDS[tokens[flagged + 1]];
@@ -99,11 +105,7 @@ function parseChoice(input: string, options: string[]): string | undefined {
       if (l && letters.includes(l)) return l;
     }
   }
-  // Learner said the option itself
-  const norm = (x: string) => tokenize(x).join(' ');
-  const said = norm(input);
-  const idx = options.findIndex((o) => norm(o) === said);
-  return idx >= 0 ? letters[idx] : undefined;
+  return undefined;
 }
 
 function editDistance(a: string, b: string): number {

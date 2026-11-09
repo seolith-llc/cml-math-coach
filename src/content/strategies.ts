@@ -18,7 +18,8 @@ export const STRATEGIES: Record<Strategy, string> = {
   'Use logical reasoning': 'Use each clue to rule things out. What MUST be true? What CANNOT be true?',
   'Number the sections': 'For counting shapes, number each small piece. Then list shapes made of 1 piece, 2 pieces, 3 pieces…',
   'Write a number sentence': 'Turn the words into maths: "3 more than" means + 3, "twice as many" means × 2.',
-  'Act it out': 'Use coins, blocks or people to act out the story step by step.'
+  'Act it out': 'Use coins, blocks or people to act out the story step by step.',
+  'Find the rule': 'Say in words how the first pair (or the first three) go together. Then use the same rule to pick the answer.'
 };
 
 /** Contest-day advice for 30-minute, 6-question meets. */

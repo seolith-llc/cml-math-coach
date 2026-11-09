@@ -1,6 +1,6 @@
 # Math Coach
 
-Voice-first PWA for practicing Continental Math League (CML) problems, Grades 2–3.
+Voice-first PWA for practicing Continental Math League (CML) problems, Grades 2–3, plus a CogAT-style reasoning track.
 Kid practices on an iPad; a parent follows along on their own device.
 
 ## Commands
@@ -14,10 +14,11 @@ Kid practices on an iPad; a parent follows along on their own device.
 ```
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
-  screens/          home, practice, review, test, learn (+ topic, strategies), progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, clock, charts, session, player (animated explanations)
+  screens/          home, practice, review, test, learn (+ topic, strategies), cogat, progress, settings (+ privacy), parent
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), clock, charts, session, player (animated explanations)
   core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
+                    + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands)
   sync/             offline-first upload of the attempt log to /api/sync
   notify/           daily reminder (web push subscribe, practiced-today touch) and app icon badge
@@ -37,7 +38,9 @@ tests/              vitest, including a sweep of every topic × grade × level �
 - **New topic:** add a `Topic` in `src/content/generators/*.ts` and register it in `content/topics.ts`. `tests/generators.test.ts` covers it automatically.
   Problems must be deterministic per seed (ids are `topic:grade:level:seed`). Include hints, steps, and misconceptions for likely wrong answers.
 - **Explanations:** every problem returns a `scene` (`content/scenes/*.ts`, drawn with `scenes/kit.ts`). A scene is steps of `say` (voice-over) + the full picture; the player animates between them by shape id. Mark the first step that gives the answer away `reveal: true`: hints stop before it. `tests/scenes.test.ts` requires a scene for every topic.
-- **Content:** original problems only. Never commit the CML contest papers.
+- **Content:** original problems only. Never commit the CML contest papers or real CogAT items.
+- **Tracks:** `Topic.track` is `'cml'` (default) or `'cogat'`. `topicsForGrade(grade)` returns CML only, so the CML mix, tests, progress and stars never include CogAT. CogAT lives at `#/cogat` (mix: `#/practice/cogat`).
+  CogAT items are multiple choice: 3 choices in Grade 2 (picture-based, read aloud, like Level 8), 5 in Grade 3 (words, like Level 9). Build them with `cogat/common.ts` `mc()`; `tests/cogat.test.ts` checks every item.
 - **Settings** (`core/storage.ts`): when you change the shape, migrate it in `migrateSettings` and add a case to `tests/settings.test.ts`.
 - **API changes:** put the logic in `server/` with tests and keep `functions/` as thin wrappers. Schema changes go in a new `migrations/000N_*.sql`.
 

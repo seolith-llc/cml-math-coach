@@ -1,12 +1,13 @@
 import type { Problem } from '../core/types';
 import { Coach } from '../core/coach';
 import { Rng, randomSeed } from '../core/rng';
-import { answerPlaceholder, formatAnswer, parseDigits } from '../core/answer';
+import { answerPlaceholder, formatAnswer, parseChoice, parseDigits } from '../core/answer';
 import { load, save } from '../core/storage';
 import { configureSpeech, speak, stopSpeaking } from '../voice/speech';
 import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported, type VoiceCommand } from '../voice/recognition';
 import { h, iconButton, rich, svg } from './dom';
 import { placementBoard } from './placementBoard';
+import { choicePicker } from './choicePicker';
 import { scenePlayer, type Player } from './player';
 import { sceneFor } from '../core/explain';
 
@@ -49,7 +50,9 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     autocomplete: 'off',
     onkeydown: (e: KeyboardEvent) => e.key === 'Enter' && submit([current()])
   });
-  const current = () => (board ? board.value() : input.value);
+  // Multiple choice is tap-to-answer: a tap checks right away.
+  const picker = problem.answer.kind === 'choice' ? choicePicker(problem.answer, (l) => void submit([l])) : undefined;
+  const current = () => (board ? board.value() : picker ? picker.value() : input.value);
   const check = h('button', { class: 'btn primary', type: 'button', onclick: () => submit([current()]) }, 'Check');
   const next = h('button', { class: 'btn primary wide', type: 'button', hidden: true, onclick: () => onNext() }, 'Next');
   const status = h('p', { class: 'status-line', 'aria-live': 'polite' });
@@ -97,6 +100,8 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     finished = true;
     input.disabled = true;
     board?.disable();
+    picker?.disable();
+    if (picker && problem.answer.kind === 'choice') picker.mark(problem.answer.value, true);
     check.hidden = true;
     hintBtn.hidden = answerBtn.hidden = true;
     next.hidden = false;
@@ -141,7 +146,8 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     setFeedback(fb.verdict === 'unclear' ? 'info' : 'bad', fb.message);
     if (fb.verdict === 'wrong' && !fb.reveal) {
       hints.replaceChildren(...problem.hints.slice(0, coach.hintsUsed).map((x) => h('li', {}, x)));
-      if (!board) input.select();
+      if (picker) picker.mark(picker.value(), false);
+      else if (!board) input.select();
     }
     if (fb.reveal) {
       finish({ correct: false, firstTry: false, skipped: false, revealed: true, wrongAnswer: coach.wrongAnswers[0] });
@@ -212,13 +218,19 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
       return submit([board.value()]);
     }
     input.value = alts[0];
+    if (picker && problem.answer.kind === 'choice') {
+      const opts = problem.answer.options;
+      const l = alts.map((a) => parseChoice(a, opts)).find(Boolean);
+      if (l) picker.select(l);
+    }
     return submit(alts);
   }
 
   const el = h('article', { class: 'card problem' },
     h('p', { class: 'question' }, rich(problem.text)),
     board ? board.el : problem.figure ? svg(problem.figure) : null,
-    h('div', { class: 'answer-row' }, board ? null : input, check, next),
+    picker?.el,
+    h('div', { class: 'answer-row' }, board || picker ? null : input, picker ? null : check, next),
     feedback,
     hints,
     solution,
@@ -232,7 +244,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
   queueMicrotask(async () => {
     if (settings.speak || settings.handsFree) await sayAlways(problem.speech ?? problem.text);
     if (settings.handsFree && !destroyed) startListening();
-    else if (!destroyed && !board && matchMedia('(pointer: fine)').matches) input.focus({ preventScroll: true });
+    else if (!destroyed && !board && !picker && matchMedia('(pointer: fine)').matches) input.focus({ preventScroll: true });
   });
 
   return {

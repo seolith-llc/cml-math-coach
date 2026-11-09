@@ -14,6 +14,18 @@ For a nicer device voice, download an *Enhanced* voice in **Accessibility → Sp
 
 **Explanations:** *Hint* plays the picture up to just before the answer. *Answer* (or a second wrong try) plays all of it with the voice-over. Use ◀ ▶ to go step by step, ↺ to watch again, and the speaker button to turn the voice off. The same player is in Learn and in test results (*Explain*).
 
+## CogAT practice
+
+Home → **CogAT**. **Practice** mixes all nine question types; tap a type to see its lesson and a worked example first.
+
+- **Verbal:** analogies, sentence completion, classification.
+- **Quantitative:** number analogies, number puzzles, number series.
+- **Nonverbal:** figure matrices, paper folding, figure classification.
+
+Grade 2 works like the Level 8 test: pictures, questions read aloud, 3 choices. Grade 3 works like Level 9: words and numbers, 5 choices. Every item is original, written for this app; it is practice in the CogAT style, not real test content. CogAT is a trademark of Riverside Assessments, LLC, which has no connection to this app.
+
+CogAT answers count toward the daily goal, the streak and the weekly totals (missed CogAT items show up with their type, e.g. *Paper folding*). The CML tests and the per-topic math lists don't include them.
+
 ## Goals, stars and reminders
 
 - **Daily goal:** Settings → Daily goal (5, 10, 15 or 20 problems). Home shows today's progress. When it reaches *Done for today*, that's a good place to stop.

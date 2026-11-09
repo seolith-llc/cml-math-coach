@@ -12,8 +12,11 @@ export type AnswerSpec =
   /** Clock time in minutes after midnight (0..1439). `ampm` false = ignore AM/PM. */
   | { kind: 'time'; minutes: number; ampm?: boolean }
   | { kind: 'day'; value: string }
-  /** Multiple choice; value is the letter of the right option. */
-  | { kind: 'choice'; value: string; options: string[] }
+  /**
+   * Multiple choice; value is the letter of the right option. `pictures` (same order) are SVG markup or
+   * emoji drawn on the tap targets; `options` stay as the spoken/written names.
+   */
+  | { kind: 'choice'; value: string; options: string[]; pictures?: string[] }
   /** One of a fixed list of names / words. */
   | { kind: 'word'; value: string; options: string[] }
   /** Unordered set of numbers ("8 and 3"). */
@@ -72,7 +75,8 @@ export type Strategy =
   | 'Use logical reasoning'
   | 'Number the sections'
   | 'Write a number sentence'
-  | 'Act it out';
+  | 'Act it out'
+  | 'Find the rule';
 
 export interface TopicGuide {
   /** Short kid-friendly explanation of the idea. */
@@ -90,6 +94,8 @@ export interface Topic {
   grades: Grade[];
   strategy: Strategy;
   guide: TopicGuide;
+  /** Default 'cml'. CogAT topics stay out of CML practice, tests and progress. */
+  track?: Track;
   generate: (ctx: GenContext) => Omit<Problem, 'id' | 'topicId' | 'grade' | 'level'>;
 }
 
@@ -101,7 +107,13 @@ export type Category =
   | 'Measurement'
   | 'Logic'
   | 'Counting'
-  | 'Puzzles';
+  | 'Puzzles'
+  | 'Verbal'
+  | 'Quantitative'
+  | 'Nonverbal';
+
+/** Which practice track a topic belongs to: CML math, or CogAT-style reasoning. */
+export type Track = 'cml' | 'cogat';
 
 export interface GenContext {
   grade: Grade;

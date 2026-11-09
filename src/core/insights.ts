@@ -1,5 +1,7 @@
 import type { Category, Grade } from './types';
 import { topicById, topicsForGrade } from '../content/topics';
+import { roundFeedback, scoreText } from './feedback';
+import type { SavedRound } from './storage';
 
 /** Data the parent dashboard receives from /api/parent. */
 export interface DashboardData {
@@ -12,6 +14,8 @@ export interface DashboardData {
     activeDays?: string[];
     reviewDue?: number;
     reviewQueue?: number;
+    /** The child's last round per `${grade}:${kind}` (see core/storage.ts SavedRound). */
+    rounds?: Record<string, SavedRound>;
   } | null;
   attempts: {
     ts: number; problemId: string; topicId: string; grade: number; level: number; correct: boolean; firstTry: boolean;
@@ -124,3 +128,28 @@ export function summarize(data: DashboardData, now = Date.now()) {
 }
 
 export const topicTitle = (id: string) => topicById(id)?.title ?? id;
+
+export const ROUND_TITLES: Record<SavedRound['kind'], string> = { cml: 'Math practice', cogat: 'CogAT', review: 'Review' };
+
+export interface RoundView {
+  kind: SavedRound['kind'];
+  title: string;
+  grade: Grade;
+  at: number;
+  score: string;
+  items: { problemId: string; topicId: string; title: string; ok: boolean; fixed: boolean; answer?: string }[];
+}
+
+/** The synced last rounds, newest first, ready for the dashboard. Tolerates old or partial snapshots. */
+export function lastRounds(data: DashboardData): RoundView[] {
+  const rounds = Object.values(data.snapshot?.rounds ?? {}).filter((r) => r && Array.isArray(r.items) && r.items.length && ROUND_TITLES[r.kind]);
+  return rounds
+    .sort((a, b) => b.at - a.at)
+    .map((r) => {
+      const items = r.items.map((i) => {
+        const topicId = String(i.problemId).split(':')[0];
+        return { problemId: i.problemId, topicId, title: topicTitle(topicId), ok: !!i.ok, fixed: !!i.fixed, ...(i.answer ? { answer: i.answer } : {}) };
+      });
+      return { kind: r.kind, title: ROUND_TITLES[r.kind], grade: r.grade, at: r.at, score: scoreText(roundFeedback(items)), items };
+    });
+}

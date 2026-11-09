@@ -36,7 +36,9 @@ export function snapshot(state: AppState) {
     meets: state.meets.slice(-60),
     activeDays: state.activeDays.slice(-400),
     reviewQueue: state.review.length,
-    reviewDue: state.review.filter((r) => r.due <= now).length
+    reviewDue: state.review.filter((r) => r.due <= now).length,
+    // last round per grade and kind: problem ids and results only (problems regenerate from ids)
+    rounds: state.rounds ?? {}
   };
 }
 

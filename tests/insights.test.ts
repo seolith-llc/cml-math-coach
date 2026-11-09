@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { streak, summarize, type DashboardData } from '../src/core/insights';
+import { lastRounds, streak, summarize, type DashboardData } from '../src/core/insights';
 
 const NOW = Date.UTC(2026, 10, 15, 18, 0); // Sun 15 Nov 2026, evening
 const DAY = 86_400_000;
@@ -60,5 +60,24 @@ describe('parent dashboard insights', () => {
     expect(e.week.problems).toBe(0);
     expect(e.tips[0]).toMatch(/No practice/);
     expect(e.topics.every((t) => t.status === 'new')).toBe(true);
+  });
+});
+
+describe('last rounds on the dashboard', () => {
+  const base = { child: { name: 'Sam', grade: 3 as const }, lastSync: null, attempts: [] };
+  it('lists synced rounds newest first with the score and each question', () => {
+    const rounds = lastRounds({ ...base, snapshot: { rounds: {
+      '3:cml': { kind: 'cml', grade: 3, at: 100, items: [{ problemId: 'coins:3:1:1', ok: true }, { problemId: 'coins:3:2:5', ok: false, answer: '45' }] },
+      '3:cogat': { kind: 'cogat', grade: 3, at: 200, items: [{ problemId: 'cogat-paper-folding:3:1:9', ok: false, fixed: true }, { problemId: 'cogat-matrices:3:1:2', ok: true }] }
+    } } });
+    expect(rounds.map((r) => [r.title, r.score])).toEqual([['CogAT', '1 → 2 of 2'], ['Math practice', '1 of 2']]);
+    expect(rounds[0].items[0]).toMatchObject({ title: 'Paper folding', fixed: true, ok: false });
+    expect(rounds[1].items[1]).toMatchObject({ topicId: 'coins', answer: '45' });
+  });
+
+  it('copes with old snapshots and junk', () => {
+    expect(lastRounds({ ...base, snapshot: null })).toEqual([]);
+    expect(lastRounds({ ...base, snapshot: { stats: {} } })).toEqual([]);
+    expect(lastRounds({ ...base, snapshot: { rounds: { x: { kind: 'nope', grade: 3, at: 1, items: [{ problemId: 'a:3:1:1', ok: true }] }, y: { kind: 'cml', grade: 3, at: 1, items: [] } } as never } })).toEqual([]);
   });
 });

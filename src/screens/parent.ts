@@ -1,4 +1,6 @@
-import { summarize, topicTitle, type DashboardData, type TopicRow } from '../core/insights';
+import { lastRounds, summarize, topicTitle, type DashboardData, type RoundView, type TopicRow } from '../core/insights';
+import { answerReview } from '../ui/roundEnd';
+import type { Player } from '../ui/player';
 import { formatAnswer } from '../core/answer';
 import { problemFromId } from '../content/topics';
 import { dailyChart, meetChart } from '../ui/charts';
@@ -117,7 +119,51 @@ function emailGroup(familyId: string, pin: string, initial: Email): HTMLElement 
   return wrap;
 }
 
+const day = (ts: number) => new Date(ts).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+/** The child's last rounds: score, every question, and tap one to see their answer and the explanation. */
+function roundsSection(rounds: RoundView[], onPlayer: (p: Player | undefined) => void): HTMLElement[] {
+  return rounds.map((r) => {
+    const detail = h('div');
+    let open = -1;
+    const show = (i: number) => {
+      if (open === i) {
+        open = -1;
+        onPlayer(undefined);
+        detail.replaceChildren();
+        return;
+      }
+      const it = r.items[i];
+      const p = problemFromId(it.problemId);
+      if (!p) return;
+      open = i;
+      const view = answerReview(p, it.answer, it.ok || it.fixed);
+      onPlayer(view.player);
+      detail.replaceChildren(view.el);
+      view.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      void view.player.play();
+    };
+    return h('div', { class: 'stack' },
+      list([
+        { label: 'Score', value: r.score },
+        ...r.items.map((it, i) => ({
+          label: h('span', {}, h('span', { class: 'qn' }, `${i + 1}`), it.title),
+          value: h('span', { class: it.ok || it.fixed ? 'mark good' : 'mark bad', 'aria-label': it.ok ? 'right' : it.fixed ? 'fixed' : 'missed' }, it.ok ? '✓' : it.fixed ? '↻ ✓' : '✗'),
+          onclick: () => show(i)
+        }))
+      ], `${r.title} · ${day(r.at)}`),
+      detail);
+  });
+}
+
+let activePlayer: Player | undefined;
+const swapPlayer = (p: Player | undefined) => {
+  activePlayer?.destroy();
+  activePlayer = p;
+};
+
 function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
+  swapPlayer(undefined); // a refresh replaces the page; stop any explanation that was playing
   const s = summarize(data);
   const name = data.child.name || 'Your child';
   const topicRows = (rows: TopicRow[]) => rows.map((t) => ({ label: t.title, value: h('span', { class: 'row-pair' }, t.firstTryPct === null ? '' : `${t.firstTryPct}%`, meter(t.mastery)) }));
@@ -138,6 +184,7 @@ function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
     building.length ? list(topicRows(building), 'Building') : null,
     s.strong.length ? list(topicRows(s.strong), 'Strong') : null,
     s.meets.length ? group('Tests', meetChart(s.meets)) : null,
+    ...roundsSection(lastRounds(data), swapPlayer),
     s.mistakes.length
       ? group('Mistakes', ...s.mistakes.map((m) => {
           const p = problemFromId(m.problemId);
@@ -185,5 +232,5 @@ export function parentScreen(familyId: string): View {
   // Fresh numbers whenever the parent comes back to the tab.
   const onFocus = () => document.visibilityState === 'visible' && session.get(familyId) && void open(session.get(familyId));
   document.addEventListener('visibilitychange', onFocus);
-  return { title: 'Dashboard', el: root, destroy: () => document.removeEventListener('visibilitychange', onFocus) };
+  return { title: 'Dashboard', el: root, destroy: () => { document.removeEventListener('visibilitychange', onFocus); swapPlayer(undefined); } };
 }

@@ -170,6 +170,8 @@ export const roundKey = (grade: Grade, kind: RoundKind) => `${grade}:${kind}`;
 export function saveRound(state: AppState, round: SavedRound): void {
   (state.rounds ??= {})[roundKey(round.grade, round.kind)] = round;
   save(state);
+  // lets the parent dashboard sync pick up the round (and its fixes) promptly
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
 }
 
 export const lastRound = (state: AppState, grade: Grade, kind: RoundKind): SavedRound | undefined => state.rounds?.[roundKey(grade, kind)];

@@ -42,13 +42,13 @@ describe('parent dashboard backend', () => {
   it('creates a family on first sync (PIN required) and stores attempts once', async () => {
     const db = makeDb();
     await expect(sync(db, { familyId: FAMILY, attempts: [] })).rejects.toThrow(/PIN/);
-    const r = await sync(db, { familyId: FAMILY, pin: '2468', child: { name: 'Sam', grade: 3 }, snapshot: { a: 1 }, attempts: [attempt(1), attempt(2)] });
+    const r = await sync(db, { familyId: FAMILY, pin: '2468', child: { name: 'Sam', grade: 3 }, snapshot: { a: 1, rounds: { '3:cogat': { kind: 'cogat', grade: 3, at: 5, items: [{ problemId: 'cogat-matrices:3:1:2', ok: false, fixed: true }] } } }, attempts: [attempt(1), attempt(2)] });
     expect(r).toMatchObject({ ok: true, received: 2, created: true });
     // re-sending the same attempts does not duplicate them; later syncs need no PIN
     await sync(db, { familyId: FAMILY, attempts: [attempt(1), attempt(2), attempt(3)] });
     const d = await readDashboard(db, { familyId: FAMILY, pin: '2468' });
     expect(d.child).toEqual({ name: 'Sam', grade: 3 });
-    expect(d.snapshot).toEqual({ a: 1 });
+    expect(d.snapshot).toEqual({ a: 1, rounds: { '3:cogat': { kind: 'cogat', grade: 3, at: 5, items: [{ problemId: 'cogat-matrices:3:1:2', ok: false, fixed: true }] } } });
     expect(d.attempts.map((a) => a.problemId)).toEqual(['calendar:2:1:3', 'calendar:2:1:2', 'calendar:2:1:1']);
     expect(d.attempts[1]).toMatchObject({ firstTry: true, correct: true, hints: 2, seconds: 32, mode: 'practice' });
   });

@@ -1,5 +1,5 @@
 import type { Problem } from '../core/types';
-import { checkAnswer, formatAnswer } from '../core/answer';
+import { checkAnswer } from '../core/answer';
 import { addToReview, load, recordAttempt, save } from '../core/storage';
 import { COUNTS, EACH_SECONDS, TOTAL_MINUTES, clockSeconds, formatClock, formatDuration, type ClockKind, type Feedback, type TestConfig } from '../core/session';
 import { makeMeet } from '../content/topics';
@@ -10,6 +10,7 @@ import { answerCard } from '../ui/answerCard';
 import { clock } from '../ui/clock';
 import { problemCard } from '../ui/problemCard';
 import { scenePlayer } from '../ui/player';
+import { compareAnswer } from '../ui/roundEnd';
 import { sceneFor } from '../core/explain';
 import { celebrate, done, progressDots } from '../ui/session';
 import type { View } from '../app';
@@ -191,9 +192,7 @@ export function testScreen(): View {
       h('p', { class: 'qnum' }, String(i + 1)),
       h('p', { class: 'question' }, rich(p.text)),
       p.figure ? svg(p.figure) : null,
-      h('dl', { class: 'compare' },
-        h('dt', {}, 'Yours'), h('dd', {}, given || '—'),
-        ok ? null : h('dt', {}, 'Answer'), ok ? null : h('dd', {}, formatAnswer(p.answer))),
+      compareAnswer(p, given, ok),
       explain,
       steps);
   }

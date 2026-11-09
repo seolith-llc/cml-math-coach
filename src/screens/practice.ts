@@ -1,10 +1,11 @@
 import type { Problem } from '../core/types';
-import { addToReview, load, recordAttempt } from '../core/storage';
+import { addToReview, load, recordAttempt, reviewResult } from '../core/storage';
 import { levelFor, pickTopic } from '../core/mastery';
 import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
-import { celebrate, done as doneScreen, progressDots } from '../ui/session';
+import { celebrate, progressDots } from '../ui/session';
+import { roundEnd, type RoundItem } from '../ui/roundEnd';
 import { today } from '../core/progress';
 import type { View } from '../app';
 
@@ -18,6 +19,7 @@ export function practiceScreen(topicId?: string): View {
   const fixed = topicId && !cogat ? topicById(topicId) : undefined;
   const pool = topicsForGrade(grade, cogat ? 'cogat' : 'cml');
   const results: boolean[] = [];
+  let round: RoundItem[] = [];
   let last: string | undefined;
   let destroyCard = () => {};
   const dots = progressDots(SESSION);
@@ -37,6 +39,7 @@ export function practiceScreen(topicId?: string): View {
       onDone: (r) => {
         const ok = r.correct && r.firstTry;
         results.push(ok);
+        round.push({ problem, ok, answer: r.wrongAnswer });
         dots.update(results);
         const ev = recordAttempt(state, grade, problem.topicId, ok, {
           problemId: problem.id, level: problem.level, correct: r.correct, firstTry: ok, skipped: r.skipped,
@@ -52,13 +55,33 @@ export function practiceScreen(topicId?: string): View {
   }
 
   function finishRound() {
-    const right = results.filter(Boolean).length;
     const goalMet = today({ log: state.log, goal: state.settings.goal, reviewDue: 0, meets: [] }).goalMet;
-    const more = h('button', { class: `btn ${goalMet ? '' : 'primary'}`, type: 'button', onclick: () => { results.length = 0; dots.update(results); next(); } }, 'Keep going');
-    // Once today's goal is met, finishing is the main action: healthy stopping points, not endless play.
-    slot.replaceChildren(doneScreen(`${right} of ${SESSION}`, goalMet
-      ? [h('a', { class: 'btn primary', href: '#/' }, 'Done for today'), more]
-      : [more, right < SESSION ? h('a', { class: 'btn', href: '#/review' }, 'Review') : null]));
+    dots.el.hidden = true;
+    const items = round;
+    roundEnd({
+      slot,
+      items,
+      // Once today's goal is met, finishing is the main action: healthy stopping points, not endless play.
+      actions: (missedLeft) => [
+        goalMet ? h('a', { class: `btn ${missedLeft ? '' : 'primary'}`, href: '#/' }, 'Done for today') : null,
+        h('button', { class: `btn ${goalMet || missedLeft ? '' : 'primary'}`, type: 'button', onclick: () => {
+          results.length = 0;
+          round = [];
+          dots.update(results);
+          dots.el.hidden = false;
+          next();
+        } }, 'Keep going')
+      ],
+      record: (it, res) => {
+        const good = res.correct && res.firstTry;
+        reviewResult(state, it.problem.id, good);
+        celebrate(recordAttempt(state, grade, it.problem.topicId, good, {
+          problemId: it.problem.id, level: it.problem.level, correct: res.correct, firstTry: good, skipped: res.skipped,
+          hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
+        }));
+      },
+      setCleanup: (fn) => (destroyCard = fn)
+    });
   }
 
   next();

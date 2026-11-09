@@ -2,7 +2,10 @@ import { dueReviews, load, recordAttempt, reviewResult } from '../core/storage';
 import { problemFromId } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
-import { celebrate, done, progressDots } from '../ui/session';
+import { celebrate, progressDots } from '../ui/session';
+import { roundEnd, type RoundItem } from '../ui/roundEnd';
+import type { CardResult } from '../ui/problemCard';
+import type { Problem } from '../core/types';
 import type { View } from '../app';
 
 /** Missed problems come back (same problem) on a spaced schedule: same day, 1, 3, 7, 14 days. */
@@ -11,6 +14,15 @@ export function reviewScreen(): View {
   const grade = state.settings.grade;
   const queue = dueReviews(state, grade).map((r) => ({ r, p: problemFromId(r.problemId)! })).filter((x) => x.p);
   const results: boolean[] = [];
+  const round: RoundItem[] = [];
+  const save = (p: Problem, res: CardResult) => {
+    const ok = res.correct && res.firstTry;
+    reviewResult(state, p.id, ok);
+    celebrate(recordAttempt(state, grade, p.topicId, ok, {
+      problemId: p.id, level: p.level, correct: res.correct, firstTry: ok, skipped: res.skipped,
+      hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
+    }));
+  };
   const dots = progressDots(queue.length);
   const slot = h('div');
   let destroyCard = () => {};
@@ -19,9 +31,17 @@ export function reviewScreen(): View {
     destroyCard();
     const item = queue[results.length];
     if (!item) {
-      slot.replaceChildren(queue.length
-        ? done(`${results.filter(Boolean).length} of ${queue.length}`, [h('a', { class: 'btn primary', href: '#/practice' }, 'Practice')])
-        : h('div', { class: 'stack' }, h('p', { class: 'empty' }, 'Nothing to review'), h('a', { class: 'btn primary hero', href: '#/practice' }, 'Practice')));
+      if (!queue.length) slot.replaceChildren(h('div', { class: 'stack' }, h('p', { class: 'empty' }, 'Nothing to review'), h('a', { class: 'btn primary hero', href: '#/practice' }, 'Practice')));
+      else {
+        dots.el.hidden = true;
+        roundEnd({
+          slot,
+          items: round,
+          actions: (missedLeft) => [h('a', { class: `btn ${missedLeft ? '' : 'primary'}`, href: '#/practice' }, 'Practice')],
+          record: (it, res) => save(it.problem, res),
+          setCleanup: (fn) => (destroyCard = fn)
+        });
+      }
       return;
     }
     const card = problemCard({
@@ -29,13 +49,9 @@ export function reviewScreen(): View {
       onDone: (res) => {
         const ok = res.correct && res.firstTry;
         results.push(ok);
+        round.push({ problem: item.p, ok, answer: res.wrongAnswer });
         dots.update(results);
-        reviewResult(state, item.r.problemId, ok);
-        const ev = recordAttempt(state, grade, item.p.topicId, ok, {
-          problemId: item.p.id, level: item.p.level, correct: res.correct, firstTry: ok, skipped: res.skipped,
-          hints: res.hints, seconds: res.seconds, answer: res.wrongAnswer, mode: 'review'
-        });
-        celebrate(ev);
+        save(item.p, res);
       },
       onNext: next
     });

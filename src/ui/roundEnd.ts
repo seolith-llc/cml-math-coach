@@ -1,0 +1,134 @@
+import type { Problem } from '../core/types';
+import { formatAnswer, parseChoice } from '../core/answer';
+import { roundFeedback, scoreText } from '../core/feedback';
+import { load } from '../core/storage';
+import { sceneFor } from '../core/explain';
+import { topicById } from '../content/topics';
+import { speak } from '../voice/speech';
+import { h, list, rich, svg } from './dom';
+import { choicePicker } from './choicePicker';
+import { problemCard, type CardResult } from './problemCard';
+import { scenePlayer, type Player } from './player';
+import { progressDots } from './session';
+
+export interface RoundItem {
+  problem: Problem;
+  /** Right on the first try. */
+  ok: boolean;
+  /** What the child answered first when it was wrong. */
+  answer?: string;
+  /** Missed, then right on a second try from the summary. */
+  fixed?: boolean;
+}
+
+/**
+ * The child's answer next to the right one, then the animated explanation.
+ * Choice questions show the choices with theirs (red) and the right one (green).
+ */
+export function compareAnswer(p: Problem, given: string | undefined, ok: boolean): Node {
+  if (p.answer.kind === 'choice') {
+    const pick = choicePicker(p.answer, () => {});
+    pick.disable();
+    const mine = given ? parseChoice(given, p.answer.options) : undefined;
+    if (mine && mine !== p.answer.value) pick.mark(mine, false);
+    pick.mark(p.answer.value, true);
+    return pick.el;
+  }
+  return h('dl', { class: 'compare' },
+    h('dt', {}, 'Yours'), h('dd', {}, given || (ok ? formatAnswer(p.answer) : '—')),
+    ok ? null : h('dt', {}, 'Answer'), ok ? null : h('dd', {}, formatAnswer(p.answer)));
+}
+
+/** The question, the child's answer against the right one, then the animated explanation. */
+export function answerReview(p: Problem, given: string | undefined, ok: boolean): { el: HTMLElement; player: Player } {
+  const player = scenePlayer(sceneFor(p));
+  return {
+    el: h('article', { class: `card problem ${ok ? 'right' : 'wrong'}` }, h('p', { class: 'question' }, rich(p.text)), p.figure ? svg(p.figure) : null, compareAnswer(p, given, ok), h('div', { class: 'solution' }, player.el)),
+    player
+  };
+}
+
+/**
+ * End of a round: score, one line of feedback, right/total per question type, and every question.
+ * Tap a question to see the answer explained; "Try missed again" replays the missed ones to raise the score.
+ */
+export function roundEnd(o: {
+  slot: HTMLElement;
+  items: RoundItem[];
+  /** Extra actions under the score (Keep going, Done for today…). `missedLeft`: "Try missed again" is the main action. */
+  actions: (missedLeft: boolean) => (Node | null)[];
+  /** Save a second-try attempt (review mode). */
+  record: (item: RoundItem, res: CardResult) => void;
+  /** Lets the screen clean up whatever is showing when it is left. */
+  setCleanup: (fn: () => void) => void;
+}): void {
+  const { slot, items } = o;
+  let cleanup = () => {};
+  const own = (fn: () => void) => {
+    cleanup();
+    cleanup = fn;
+    o.setCleanup(() => cleanup());
+  };
+  const title = (p: Problem) => topicById(p.topicId)?.title ?? p.topicId;
+
+  function summary(spoken = true) {
+    own(() => {});
+    const f = roundFeedback(items.map((i) => ({ topicId: i.problem.topicId, title: title(i.problem), ok: i.ok, fixed: i.fixed })));
+    const missed = items.filter((i) => !i.ok && !i.fixed);
+    if (spoken && load().settings.speak) void speak(`${scoreText(f).replace('→', 'now')}. ${f.line}`);
+    slot.replaceChildren(h('div', { class: 'stack' },
+      h('div', { class: 'card done' },
+        h('p', { class: 'score' }, scoreText(f)),
+        h('p', { class: 'round-line' }, f.line),
+        h('div', { class: 'actions' },
+          missed.length ? h('button', { class: 'btn primary', type: 'button', onclick: () => retry(missed) }, 'Try missed again') : null,
+          ...o.actions(missed.length > 0))),
+      f.byType.length > 1 ? list(f.byType.map((r) => ({ label: r.title, value: `${r.right} of ${r.total}` })), 'By type') : null,
+      list(items.map((it, i) => ({
+        label: h('span', {}, h('span', { class: 'qn' }, `${i + 1}`), title(it.problem)),
+        value: h('span', { class: it.ok || it.fixed ? 'mark good' : 'mark bad', 'aria-label': it.ok ? 'right' : it.fixed ? 'fixed' : 'missed' }, it.ok ? '✓' : it.fixed ? '↻ ✓' : '✗'),
+        onclick: () => open(i)
+      })), 'Questions')));
+    window.scrollTo(0, 0);
+  }
+
+  function open(i: number) {
+    const it = items[i];
+    const r = answerReview(it.problem, it.answer, it.ok || !!it.fixed);
+    own(() => r.player.destroy());
+    slot.replaceChildren(h('div', { class: 'stack' },
+      r.el,
+      h('div', { class: 'actions row-actions' },
+        h('button', { class: 'btn', type: 'button', onclick: () => summary(false) }, 'Back'),
+        i + 1 < items.length ? h('button', { class: 'btn primary', type: 'button', onclick: () => open(i + 1) }, 'Next question') : null)));
+    window.scrollTo(0, 0);
+    void r.player.play();
+  }
+
+  function retry(queue: RoundItem[]) {
+    const dots = progressDots(queue.length);
+    const results: boolean[] = [];
+    const host = h('div');
+    slot.replaceChildren(h('div', { class: 'stack' }, dots.el, host));
+    const next = () => {
+      const it = queue[results.length];
+      if (!it) return summary();
+      const card = problemCard({
+        problem: it.problem,
+        onDone: (res) => {
+          const good = res.correct && res.firstTry;
+          if (good) it.fixed = true;
+          results.push(good);
+          dots.update(results);
+          o.record(it, res);
+        },
+        onNext: next
+      });
+      own(card.destroy);
+      host.replaceChildren(card.el);
+    };
+    next();
+  }
+
+  summary();
+}

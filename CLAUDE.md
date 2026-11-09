@@ -15,8 +15,8 @@ Kid practices on an iPad; a parent follows along on their own device.
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          home, practice, review, test, learn (+ topic, strategies), cogat, progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), clock, charts, session, player (animated explanations)
-  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing)
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations)
+  core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands)
@@ -43,6 +43,11 @@ tests/              vitest, including a sweep of every topic × grade × level �
   CogAT items are multiple choice: 3 choices in Grade 2 (picture-based, read aloud, like Level 8), 5 in Grade 3 (words, like Level 9). Build them with `cogat/common.ts` `mc()`; `tests/cogat.test.ts` checks every item.
 - **Settings** (`core/storage.ts`): when you change the shape, migrate it in `migrateSettings` and add a case to `tests/settings.test.ts`.
 - **API changes:** put the logic in `server/` with tests and keep `functions/` as thin wrappers. Schema changes go in a new `migrations/000N_*.sql`.
+
+## End of a round (Practice and Review)
+
+`ui/roundEnd.ts`: the score (first tries), one line of feedback (`core/feedback.ts`), right/total per question type, then every question. Tap one to see the child's answer against the right one and the animated explanation.
+**Try missed again** replays the missed problems (same ids, review mode); each one fixed raises the score, shown as "7 → 9 of 10". Missed problems also stay in the spaced Review queue.
 
 ## Tests (the screen)
 

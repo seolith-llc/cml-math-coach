@@ -14,6 +14,10 @@ For a nicer device voice, download an *Enhanced* voice in **Accessibility → Sp
 
 **Explanations:** *Hint* plays the picture up to just before the answer. *Answer* (or a second wrong try) plays all of it with the voice-over. Use ◀ ▶ to go step by step, ↺ to watch again, and the speaker button to turn the voice off. The same player is in Learn and in test results (*Explain*).
 
+## End of a round
+
+After 10 questions (Practice, CogAT or Review) your child sees their score, one line of feedback and how each question type went. Tapping any question shows their answer next to the right one and plays its explanation. **Try missed again** gives the missed questions another go, and the score updates (for example *4 → 8 of 10*). Missed questions also come back later in **Review**.
+
 ## CogAT practice
 
 Home → **CogAT**. **Practice** mixes all nine question types; tap a type to see its lesson and a worked example first.

@@ -6,6 +6,7 @@ Practice for the Continental Math League, Grades 2 and 3, by voice or touch. Liv
 - **Test:** 6 to 20 questions. Learn or Test mode, and no clock, a clock for the whole test, or one per question. The default is a CML meet: 6 in 30 minutes.
 - **Coach:** reads aloud, listens to answers, gives hints, explains mistakes, and brings missed problems back later.
 - **CogAT practice:** original practice in the style of the Cognitive Abilities Test, across all three batteries: verbal (analogies, sentence completion, classification), quantitative (number analogies, number puzzles, number series) and nonverbal (figure matrices, paper folding, figure classification). Grade 2 is picture-based and read aloud; Grade 3 uses words. Tap to answer.
+- **End-of-round review:** score, feedback per question type, every question's explanation, and "Try missed again" to raise the score.
 - **Animated explanations:** every hint and answer is a short narrated picture (number lines, bars, coins, clocks, grids, balances). Play, pause, step back and forward, replay, change speed, mute.
 - **Daily goal, stars and a forgiving streak:** small daily wins, visible levels, celebrations, and a clear "done for today".
 - **Reminders:** an optional daily reminder on the iPad, a nudge email to the parent after a few days off, the parent dashboard, and a weekly email.

@@ -86,7 +86,13 @@ describe('CogAT track', () => {
       expect(q.d, q.s).not.toContain(q.a);
       expect(q.d.length, q.s).toBeGreaterThanOrEqual(4);
     }
-    for (const q of _test.PICTURE_SENTENCES) expect(q.d.map((d) => d[0]), q.q).not.toContain(q.a[0]);
+    for (const q of _test.PICTURE_SENTENCES) {
+      expect(q.d.map((d) => d[0]), q.q).not.toContain(q.a[0]);
+      expect(new Set([q.a[1], ...q.d.map((d) => d[1])]).size, `${q.q} pictures`).toBe(q.d.length + 1);
+    }
+    expect(_test.PICTURE_SENTENCES.length).toBeGreaterThanOrEqual(40);
+    expect(_test.WORD_SENTENCES.length).toBeGreaterThanOrEqual(40);
+    expect(_test.RELATIONS.filter((r) => r.picture).length).toBeGreaterThanOrEqual(9);
     expect(new Set(_test.ITEMS.map((i) => i[0])).size).toBe(_test.ITEMS.length);
   });
 

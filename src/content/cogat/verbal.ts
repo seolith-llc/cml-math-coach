@@ -47,7 +47,37 @@ const RELATIONS: { name: string; picture: boolean; pairs: Pair[] }[] = [
     ['pen', '', 'write', '', 'You write with a pen.'], ['oven', '', 'bake', '', 'You bake in an oven.']] },
   { name: 'workplace', picture: false, pairs: [
     ['teacher', '', 'school', '', 'A teacher works at a school.'], ['doctor', '', 'hospital', '', 'A doctor works at a hospital.'], ['chef', '', 'kitchen', '', 'A chef works in a kitchen.'],
-    ['pilot', '', 'airplane', '', 'A pilot works on an airplane.'], ['farmer', '', 'farm', '', 'A farmer works on a farm.'], ['librarian', '', 'library', '', 'A librarian works at a library.']] }
+    ['pilot', '', 'airplane', '', 'A pilot works on an airplane.'], ['farmer', '', 'farm', '', 'A farmer works on a farm.'], ['librarian', '', 'library', '', 'A librarian works at a library.']] },
+  { name: 'makes', picture: true, pairs: [
+    ['cow', '🐄', 'milk', '🥛', 'A cow gives us milk.'], ['bee', '🐝', 'honey', '🍯', 'A bee makes honey.'], ['hen', '🐔', 'egg', '🥚', 'A hen lays eggs.'],
+    ['sheep', '🐑', 'wool', '🧶', 'A sheep gives us wool.'], ['spider', '🕷️', 'web', '🕸️', 'A spider spins a web.']] },
+  { name: 'weather needs', picture: true, pairs: [
+    ['rain', '🌧️', 'umbrella', '☂️', 'When it rains, you use an umbrella.'], ['snow', '❄️', 'mittens', '🧤', 'When it snows, you wear mittens.'],
+    ['sun', '☀️', 'sunglasses', '🕶️', 'When it is sunny, you wear sunglasses.'], ['wind', '🌬️', 'kite', '🪁', 'When it is windy, you fly a kite.']] },
+  { name: 'goes in', picture: true, pairs: [
+    ['letter', '✉️', 'mailbox', '📫', 'A letter goes in a mailbox.'], ['car', '🚗', 'road', '🛣️', 'A car drives on a road.'],
+    ['train', '🚂', 'tracks', '🛤️', 'A train runs on tracks.'], ['boat', '⛵', 'water', '🌊', 'A boat sails on water.']] },
+  { name: 'feelings', picture: true, pairs: [
+    ['gift', '🎁', 'happy', '😀', 'A gift makes you happy.'], ['scary ghost', '👻', 'scared', '😱', 'A scary ghost makes you scared.'], ['clown', '🤡', 'laughing', '😂', 'A funny clown makes you laugh.'],
+    ['bedtime', '🛏️', 'sleepy', '😴', 'Bedtime makes you sleepy.']] },
+  { name: 'animal home', picture: false, pairs: [
+    ['bee', '', 'hive', '', 'A bee lives in a hive.'], ['bird', '', 'nest', '', 'A bird lives in a nest.'], ['bear', '', 'den', '', 'A bear lives in a den.'], ['rabbit', '', 'burrow', '', 'A rabbit lives in a burrow.'],
+    ['horse', '', 'stable', '', 'A horse lives in a stable.'], ['pig', '', 'pen', '', 'A pig lives in a pen.']] },
+  { name: 'animal sound', picture: false, pairs: [
+    ['dog', '', 'bark', '', 'A dog barks.'], ['cat', '', 'meow', '', 'A cat meows.'], ['cow', '', 'moo', '', 'A cow moos.'], ['duck', '', 'quack', '', 'A duck quacks.'], ['lion', '', 'roar', '', 'A lion roars.'],
+    ['snake', '', 'hiss', '', 'A snake hisses.'], ['owl', '', 'hoot', '', 'An owl hoots.']] },
+  { name: 'animal group', picture: false, pairs: [
+    ['cow', '', 'herd', '', 'Many cows make a herd.'], ['bird', '', 'flock', '', 'Many birds make a flock.'], ['wolf', '', 'pack', '', 'Many wolves make a pack.'], ['fish', '', 'school', '', 'Many fish swimming together make a school.'],
+    ['bee', '', 'swarm', '', 'Many bees flying together make a swarm.']] },
+  { name: 'part of', picture: false, pairs: [
+    ['petal', '', 'flower', '', 'A petal is part of a flower.'], ['wheel', '', 'car', '', 'A wheel is part of a car.'], ['page', '', 'book', '', 'A page is part of a book.'], ['leaf', '', 'tree', '', 'A leaf is part of a tree.'],
+    ['finger', '', 'hand', '', 'A finger is part of a hand.'], ['toe', '', 'foot', '', 'A toe is part of a foot.']] },
+  { name: 'same meaning', picture: false, pairs: [
+    ['big', '', 'large', '', 'Big means the same as large.'], ['small', '', 'tiny', '', 'Small means about the same as tiny.'], ['fast', '', 'quick', '', 'Fast means the same as quick.'],
+    ['happy', '', 'glad', '', 'Happy means the same as glad.'], ['shout', '', 'yell', '', 'Shout means the same as yell.'], ['begin', '', 'start', '', 'Begin means the same as start.']] },
+  { name: 'made of', picture: false, pairs: [
+    ['window', '', 'glass', '', 'A window is made of glass.'], ['table', '', 'wood', '', 'A wooden table is made of wood.'], ['sweater', '', 'wool', '', 'A sweater is made of wool.'],
+    ['coin', '', 'metal', '', 'A coin is made of metal.'], ['candle', '', 'wax', '', 'A candle is made of wax.']] }
 ];
 
 const related = new Set(RELATIONS.flatMap((r) => r.pairs.map((p) => `${p[0]}>${p[2]}`)));
@@ -94,8 +124,8 @@ export const verbalAnalogies: Topic = {
     if (ab[2] === cd[2]) return null;
     const others = RELATIONS.filter((r) => r !== rel && (!pics || r.picture)).flatMap((r) => r.pairs);
     const wrong = [ab, ...rng.shuffle(rel.pairs.filter((p) => p !== ab && p !== cd)), ...rng.shuffle(others)]
-      .filter((p) => !related.has(`${cd[0]}>${p[2]}`) && p[2] !== cd[0]);
-    const m = mc(rng, cd, wrong, choicesFor(grade), (p) => p[2], (p) => p[2], pics ? (p) => p[3] : undefined);
+      .filter((p) => !related.has(`${cd[0]}>${p[2]}`) && p[2] !== cd[0] && !(pics && p[3] === cd[3]));
+    const m = mc(rng, cd, wrong, choicesFor(grade), (p) => (pics ? p[3] : p[2]), (p) => p[2], pics ? (p) => p[3] : undefined);
     if (!m) return null;
     const figure = pics
       ? svgBox(320, 80, `${ab[0]} goes with ${ab[2]}; ${cd[0]} goes with what`,
@@ -143,7 +173,25 @@ const PICTURE_SENTENCES: { q: string; a: [string, string]; d: [string, string][]
   { q: 'Which one makes music?', a: ['drum', '🥁'], d: [['chair', '🪑'], ['plate', '🍽️'], ['sock', '🧦']], why: 'You play music on a drum.' },
   { q: 'Which one is the biggest animal?', a: ['whale', '🐳'], d: [['mouse', '🐭'], ['cat', '🐱'], ['ant', '🐜']], why: 'A whale is far bigger than the others.' },
   { q: 'Which one do you paint a picture with?', a: ['paintbrush', '🖌️'], d: [['fork', '🍴'], ['key', '🔑'], ['cup', '🥤']], why: 'You paint with a paintbrush.' },
-  { q: 'Which one comes from a chicken?', a: ['egg', '🥚'], d: [['milk', '🥛'], ['honey', '🍯'], ['yarn', '🧶']], why: 'Chickens lay eggs.' }
+  { q: 'Which one comes from a chicken?', a: ['egg', '🥚'], d: [['milk', '🥛'], ['honey', '🍯'], ['yarn', '🧶']], why: 'Chickens lay eggs.' },
+  { q: 'Which one do you use to sweep the floor?', a: ['broom', '🧹'], d: [['pillow', '🛏️'], ['fork', '🍴'], ['guitar', '🎸']], why: 'A broom sweeps the floor.' },
+  { q: 'Which one shows you the way to go?', a: ['map', '🗺️'], d: [['cookie', '🍪'], ['sock', '🧦'], ['drum', '🥁']], why: 'A map shows where places are.' },
+  { q: 'Which one has stripes?', a: ['zebra', '🦓'], d: [['elephant', '🐘'], ['frog', '🐸'], ['pig', '🐖']], why: 'A zebra has black and white stripes.' },
+  { q: 'Which one do you wear on your head?', a: ['hat', '🎩'], d: [['shoes', '👟'], ['socks', '🧦'], ['gloves', '🧤']], why: 'A hat goes on your head.' },
+  { q: 'Which one would you find in the ocean?', a: ['octopus', '🐙'], d: [['camel', '🐫'], ['squirrel', '🐿️'], ['cow', '🐄']], why: 'An octopus lives in the ocean.' },
+  { q: 'Which one do you use to build a sandcastle?', a: ['bucket', '🪣'], d: [['pillow', '🛏️'], ['violin', '🎻'], ['book', '📖']], why: 'You fill a bucket with sand to make a sandcastle.' },
+  { q: 'Which one is the fastest?', a: ['rocket', '🚀'], d: [['bicycle', '🚲'], ['snail', '🐌'], ['turtle', '🐢']], why: 'A rocket is much faster than the others.' },
+  { q: 'Which one do you plant in the ground to grow a flower?', a: ['seed', '🌱'], d: [['rock', '🪨'], ['coin', '🪙'], ['button', '🔘']], why: 'A flower grows from a seed.' },
+  { q: 'Which one does a doctor use to listen to your heart?', a: ['stethoscope', '🩺'], d: [['guitar', '🎸'], ['soccer ball', '⚽'], ['crown', '👑']], why: 'A doctor listens to your heart with a stethoscope.' },
+  { q: 'Which one do you use to take a picture?', a: ['camera', '📷'], d: [['spoon', '🥄'], ['shoe', '👟'], ['bell', '🔔']], why: 'A camera takes pictures.' },
+  { q: 'Which one do you sleep in?', a: ['bed', '🛏️'], d: [['bathtub', '🛁'], ['car', '🚗'], ['chair', '🪑']], why: 'We sleep in a bed.' },
+  { q: 'Which one is hot?', a: ['fire', '🔥'], d: [['ice', '🧊'], ['snowflake', '❄️'], ['penguin', '🐧']], why: 'Fire is very hot.' },
+  { q: 'Which animal has a long neck?', a: ['giraffe', '🦒'], d: [['pig', '🐖'], ['mouse', '🐭'], ['frog', '🐸']], why: 'A giraffe has a very long neck.' },
+  { q: 'Which one do you ring?', a: ['bell', '🔔'], d: [['apple', '🍎'], ['sock', '🧦'], ['leaf', '🍃']], why: 'You ring a bell to make it sound.' },
+  { q: 'Which one do you use to wash your hands?', a: ['soap', '🧼'], d: [['candy', '🍬'], ['paint', '🎨'], ['glue', '🧴']], why: 'Soap gets your hands clean.' },
+  { q: 'Which one lays eggs?', a: ['hen', '🐔'], d: [['cow', '🐄'], ['dog', '🐶'], ['horse', '🐎']], why: 'A hen lays eggs.' },
+  { q: 'Which one has wheels and pedals?', a: ['bicycle', '🚲'], d: [['boat', '⛵'], ['airplane', '✈️'], ['horse', '🐎']], why: 'A bicycle has wheels and pedals.' },
+  { q: 'Which one shines in the night sky?', a: ['moon', '🌙'], d: [['rainbow', '🌈'], ['umbrella', '☂️'], ['cloud', '☁️']], why: 'The moon shines at night.' }
 ];
 
 /** Grade 3: a written sentence with a blank. */
@@ -169,7 +217,29 @@ const WORD_SENTENCES: { s: string; a: string; d: string[]; why: string }[] = [
   { s: 'Bees make ___ from the flowers they visit.', a: 'honey', d: ['milk', 'cheese', 'butter', 'bread'], why: 'Bees turn flower nectar into honey.' },
   { s: 'A ___ has four sides that are all the same length.', a: 'square', d: ['circle', 'triangle', 'oval', 'line'], why: 'A square has four equal sides.' },
   { s: 'Ten is ___ than five.', a: 'more', d: ['less', 'smaller', 'fewer', 'shorter'], why: 'Ten is more than five.' },
-  { s: 'A caterpillar turns into a ___.', a: 'butterfly', d: ['spider', 'bird', 'worm', 'snail'], why: 'A caterpillar becomes a butterfly.' }
+  { s: 'A caterpillar turns into a ___.', a: 'butterfly', d: ['spider', 'bird', 'worm', 'snail'], why: 'A caterpillar becomes a butterfly.' },
+  { s: 'A ___ is a baby cat.', a: 'kitten', d: ['puppy', 'foal', 'chick', 'cub'], why: 'A baby cat is called a kitten.' },
+  { s: 'You need a ___ to see the stars up close.', a: 'telescope', d: ['microphone', 'thermometer', 'calendar', 'compass'], why: 'A telescope makes faraway things look close.' },
+  { s: 'Water boils when it gets very ___.', a: 'hot', d: ['cold', 'dark', 'quiet', 'thin'], why: 'Water boils when it is heated.' },
+  { s: 'A year has twelve ___.', a: 'months', d: ['weeks', 'days', 'hours', 'seasons'], why: 'There are twelve months in a year.' },
+  { s: 'A ___ can fly, but it is not a bird.', a: 'bat', d: ['robin', 'eagle', 'owl', 'parrot'], why: 'A bat flies, but it is a mammal, not a bird.' },
+  { s: 'We use our ___ to hear music.', a: 'ears', d: ['eyes', 'nose', 'teeth', 'elbows'], why: 'We hear with our ears.' },
+  { s: 'Before you cross the street, you should ___ both ways.', a: 'look', d: ['jump', 'sing', 'sleep', 'hide'], why: 'Looking both ways keeps you safe.' },
+  { s: 'Snow melts when the weather gets ___.', a: 'warm', d: ['colder', 'windy', 'cloudy', 'dark'], why: 'Warmth melts snow.' },
+  { s: 'An apple, a pear and a peach are all kinds of ___.', a: 'fruit', d: ['vegetables', 'nuts', 'bread', 'flowers'], why: 'Apples, pears and peaches are fruits.' },
+  { s: 'A ___ tells you which way is north.', a: 'compass', d: ['clock', 'ruler', 'scale', 'thermometer'], why: 'A compass needle points north.' },
+  { s: 'A baby grows ___ every year.', a: 'taller', d: ['shorter', 'younger', 'smaller', 'quieter'], why: 'Children grow taller as they get older.' },
+  { s: 'The ___ is the closest star to Earth.', a: 'sun', d: ['moon', 'cloud', 'comet', 'rainbow'], why: 'The sun is a star, and it is the closest one to us.' },
+  { s: 'A rabbit has long ___ to hear well.', a: 'ears', d: ['tails', 'wings', 'horns', 'claws'], why: 'Rabbits have long ears.' },
+  { s: 'We put on ___ to keep our hands warm.', a: 'mittens', d: ['boots', 'goggles', 'belts', 'sandals'], why: 'Mittens keep hands warm.' },
+  { s: 'Five plus five equals ___.', a: 'ten', d: ['nine', 'eleven', 'fifteen', 'twenty'], why: '5 + 5 = 10.' },
+  { s: 'A firefighter puts out ___.', a: 'fires', d: ['lights', 'candles', 'books', 'boats'], why: 'Firefighters put out fires.' },
+  { s: 'Most plants have green ___.', a: 'leaves', d: ['feathers', 'scales', 'wheels', 'shells'], why: 'Leaves are usually green.' },
+  { s: 'A turtle carries its ___ on its back.', a: 'shell', d: ['nest', 'egg', 'tail', 'food'], why: 'A turtle has a hard shell on its back.' },
+  { s: 'If you are thirsty, you should drink some ___.', a: 'water', d: ['sand', 'soap', 'paint', 'glue'], why: 'Water helps when you are thirsty.' },
+  { s: 'The opposite of whisper is ___.', a: 'shout', d: ['listen', 'sleep', 'smile', 'walk'], why: 'A whisper is very quiet; a shout is very loud.' },
+  { s: 'You can see your own face in a ___.', a: 'mirror', d: ['pillow', 'blanket', 'basket', 'drawer'], why: 'A mirror shows your reflection.' },
+  { s: 'Monday comes right after ___.', a: 'Sunday', d: ['Tuesday', 'Friday', 'Wednesday', 'Thursday'], why: 'The week goes Sunday, Monday, Tuesday…' }
 ];
 
 function sentenceScene(line: string, answer: string, why: string, pic?: string) {
@@ -231,13 +301,22 @@ export const sentenceCompletion: Topic = {
 /** [word, picture ('' = word only), tags] */
 type Item = [string, string, string[]];
 const ITEMS: Item[] = [
-  ...(['apple 🍎', 'banana 🍌', 'grapes 🍇', 'strawberry 🍓', 'pear 🍐', 'cherries 🍒', 'watermelon 🍉', 'lemon 🍋'].map((s) => [...s.split(' '), ['fruit', 'food']]) as Item[]),
-  ['orange', '🍊', ['fruit', 'food', 'colour']],
-  ...(['carrot 🥕', 'broccoli 🥦', 'corn 🌽', 'potato 🥔', 'cucumber 🥒'].map((s) => [...s.split(' '), ['vegetable', 'food']]) as Item[]),
+  ...(['apple 🍎', 'banana 🍌', 'grapes 🍇', 'strawberry 🍓', 'pear 🍐', 'cherries 🍒', 'watermelon 🍉', 'lemon 🍋'].map((s) => [...s.split(' '), ['fruit', 'food', 'plant']]) as Item[]),
+  ['orange', '🍊', ['fruit', 'food', 'plant', 'colour']],
+  ...(['carrot 🥕', 'broccoli 🥦', 'corn 🌽', 'potato 🥔', 'cucumber 🥒'].map((s) => [...s.split(' '), ['vegetable', 'food', 'plant']]) as Item[]),
   ...(['car 🚗', 'bus 🚌', 'bicycle 🚲', 'train 🚂', 'truck 🚚', 'tractor 🚜'].map((s) => [...s.split(' '), ['vehicle', 'wheels']]) as Item[]),
   ...(['airplane ✈️', 'helicopter 🚁', 'rocket 🚀'].map((s) => [...s.split(' '), ['vehicle', 'flies']]) as Item[]),
   ...(['sailboat ⛵', 'ship 🚢', 'canoe 🛶'].map((s) => [...s.split(' '), ['vehicle', 'water']]) as Item[]),
-  ...(['bird 🐦', 'owl 🦉', 'eagle 🦅', 'bat 🦇', 'butterfly 🦋', 'bee 🐝'].map((s) => [...s.split(' '), ['animal', 'flies']]) as Item[]),
+  ...(['bird 🐦', 'owl 🦉', 'eagle 🦅', 'bat 🦇', 'parrot 🦜', 'duck 🦆'].map((s) => [...s.split(' '), ['animal', 'flies']]) as Item[]),
+  ...(['butterfly 🦋', 'bee 🐝', 'ladybug 🐞', 'beetle 🪲'].map((s) => [...s.split(' '), ['animal', 'flies', 'insect']]) as Item[]),
+  ...(['ant 🐜', 'caterpillar 🐛'].map((s) => [...s.split(' '), ['animal', 'insect']]) as Item[]),
+  ...(['snake 🐍', 'lizard 🦎'].map((s) => [...s.split(' '), ['animal', 'reptile']]) as Item[]),
+  ...(['turtle 🐢', 'crocodile 🐊'].map((s) => [...s.split(' '), ['animal', 'reptile', 'water']]) as Item[]),
+  ...(['lion 🦁', 'tiger 🐯', 'elephant 🐘', 'giraffe 🦒', 'zebra 🦓'].map((s) => [...s.split(' '), ['animal', 'wild']]) as Item[]),
+  ...(['cake 🎂', 'cookie 🍪', 'donut 🍩', 'cupcake 🧁', 'candy 🍬', 'lollipop 🍭'].map((s) => [...s.split(' '), ['dessert', 'food']]) as Item[]),
+  ...(['soccer ⚽', 'basketball 🏀', 'baseball ⚾', 'football 🏈', 'tennis 🎾', 'volleyball 🏐'].map((s) => [...s.split(' '), ['ball']]) as Item[]),
+  ...(['rose 🌹', 'tulip 🌷', 'sunflower 🌻', 'daisy 🌼', 'hibiscus 🌺'].map((s) => [...s.split(' '), ['flower', 'plant']]) as Item[]),
+  ...(['house 🏠', 'school 🏫', 'hospital 🏥', 'castle 🏰', 'tent ⛺'].map((s) => [...s.split(' '), ['building']]) as Item[]),
   ...(['fish 🐟', 'octopus 🐙', 'crab 🦀', 'dolphin 🐬', 'whale 🐳', 'shark 🦈'].map((s) => [...s.split(' '), ['animal', 'water']]) as Item[]),
   ...(['cow 🐄', 'pig 🐖', 'sheep 🐑', 'horse 🐎', 'goat 🐐'].map((s) => [...s.split(' '), ['animal', 'farm']]) as Item[]),
   ...(['socks 🧦', 'shirt 👕', 'jeans 👖', 'gloves 🧤', 'scarf 🧣', 'dress 👗', 'hat 🎩'].map((s) => [...s.split(' '), ['clothes']]) as Item[]),
@@ -248,13 +327,22 @@ const ITEMS: Item[] = [
   ...(['circle', 'square', 'triangle', 'rectangle', 'oval'].map((w) => [w, '', ['shape']]) as Item[]),
   ...(['happy', 'sad', 'angry', 'scared', 'excited'].map((w) => [w, '', ['feeling']]) as Item[]),
   ...(['elbow', 'knee', 'nose', 'ear', 'shoulder'].map((w) => [w, '', ['body']]) as Item[]),
-  ...(['chair', 'table', 'bed', 'sofa', 'desk'].map((w) => [w, '', ['furniture']]) as Item[])
+  ...(['chair', 'table', 'bed', 'sofa', 'desk'].map((w) => [w, '', ['furniture']]) as Item[]),
+  ...(['seven', 'twelve', 'twenty', 'four', 'nine'].map((w) => [w, '', ['number']]) as Item[]),
+  ...(['Monday', 'Wednesday', 'Friday', 'Sunday', 'Tuesday'].map((w) => [w, '', ['day']]) as Item[]),
+  ...(['January', 'March', 'June', 'October', 'December'].map((w) => [w, '', ['month']]) as Item[]),
+  ...(['teacher', 'doctor', 'pilot', 'farmer', 'baker'].map((w) => [w, '', ['job']]) as Item[]),
+  ...(['kitchen', 'bedroom', 'bathroom', 'attic', 'basement'].map((w) => [w, '', ['room']]) as Item[]),
+  ...(['hop', 'skip', 'jog', 'crawl', 'gallop'].map((w) => [w, '', ['movement']]) as Item[]),
+  ...(['Mars', 'Earth', 'Venus', 'Jupiter', 'Saturn'].map((w) => [w, '', ['planet']]) as Item[])
 ];
 
 const TAG_WORDS: Record<string, string> = {
   fruit: 'fruits', vegetable: 'vegetables', food: 'foods', vehicle: 'things that carry people', wheels: 'things with wheels', flies: 'things that fly', water: 'things found in or on water',
   animal: 'animals', farm: 'farm animals', clothes: 'things you wear', music: 'musical instruments', weather: 'kinds of weather', tool: 'tools', colour: 'colours', shape: 'shapes',
-  feeling: 'feelings', body: 'parts of the body', furniture: 'furniture'
+  feeling: 'feelings', body: 'parts of the body', furniture: 'furniture', insect: 'insects', reptile: 'reptiles', wild: 'wild animals', dessert: 'sweet treats',
+  ball: 'balls for games', flower: 'flowers', plant: 'plants', building: 'places people stay in', number: 'numbers', day: 'days of the week', month: 'months', job: 'jobs', room: 'rooms in a house',
+  movement: 'ways to move', planet: 'planets'
 };
 
 function classScene(stim: Item[], ans: Item, tag: string, pics: boolean) {

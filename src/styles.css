@@ -293,3 +293,12 @@ a.row:active, button.row:active { background: var(--fill); }
 .choice.wrong { border-color: var(--bad); }
 .choice:disabled { cursor: default; }
 .choice:disabled:not(.right):not(.wrong):not(.picked) { opacity: 0.6; }
+
+/* ---------- end of round ---------- */
+.round-line { margin: 8px auto 0; max-width: 32ch; color: var(--muted); font-size: 17px; line-height: 1.4; }
+.qn { display: inline-block; min-width: 1.6em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mark { font-weight: 700; }
+.mark.good { color: var(--good); }
+.mark.bad { color: var(--bad); }
+.row-actions { display: flex; gap: 10px; }
+.row-actions .btn { flex: 1; }

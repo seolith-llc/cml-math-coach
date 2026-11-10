@@ -71,6 +71,7 @@ Only Test mode writes a `meets` record. The setup is stored in `settings.test`.
 
 Push to `main`. GitHub Actions runs `npm run check`, provisions D1, deploys to Cloudflare Pages, smoke-tests `/api/parent` and `/api/tts`, and checks the custom domain.
 Production health and email log: Actions → **Status** (read-only).
+**Private app:** not indexed (robots.txt + `X-Robots-Tag` + meta), crawlers and AI agents get 403 (`functions/_middleware.ts` → `server/guard.ts`), and Cloudflare Access (Actions → **Cloudflare Access**, `scripts/cloudflare-access.mjs`) requires an invited email sign-in on every host. CI calls the site with the Access service token (`CF_ACCESS_CLIENT_ID/SECRET`). Never add a public route; email confirm/unsubscribe are the only bypasses.
 Setup and secrets: `docs/DEPLOY.md`. Tester guide and test cases: `docs/TESTING.md`.
 
 ## Prompt history (standing instruction)

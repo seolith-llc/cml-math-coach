@@ -105,17 +105,21 @@ jobs:
         if: steps.secrets.outputs.ok == 'true'
         env:
           URL: ${{ steps.deploy.outputs.deployment-url }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
           set -u
+          # The app is behind Cloudflare Access; CI gets in with its service token (when set up).
+          access=(); if [ -n "${CF_ACCESS_CLIENT_ID:-}" ]; then access=(-H "cf-access-client-id: $CF_ACCESS_CLIENT_ID" -H "cf-access-client-secret: $CF_ACCESS_CLIENT_SECRET"); fi
           sleep 10
           # Parent dashboard: an unknown family must give 401 (D1 bound). 503 means the DB binding is missing.
-          code=$(curl -s -o /tmp/parent.json -w '%{http_code}' -X POST "$URL/api/parent" \
+          code=$(curl -s -o /tmp/parent.json -w '%{http_code}' -X POST "$URL/api/parent" "${access[@]}" \
             -H 'content-type: application/json' -H 'sec-fetch-site: same-origin' \
             -d '{"familyId":"smoke-test-not-a-real-family-id","pin":"0000"}')
           echo "parent API: HTTP $code $(cat /tmp/parent.json)"
           if [ "$code" = "401" ]; then echo "✔ Parent dashboard storage (D1) is bound"; else echo "::warning::Parent dashboard API returned $code"; fi
           # Premium voice: a short phrase (edge-cached after the first run) must return audio.
-          tts=$(curl -s -o /tmp/tts.bin -w '%{http_code} %{content_type}' "$URL/api/tts?v=luna&t=Ready" -H 'sec-fetch-site: same-origin')
+          tts=$(curl -s -o /tmp/tts.bin -w '%{http_code} %{content_type}' "$URL/api/tts?v=luna&t=Ready" "${access[@]}" -H 'sec-fetch-site: same-origin')
           echo "tts API: $tts, $(wc -c < /tmp/tts.bin) bytes"
           case "$tts" in "200 audio/"*) echo "✔ Premium voice (Workers AI) works" ;; *) echo "::warning::Premium voice returned $tts" ;; esac
 
@@ -125,11 +129,14 @@ jobs:
           APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: |
+          access=(); if [ -n "${CF_ACCESS_CLIENT_ID:-}" ]; then access=(-H "cf-access-client-id: $CF_ACCESS_CLIENT_ID" -H "cf-access-client-secret: $CF_ACCESS_CLIENT_SECRET"); fi
           node scripts/ensure-domain.mjs
           host=$(echo "$APP_URL" | sed -E 's#https?://([^/]+).*#\1#')
           echo "DNS $host: CNAME=$(dig +short CNAME "$host" | tr '\n' ' ') A=$(dig +short A "$host" | tr '\n' ' ')"
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$APP_URL/")
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${access[@]}" "$APP_URL/")
           echo "GET $APP_URL/ -> HTTP $code"
           if [ "$code" = "200" ]; then echo "✔ Production domain serves the app"
           else echo "::warning::$APP_URL returned $code. In Cloudflare: Workers & Pages → $PROJECT_NAME → Custom domains, attach $host (a CNAME to $PROJECT_NAME.pages.dev added by hand first can give 522)."; fi

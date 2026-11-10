@@ -2,8 +2,8 @@
 
 ## iPad
 
-1. Open **https://cml-math-coach.seolith.com** in Safari and tap once (Apple needs a tap before the app can speak).
-2. Share → **Add to Home Screen**. It then opens full screen and works offline.
+1. Open **https://cml-math-coach.seolith.com** in Safari and sign in with your invited email address (a one-time code arrives by email; a sign-in lasts 30 days). Tap once (Apple needs a tap before the app can speak).
+2. Share → **Add to Home Screen**. It then opens full screen and works offline. The first time you open it from the icon, sign in once more inside it.
 3. In **Settings**, choose a voice and turn on **Read aloud**.
 
 Voice answers need Safari itself. Apple doesn't give speech recognition to apps opened from the Home Screen icon, so for hands-free practice use a Safari bookmark.

@@ -25,4 +25,6 @@ jobs:
       - name: Probe the live site like the app does
         env:
           APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: node scripts/probe.mjs | tee -a "$GITHUB_STEP_SUMMARY"

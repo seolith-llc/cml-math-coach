@@ -1,0 +1,36 @@
+# Puts Cloudflare Access in front of the whole app (custom domain, pages.dev and previews), so only invited
+# people can open it. Run manually: Actions -> "Cloudflare Access" -> Run workflow. Safe to re-run (it updates).
+# Setup and the token permissions: docs/DEPLOY.md, "Private access".
+name: Cloudflare Access
+
+on:
+  workflow_dispatch:
+    inputs:
+      session:
+        description: How long a sign-in lasts on a device (e.g. 720h = 30 days)
+        default: '720h'
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          # Holds an Access-capable token, so skip dependency caching (setup-node's guidance for privileged jobs).
+          package-manager-cache: false
+      - name: Apply Access
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_ACCESS_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # A secret, so the addresses never appear in this public repository's logs.
+          ACCESS_ALLOWED_EMAILS: ${{ secrets.ACCESS_ALLOWED_EMAILS }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+          ACCESS_SESSION: ${{ inputs.session }}
+        run: node scripts/cloudflare-access.mjs | tee -a "$GITHUB_STEP_SUMMARY"

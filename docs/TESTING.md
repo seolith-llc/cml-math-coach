@@ -10,6 +10,7 @@ Thank you for testing! Math Coach is a voice-first practice app for kids in Grad
 | | |
 |---|---|
 | **Best device** | iPad with Safari (the main target). Also useful: iPhone Safari, Android Chrome, desktop Chrome/Safari/Edge. |
+| **Sign in** | The app is private. Open the link and enter **the email address this invite was sent to**; you'll get a one-time code by email (check spam). A sign-in lasts 30 days. On iPad, sign in again inside the Home Screen app the first time you open it there. |
 | **Install** | In Safari, open the link, tap once on the page, then **Share → Add to Home Screen**. Open it from the new icon. (Do some tests in the Safari tab too: voice answers only work there.) |
 | **Sound** | Turn the volume up and the silent switch off. The app talks. |
 | **Microphone** | Allow it when asked (voice answers). On iPad: **Settings → General → Keyboard → Enable Dictation** must be on. |

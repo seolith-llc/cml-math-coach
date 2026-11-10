@@ -27,6 +27,9 @@ jobs:
     env:
       APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      # Cloudflare Access service token (the app is behind Access); empty until set up
+      CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+      CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
     steps:
       - name: Run
         run: |
@@ -37,7 +40,8 @@ jobs:
           else
             path=/api/hourly; body='{}'
           fi
-          out=$(curl -sS -X POST "$APP_URL$path" -H "authorization: Bearer $CRON_SECRET" -H 'content-type: application/json' -d "$body" -w '\n%{http_code}')
+          access=(); if [ -n "${CF_ACCESS_CLIENT_ID:-}" ]; then access=(-H "cf-access-client-id: $CF_ACCESS_CLIENT_ID" -H "cf-access-client-secret: $CF_ACCESS_CLIENT_SECRET"); fi
+          out=$(curl -sS -X POST "$APP_URL$path" "${access[@]}" -H "authorization: Bearer $CRON_SECRET" -H 'content-type: application/json' -d "$body" -w '\n%{http_code}')
           code=$(echo "$out" | tail -n1); json=$(echo "$out" | sed '$d')
           echo "HTTP $code $json" | tee -a "$GITHUB_STEP_SUMMARY"
           if [ "$code" != "200" ]; then echo "::error::$path returned $code"; exit 1; fi

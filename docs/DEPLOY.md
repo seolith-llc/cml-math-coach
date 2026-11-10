@@ -104,5 +104,28 @@ Every weekly email has `List-Unsubscribe` and `List-Unsubscribe-Post` (one-click
 - Encryption (RFC 8291) and VAPID (RFC 8292) are in `server/push.ts`, tested against the independent `http_ece` decoder.
 - Check delivery with Actions → **Status** (subscriptions, last reminder, nudge state, email log).
 
+## Private access (Cloudflare Access)
+
+The app is private: it is not indexed (robots.txt, `X-Robots-Tag: noindex`), crawlers and AI agents are refused
+(`functions/_middleware.ts`), and Cloudflare Access puts a sign-in in front of every page and API, on the custom domain,
+`cml-math-coach.pages.dev` and every preview. Invited people sign in with a one-time code sent to their email;
+a sign-in lasts 30 days on a device (the iPad Home Screen app signs in once, inside the app).
+
+One-time setup:
+
+1. **Zero Trust:** Cloudflare dashboard → **Zero Trust** → choose a team name and the **Free** plan (up to 50 users).
+2. **Service token for CI** (deploy smoke tests, the hourly job, the Status probe): Zero Trust → Access →
+   Service credentials → **Service Tokens** → Create, name **`math-coach-ci`**, duration **Non-expiring**.
+   Copy the Client ID and Client Secret into the GitHub secrets **`CF_ACCESS_CLIENT_ID`** and **`CF_ACCESS_CLIENT_SECRET`**.
+3. **API token permissions:** edit the existing Cloudflare token (or create one and store it as **`CLOUDFLARE_ACCESS_TOKEN`**) with
+   Account → **Access: Apps and Policies** → Edit, **Access: Service Tokens** → Read,
+   **Access: Organizations, Identity Providers, and Groups** → Edit.
+4. **Who may sign in:** GitHub secret **`ACCESS_ALLOWED_EMAILS`**: the invited addresses, separated by commas
+   (yourself, the parents, the testers). It is a secret so the addresses never appear in this public repository.
+5. Run **Actions → Cloudflare Access**. It sets everything up and checks the live result. Re-run it whenever the list changes.
+
+Exceptions: `/api/email/confirm` and `/api/email/unsubscribe` skip the sign-in so a parent can confirm or unsubscribe
+(including Gmail's one-click unsubscribe). Both are protected by their own signed tokens.
+
 ## Rollback
 Workers & Pages → cml-math-coach → **Deployments** → choose an earlier deployment → **Rollback**.

@@ -3,7 +3,7 @@ import { problemFromId } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { progressDots } from '../ui/session';
-import { keepRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
+import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
 import type { View } from '../app';
 
 /** Missed problems come back (same problem) on a spaced schedule: same day, 1, 3, 7, 14 days. */
@@ -13,11 +13,23 @@ export function reviewScreen(): View {
   const queue = dueReviews(state, grade).map((r) => ({ r, p: problemFromId(r.problemId)! })).filter((x) => x.p);
   const results: boolean[] = [];
   const round: RoundItem[] = [];
-  const dots = progressDots(queue.length);
   const slot = h('div');
   let destroyCard = () => {};
+  let stopPeek = () => {};
+  let currentCard: HTMLElement | undefined;
+  let currentDone = false;
+  const dots = progressDots(queue.length, (index) => peekRound({
+    slot,
+    items: round,
+    index,
+    current: round.length + (currentDone ? 0 : 1),
+    onClose: () => currentCard && slot.replaceChildren(currentCard),
+    record: (it, res) => recordSecondTry(state, grade, it.problem, res),
+    setCleanup: (fn) => (stopPeek = fn)
+  }));
 
   function next() {
+    stopPeek();
     destroyCard();
     const item = queue[results.length];
     if (!item) {
@@ -40,6 +52,7 @@ export function reviewScreen(): View {
       problem: item.p,
       onDone: (res) => {
         const ok = res.correct && res.firstTry;
+        currentDone = true;
         results.push(ok);
         round.push({ problem: item.p, ok, answer: res.wrongAnswer });
         dots.update(results);
@@ -48,9 +61,11 @@ export function reviewScreen(): View {
       onNext: next
     });
     destroyCard = card.destroy;
+    currentCard = card.el;
+    currentDone = false;
     slot.replaceChildren(card.el);
   }
 
   next();
-  return { title: 'Review', el: h('div', { class: 'stack' }, queue.length ? dots.el : null, slot), destroy: () => destroyCard() };
+  return { title: 'Review', el: h('div', { class: 'stack' }, queue.length ? dots.el : null, slot), destroy: () => { stopPeek(); destroyCard(); } };
 }

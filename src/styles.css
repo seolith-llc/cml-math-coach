@@ -151,10 +151,18 @@ a.row:active, button.row:active { background: var(--fill); }
 @keyframes pulse { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } }
 .dots { display: flex; gap: 6px; justify-content: center; }
-.dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
-.dots span.ok { background: var(--good); }
-.dots span.miss { background: var(--bad); }
-.dots span.done { background: var(--muted); }
+.dots > span, .dots > button { width: 8px; height: 8px; border-radius: 50%; background: var(--line); border: 0; padding: 0; }
+/* tappable dots get a finger-sized hit area without looking bigger */
+.dots > button { position: relative; cursor: pointer; }
+.dots > button::after { content: ''; position: absolute; inset: -12px -4px; }
+.dots > .ok { background: var(--good); }
+.dots > .miss { background: var(--bad); }
+.dots > .done { background: var(--muted); }
+.dots-bar { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
+.dots-bar .dots { grid-column: 2; }
+.dots-prev:disabled { visibility: hidden; }
+.peek-nav { display: flex; gap: 8px; align-items: center; }
+.peek-nav .btn { flex: 1; }
 .done { text-align: center; padding: 32px 20px; }
 .score { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .done .actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }

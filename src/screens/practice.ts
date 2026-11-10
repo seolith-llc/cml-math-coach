@@ -5,7 +5,7 @@ import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { celebrate, progressDots } from '../ui/session';
-import { keepRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
+import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
 import { today } from '../core/progress';
 import type { View } from '../app';
 
@@ -22,10 +22,23 @@ export function practiceScreen(topicId?: string): View {
   let round: RoundItem[] = [];
   let last: string | undefined;
   let destroyCard = () => {};
-  const dots = progressDots(SESSION);
+  let stopPeek = () => {};
+  let currentCard: HTMLElement | undefined;
+  let currentDone = false;
   const slot = h('div');
+  // Look back at an earlier question (‹ or a dot); the current card waits untouched.
+  const dots = progressDots(SESSION, (index) => peekRound({
+    slot,
+    items: round,
+    index,
+    current: round.length + (currentDone ? 0 : 1),
+    onClose: () => currentCard && slot.replaceChildren(currentCard),
+    record: (it, res) => recordSecondTry(state, grade, it.problem, res),
+    setCleanup: (fn) => (stopPeek = fn)
+  }));
 
   function next() {
+    stopPeek();
     destroyCard();
     if (results.length === SESSION) return finishRound();
     const topic = fixed ?? pickTopic(state, grade, pool, last);
@@ -38,6 +51,7 @@ export function practiceScreen(topicId?: string): View {
       problem,
       onDone: (r) => {
         const ok = r.correct && r.firstTry;
+        currentDone = true;
         results.push(ok);
         round.push({ problem, ok, answer: r.wrongAnswer });
         dots.update(results);
@@ -51,6 +65,8 @@ export function practiceScreen(topicId?: string): View {
       onNext: next
     });
     destroyCard = card.destroy;
+    currentCard = card.el;
+    currentDone = false;
     slot.replaceChildren(card.el);
   }
 
@@ -81,5 +97,5 @@ export function practiceScreen(topicId?: string): View {
   }
 
   next();
-  return { title: fixed ? fixed.title : cogat ? 'CogAT' : 'Practice', el: h('div', { class: 'stack' }, dots.el, slot), destroy: () => destroyCard() };
+  return { title: fixed ? fixed.title : cogat ? 'CogAT' : 'Practice', el: h('div', { class: 'stack' }, dots.el, slot), destroy: () => { stopPeek(); destroyCard(); } };
 }

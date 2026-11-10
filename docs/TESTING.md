@@ -29,7 +29,7 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 | Area | Focus | Test cases |
 |---|---|---|
 | 1 | Parent dashboard, emails, reminders, sync | D1–D8, N1–N3, X3 |
-| 2 | Math practice, tests, review, goals and stars | P1–P7, T1–T4, R1–R2, E1–E3 |
+| 2 | Math practice, tests, review, goals and stars | P1–P8, T1–T4, R1–R2, E1–E3 |
 | 3 | CogAT (Grade 2 *and* Grade 3) | C1–C8 |
 | 4 | Explanations, voice and accessibility | H1–H3, V1–V5, X1–X2 |
 | 5 | Other devices and browsers, offline, edge cases | X1–X6, plus the smoke test on every device you have |
@@ -58,6 +58,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | P4 | On a new problem tap **Hint** once, then again. | Each tap shows a hint and plays the picture up to just *before* the answer, never giving it away. |
 | P5 | Tap **Answer** without trying. | The full explanation plays; the problem counts as missed. |
 | P6 | At the round summary tap a question in **Questions**. Then **Back**, then **Next question**. | The question, your answer vs the right one, and the explanation playing. Navigation works. |
+| P8 | Mid-round, tap **‹** (left of the progress dots) or any answered dot. Use ‹ › to move between earlier questions; on a missed one tap **Try again**; then **Back to question N**. | Each earlier question shows your answer vs the right one and its explanation. A fixed one counts at the end ("6 → 7 of 10"). The current question comes back exactly as you left it (typed answer kept). Not offered during a scored Test. |
 | P7 | At the summary tap **Try missed again** and get them right. | The score updates, e.g. **"6 → 9 of 10"**, and the feedback says what you fixed. Leave the app midway, reopen via Home → **Last round**: the improved score is kept. |
 
 ### CogAT

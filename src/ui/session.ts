@@ -2,14 +2,27 @@ import { load, type ProgressEvent } from '../core/storage';
 import { LEVEL_NAMES, starText } from '../core/progress';
 import { topicById } from '../content/topics';
 import { speak } from '../voice/speech';
-import { h, toast } from './dom';
+import { h, iconButton, toast } from './dom';
 
-/** Row of dots, one per problem: green right, red missed, grey done-but-not-checked-yet (Test mode). */
-export function progressDots(total: number) {
-  const el = h('div', { class: 'dots', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': total });
+/**
+ * Row of dots, one per problem: green right, red missed, grey done-but-not-checked-yet (Test mode).
+ * With `onOpen`, answered dots are buttons and a ‹ button opens the previous question.
+ */
+export function progressDots(total: number, onOpen?: (index: number) => void) {
+  const row = h('div', { class: 'dots', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': total });
+  const prev = onOpen ? iconButton('prev', 'Previous question', () => count && onOpen(count - 1), 'dots-prev') : null;
+  const el = prev ? h('div', { class: 'dots-bar' }, prev, row) : row;
+  let count = 0;
   const update = (results: (boolean | null)[]) => {
-    el.replaceChildren(...Array.from({ length: total }, (_, i) => h('span', { class: i < results.length ? (results[i] === null ? 'done' : results[i] ? 'ok' : 'miss') : '' })));
-    el.setAttribute('aria-valuenow', String(results.length));
+    count = results.length;
+    if (prev) prev.disabled = !count;
+    row.replaceChildren(...Array.from({ length: total }, (_, i) => {
+      const cls = i < results.length ? (results[i] === null ? 'done' : results[i] ? 'ok' : 'miss') : '';
+      return onOpen && i < results.length
+        ? h('button', { class: cls, type: 'button', 'aria-label': `Question ${i + 1}`, onclick: () => onOpen(i) })
+        : h('span', { class: cls });
+    }));
+    row.setAttribute('aria-valuenow', String(results.length));
   };
   update([]);
   return { el, update };

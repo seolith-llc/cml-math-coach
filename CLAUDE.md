@@ -49,6 +49,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 `ui/roundEnd.ts`: the score (first tries), one line of feedback (`core/feedback.ts`), right/total per question type, then every question. Tap one to see the child's answer against the right one and the animated explanation.
 **Try missed again** replays the missed problems (same ids, review mode); each one fixed raises the score, shown as "7 → 9 of 10". Missed problems also stay in the spaced Review queue.
 The last round per grade and kind (`cml`, `cogat`, `review`) is saved in `state.rounds` (problem ids + results, updated after every fix) and reopens at `#/round/<kind>`: a **Last round** row on Home (latest of cml/review) and on the CogAT screen.
+Mid-round, **‹** next to the progress dots (or a tapped dot) opens earlier questions (`peekRound`): answer vs right one, explanation, **Try again** on a missed one (counts as a fix). The current card is kept as is. Practice and Review only, never a scored Test.
 Rounds sync to the parent dashboard inside the existing snapshot (`snapshot.rounds`, no schema change); saving a round triggers a sync. The dashboard lists them newest first (`insights.lastRounds`), and a tapped question shows the child's answer and plays the explanation.
 
 ## Tests (the screen)

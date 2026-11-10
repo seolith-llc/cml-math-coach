@@ -5,8 +5,9 @@ import { load, recordAttempt, reviewResult, saveRound, type AppState, type Round
 import type { Grade } from '../core/types';
 import { sceneFor } from '../core/explain';
 import { problemFromId, topicById } from '../content/topics';
-import { speak } from '../voice/speech';
-import { h, list, rich, svg } from './dom';
+import { speak, stopSpeaking } from '../voice/speech';
+import { stopListening } from '../voice/recognition';
+import { h, iconButton, list, rich, svg } from './dom';
 import { choicePicker } from './choicePicker';
 import { problemCard, type CardResult } from './problemCard';
 import { scenePlayer, type Player } from './player';
@@ -161,4 +162,70 @@ export function restoreRound(saved: SavedRound): RoundItem[] {
     const problem = problemFromId(i.problemId);
     return problem ? [{ problem, ok: i.ok, answer: i.answer, fixed: i.fixed }] : [];
   });
+}
+
+/**
+ * Look back at an answered question mid-round: the child's answer vs the right one and the explanation,
+ * ‹ › to move between answered questions, and "Try again" on a missed one (a fix, like at the end).
+ * The current question's card is kept as is and comes back on "Back to question N".
+ */
+export function peekRound(o: {
+  slot: HTMLElement;
+  items: RoundItem[];
+  index: number;
+  /** The question the child was on (1-based), for the back button. */
+  current: number;
+  /** Put the current question's card back. */
+  onClose: () => void;
+  record: (item: RoundItem, res: CardResult) => void;
+  onChange?: (items: RoundItem[]) => void;
+  setCleanup: (fn: () => void) => void;
+}): void {
+  let stop = () => {};
+  const own = (fn: () => void) => {
+    stop();
+    stop = fn;
+    o.setCleanup(() => stop());
+  };
+  const close = () => {
+    own(() => {});
+    o.onClose();
+  };
+
+  function show(i: number) {
+    const it = o.items[i];
+    const r = answerReview(it.problem, it.answer, it.ok || !!it.fixed);
+    own(() => r.player.destroy());
+    const prev = iconButton('prev', 'Previous question', () => show(i - 1));
+    const next = iconButton('next', 'Next question', () => show(i + 1));
+    prev.disabled = i === 0;
+    next.disabled = i >= o.items.length - 1;
+    o.slot.replaceChildren(h('div', { class: 'stack' },
+      h('div', { class: 'peek-nav' }, prev, h('button', { class: 'btn primary', type: 'button', onclick: close }, `Back to question ${o.current}`), next),
+      r.el,
+      !it.ok && !it.fixed ? h('button', { class: 'btn', type: 'button', onclick: () => retry(i) }, 'Try again') : null));
+    window.scrollTo(0, 0);
+  }
+
+  function retry(i: number) {
+    const it = o.items[i];
+    const card = problemCard({
+      problem: it.problem,
+      onDone: (res) => {
+        if (res.correct && res.firstTry) {
+          it.fixed = true;
+          o.onChange?.(o.items);
+        }
+        o.record(it, res);
+      },
+      onNext: () => show(i)
+    });
+    own(card.destroy);
+    o.slot.replaceChildren(card.el);
+    window.scrollTo(0, 0);
+  }
+
+  stopSpeaking();
+  stopListening();
+  show(o.index);
 }

@@ -1,0 +1,3 @@
+# Private app: please don't crawl, index, train on or fetch any of it.
+User-agent: *
+Disallow: /

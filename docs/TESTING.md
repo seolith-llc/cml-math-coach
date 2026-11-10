@@ -31,7 +31,7 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 | 1 | Parent dashboard, emails, reminders, sync | D1–D8, N1–N3, X3 |
 | 2 | Math practice, tests, review, goals and stars | P1–P7, T1–T4, R1–R2, E1–E3 |
 | 3 | CogAT (Grade 2 *and* Grade 3) | C1–C8 |
-| 4 | Explanations, voice and accessibility | H1–H6, V1–V5, X1–X2 |
+| 4 | Explanations, voice and accessibility | H1–H3, V1–V5, X1–X2 |
 | 5 | Other devices and browsers, offline, edge cases | X1–X6, plus the smoke test on every device you have |
 
 ## 3. Smoke test (everyone, ~10 minutes)

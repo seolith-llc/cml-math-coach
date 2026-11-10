@@ -70,7 +70,7 @@ Only Test mode writes a `meets` record. The setup is stored in `settings.test`.
 
 Push to `main`. GitHub Actions runs `npm run check`, provisions D1, deploys to Cloudflare Pages, smoke-tests `/api/parent` and `/api/tts`, and checks the custom domain.
 Production health and email log: Actions → **Status** (read-only).
-Setup and secrets: `docs/DEPLOY.md`.
+Setup and secrets: `docs/DEPLOY.md`. Tester guide and test cases: `docs/TESTING.md`.
 
 ## Prompt history (standing instruction)
 

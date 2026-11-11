@@ -91,6 +91,7 @@ Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../
    - Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CRON_SECRET` (a random string of at least 16 characters; generate one with
      `openssl rand -base64 32`)
    - Variables (optional): `AWS_REGION` (default `us-east-1`), `MAIL_FROM` (default `CML Math Coach <coach@seolith.com>`), `MAIL_REPLY_TO`
+   - `FEEDBACK_TO` (optional): where in-app feedback is emailed; defaults to `MAIL_REPLY_TO`. Triage it with Actions → **Feedback**.
 5. Re-run **Deploy to Cloudflare Pages**. It copies these into the Pages project's secrets. `APP_URL` is in `wrangler.toml`.
 6. On the parent dashboard, add your email, confirm it, and press **Send a test now**.
    To try the weekly run itself: Actions → **Hourly** → Run workflow with *force_weekly*.

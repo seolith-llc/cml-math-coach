@@ -226,7 +226,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     return submit(alts);
   }
 
-  const el = h('article', { class: 'card problem' },
+  const el = h('article', { class: 'card problem', 'data-problem-id': problem.id },
     h('p', { class: 'question' }, rich(problem.text)),
     board ? board.el : problem.figure ? svg(problem.figure) : null,
     picker?.el,

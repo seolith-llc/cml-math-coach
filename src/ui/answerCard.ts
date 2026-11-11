@@ -33,7 +33,7 @@ export function answerCard(p: Problem, n: number, onEnter?: () => void) {
         }
       }, 'mic')
     : null;
-  const el = h('article', { class: 'card problem' },
+  const el = h('article', { class: 'card problem', 'data-problem-id': p.id },
     h('p', { class: 'qnum' }, String(n)),
     h('p', { class: 'question' }, rich(p.text)),
     board ? board.el : p.figure ? svg(p.figure) : null,

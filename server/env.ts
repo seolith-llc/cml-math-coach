@@ -11,6 +11,8 @@ export interface Env {
   MAIL_FROM?: string;
   MAIL_REPLY_TO?: string;
   CRON_SECRET?: string;
+  /** Where in-app feedback is emailed (the owner); falls back to MAIL_REPLY_TO. */
+  FEEDBACK_TO?: string;
   /** Public site URL for links in emails; defaults to the request's origin. */
   APP_URL?: string;
 }

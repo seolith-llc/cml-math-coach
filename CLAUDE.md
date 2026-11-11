@@ -15,7 +15,7 @@ Kid practices on an iPad; a parent follows along on their own device.
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          home, practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations)
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button)
   core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
@@ -23,10 +23,10 @@ src/
   sync/             offline-first upload of the attempt log to /api/sync
   notify/           daily reminder (web push subscribe, practiced-today touch) and app icon badge
 public/push-sw.js   imported by the service worker: shows reminders, opens Practice on tap
-server/             backend logic shared by functions/ (unit-tested on SQLite): parent, email (+ nudges), digest, ses, push (RFC 8291/8292), env
-functions/api/      Cloudflare Pages Functions: tts, sync, parent, push, hourly, weekly, email/{confirm,unsubscribe}
+server/             backend logic shared by functions/ (unit-tested on SQLite): parent, email (+ nudges), digest, ses, push (RFC 8291/8292), userFeedback, env
+functions/api/      Cloudflare Pages Functions: tts, sync, parent, push, feedback, hourly, weekly, email/{confirm,unsubscribe}
 migrations/         D1 schema, applied once each by scripts/ensure-d1.mjs on deploy
-scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), consolidate-prompts
+scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), feedback (triage), consolidate-prompts
 tests/              vitest, including a sweep of every topic × grade × level × 120 seeds
 ```
 
@@ -66,6 +66,12 @@ Only Test mode writes a `meets` record. The setup is stored in `settings.test`.
 - **Reminders go to the parent first:** inactivity nudge emails (3 days, then 7, max 2 per break, 5 pm Chicago, never Sunday) with their own switch and one-click "turn off reminders".
   Device reminders (web push) are opt-in in Settings, one a day at a chosen hour, skipped if practice already happened today, paused after 14 idle days. On iPad they need the Home Screen app.
 - **Scheduling:** one job. `.github/workflows/hourly.yml` → `POST /api/hourly` (bearer `CRON_SECRET`), and each part decides if it's due. The VAPID key pair is generated once and stored in D1 `kv`.
+
+## Feedback (in the app)
+
+The top bar's speech-bubble button opens a sheet: **Problem** or **Idea**, a message, Send. The screen, the problem on screen (`data-problem-id` on the card) and the grade go along automatically.
+`POST /api/feedback` (`server/userFeedback.ts`) stores it in D1 `user_feedback` (status `new`), rate-limited per install (10/hour) and app-wide (200/day), and emails the owner (`FEEDBACK_TO`, else `MAIL_REPLY_TO`).
+Triage: Actions → **Feedback** lists ids, screens and statuses and sets status (`triaged`, `done`, `wontfix`) with a note. **Message text never goes into GitHub** (issues or logs): the repository is public and a message can mention a child.
 
 ## Deploy
 

@@ -1,0 +1,54 @@
+# Triage feedback sent from the app's Feedback button. Lists ids, screens and statuses, and sets a status and note.
+# The message text is never printed (this repository's Actions logs are public); it is emailed to the owner.
+name: Feedback
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'list or set'
+        type: choice
+        options: [list, set]
+        default: list
+      show:
+        description: 'list: which status'
+        type: choice
+        options: [new, triaged, done, wontfix, all]
+        default: new
+      id:
+        description: 'set: feedback id (fb_…, from the email)'
+        required: false
+      status:
+        description: 'set: new status'
+        type: choice
+        options: [triaged, done, wontfix, new]
+        default: triaged
+      note:
+        description: 'set: short note (optional, shown in the list, so no personal details)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Feedback
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ACTION: ${{ inputs.action }}
+          SHOW: ${{ inputs.show }}
+          ID: ${{ inputs.id }}
+          STATUS: ${{ inputs.status }}
+          NOTE: ${{ inputs.note }}
+        # inputs reach the script as environment variables, never pasted into the shell command
+        run: |
+          if [ "$ACTION" = set ]; then node scripts/feedback.mjs set "$ID" "$STATUS" "$NOTE"; fi
+          node scripts/feedback.mjs list "$SHOW" | tee -a "$GITHUB_STEP_SUMMARY"

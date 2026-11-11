@@ -10,7 +10,8 @@ const paths = {
   prev: '<path d="M15 5l-7 7 7 7"/>',
   next: '<path d="M9 5l7 7-7 7"/>',
   replay: '<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/>',
-  speakerOff: '<path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9l5 6M21 9l-5 6"/>'
+  speakerOff: '<path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9l5 6M21 9l-5 6"/>',
+  feedback: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9.5h8M8 12.5h5"/>'
 } as const;
 
 export type IconName = keyof typeof paths;

@@ -13,6 +13,7 @@ import { privacyScreen, settingsScreen } from './screens/settings';
 import { parentScreen } from './screens/parent';
 import { cogatScreen } from './screens/cogat';
 import { roundScreen } from './screens/round';
+import { openFeedback } from './ui/feedbackSheet';
 
 /** What every screen returns. `destroy` stops timers, speech and listening. */
 export interface View {
@@ -51,7 +52,8 @@ export function startApp(root: HTMLElement): void {
   const back = iconButton('back', 'Back', () => (history.length > 1 ? history.back() : (location.hash = '#/')), 'bar-back');
   const gear = h('a', { class: 'icon-btn bar-gear', href: '#/settings', 'aria-label': 'Settings', title: 'Settings', html: icon('gear') });
   const main = h('main', { id: 'main', tabindex: '-1' });
-  root.replaceChildren(h('header', { class: 'bar' }, back, title, gear), main);
+  const feedback = iconButton('feedback', 'Feedback', () => openFeedback());
+  root.replaceChildren(h('header', { class: 'bar' }, back, title, h('div', { class: 'bar-end' }, feedback, gear)), main);
 
   const render = () => {
     current?.destroy?.();
@@ -65,6 +67,7 @@ export function startApp(root: HTMLElement): void {
     // visibility (not display) keeps the three-column bar centered
     back.style.visibility = home || name === 'parent' ? 'hidden' : '';
     gear.style.visibility = name === 'settings' || name === 'parent' ? 'hidden' : '';
+    feedback.hidden = name === 'parent'; // the parent dashboard is its own page
     main.replaceChildren(current.el);
     main.focus({ preventScroll: true });
     window.scrollTo(0, 0);

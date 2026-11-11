@@ -103,7 +103,7 @@ export interface Player {
 const SPEEDS = [1, 1.5, 0.75];
 
 /**
- * Animated, voiced explanation with controls: replay, back, play/pause, next, speed, voice on/off.
+ * Animated, voiced explanation with controls: replay, back, play/pause (large), next, mute, speed.
  * In hint mode it only goes up to the steps that don't reveal the answer.
  */
 export function scenePlayer(scene: Scene, opts: { hintOnly?: boolean } = {}): Player {
@@ -120,18 +120,28 @@ export function scenePlayer(scene: Scene, opts: { hintOnly?: boolean } = {}): Pl
 
   const caption = h('p', { class: 'caption', 'aria-live': 'polite' });
   const counter = h('span', { class: 'counter', 'aria-live': 'off' });
-  const playBtn = iconButton('play', 'Play', () => (playing ? pause() : resume()));
+  // The main control: bigger and filled, so a child (or parent) can find Pause at a glance
+  const playBtn = iconButton('play', 'Play', () => (playing ? pause() : resume()), 'play-main');
   const speedBtn = h('button', { class: 'btn plain speed', type: 'button', 'aria-label': 'Speed', onclick: () => {
     speedIx = (speedIx + 1) % SPEEDS.length;
     speedBtn.textContent = `${SPEEDS[speedIx]}×`;
     el.style.setProperty('--t', `${0.6 / SPEEDS[speedIx]}s`);
   } }, '1×');
-  const voiceBtn = iconButton(voice ? 'speaker' : 'speakerOff', voice ? 'Voice on' : 'Voice off', () => {
+  // Mute sits right next to Pause. A muted player shows a crossed-out speaker on a filled background, so the state is obvious.
+  const voiceBtn = iconButton(voice ? 'speaker' : 'speakerOff', voice ? 'Mute' : 'Unmute', () => {
     voice = !voice;
-    voiceBtn.innerHTML = icon(voice ? 'speaker' : 'speakerOff');
-    voiceBtn.setAttribute('aria-label', voice ? 'Voice on' : 'Voice off');
+    showVoice();
     if (!voice) stopSpeaking();
-  });
+  }, 'voice');
+  voiceBtn.setAttribute('aria-pressed', String(!voice));
+  function showVoice() {
+    voiceBtn.innerHTML = icon(voice ? 'speaker' : 'speakerOff');
+    voiceBtn.setAttribute('aria-label', voice ? 'Mute' : 'Unmute');
+    voiceBtn.title = voice ? 'Mute' : 'Unmute';
+    voiceBtn.setAttribute('aria-pressed', String(!voice));
+    voiceBtn.classList.toggle('off', !voice);
+  }
+  showVoice();
 
   const draw = (k: number, instant = false) => {
     i = k;
@@ -204,7 +214,7 @@ export function scenePlayer(scene: Scene, opts: { hintOnly?: boolean } = {}): Pl
   } },
     st.svg as unknown as Node,
     caption,
-    h('div', { class: 'player-bar' }, restart, back, playBtn, fwd, counter, speedBtn, voiceBtn));
+    h('div', { class: 'player-bar' }, restart, back, playBtn, fwd, voiceBtn, counter, speedBtn));
 
   // Ready on the first picture, paused (the card calls play() right away).
   if (!opts.hintOnly && steps.length) {

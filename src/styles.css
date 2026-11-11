@@ -287,6 +287,9 @@ a.row:active, button.row:active { background: var(--fill); }
 .player-bar .counter { flex: 1; text-align: center; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .player-bar .speed { min-width: 44px; padding: 0 6px; font-variant-numeric: tabular-nums; }
 .player-bar .icon-btn:disabled { opacity: 0.3; }
+.player-bar .play-main { width: 52px; height: 52px; border-radius: 26px; margin: 0 4px; background: var(--accent); color: var(--accent-ink); }
+.player-bar .play-main:active { filter: brightness(0.9); background: var(--accent); }
+.player-bar .voice.off { background: var(--fill); color: var(--muted); }
 
 /* ---------- multiple choice (tap a picture or a word) ---------- */
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; margin-top: 14px; }

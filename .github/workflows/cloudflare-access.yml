@@ -6,6 +6,10 @@ name: Cloudflare Access
 on:
   workflow_dispatch:
     inputs:
+      apply:
+        description: Make the changes (unticked = preview only, nothing is changed)
+        type: boolean
+        default: false
       session:
         description: How long a sign-in lasts on a device (e.g. 720h = 30 days)
         default: '720h'
@@ -33,4 +37,5 @@ jobs:
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
           APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
           ACCESS_SESSION: ${{ inputs.session }}
+          APPLY: ${{ inputs.apply }}
         run: node scripts/cloudflare-access.mjs | tee -a "$GITHUB_STEP_SUMMARY"

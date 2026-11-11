@@ -122,7 +122,12 @@ One-time setup:
    **Access: Organizations, Identity Providers, and Groups** → Edit.
 4. **Who may sign in:** GitHub secret **`ACCESS_ALLOWED_EMAILS`**: the invited addresses, separated by commas
    (yourself, the parents, the testers). It is a secret so the addresses never appear in this public repository.
-5. Run **Actions → Cloudflare Access**. It sets everything up and checks the live result. Re-run it whenever the list changes.
+5. Run **Actions → Cloudflare Access** with **apply** unticked first: a preview that changes nothing. It confirms the Zero Trust
+   organization and that the one-time PIN login is reused as is, counts the other applications (never changed, and their names and
+   hostnames are never printed, since these logs are public), warns if any of them already covers a Math Coach hostname, and lists
+   what is still missing. Then run it again with **apply** ticked: it creates or updates only "Math Coach" and "Math Coach email links"
+   (app-scoped policies, nothing shared with other applications) and checks the live result. Re-run it whenever the list changes.
+   Each invited person who signs in uses one Zero Trust seat (Free plan: 50).
 
 Exceptions: `/api/email/confirm` and `/api/email/unsubscribe` skip the sign-in so a parent can confirm or unsubscribe
 (including Gmail's one-click unsubscribe). Both are protected by their own signed tokens.

@@ -22,13 +22,19 @@ const tokenName = process.env.ACCESS_SERVICE_TOKEN_NAME || 'math-coach-ci';
 const session = process.env.ACCESS_SESSION || '720h';
 const emails = (process.env.ACCESS_ALLOWED_EMAILS || '').split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean);
 const ci = { id: process.env.CF_ACCESS_CLIENT_ID, secret: process.env.CF_ACCESS_CLIENT_SECRET };
+/** Preview by default: report what would change and touch nothing. APPLY=true makes the changes. */
+const apply = process.env.APPLY === 'true';
+/** The only Access applications this script ever creates or changes; every other application is left alone. */
+const OURS = ['Math Coach', 'Math Coach email links'];
+const todo = [];
 
 const fail = (msg) => {
   console.log(`::error::${msg}`);
   process.exit(1);
 };
 if (!token || !account) fail('CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are required.');
-if (!emails.length) fail('Add the GitHub secret ACCESS_ALLOWED_EMAILS: the email addresses allowed to open the app, separated by commas.');
+const need = (msg) => (apply ? fail(msg) : todo.push(msg));
+if (!emails.length) need('Add the GitHub secret ACCESS_ALLOWED_EMAILS: the email addresses allowed to open the app, separated by commas.');
 for (const e of emails) if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) fail(`ACCESS_ALLOWED_EMAILS has an entry that is not an email address (entry ${emails.indexOf(e) + 1}).`);
 
 async function cf(method, path, body) {
@@ -47,6 +53,7 @@ const hosts = [host, `${project}.pages.dev`, `*.${project}.pages.dev`];
 // 1. Zero Trust and the one-time PIN login
 try {
   const org = await cf('GET', `${acc}/organizations`);
+  console.log(`${apply ? 'Applying' : 'Preview (nothing is changed; run again with "apply" ticked to make the changes)'}\n`);
   console.log(`✔ Zero Trust organization: ${org.auth_domain}`);
 } catch (e) {
   fail(`Zero Trust is not set up yet (${e.message}). In the Cloudflare dashboard open Zero Trust, choose a team name and the Free plan, then run this again.` +
@@ -54,17 +61,42 @@ try {
 }
 const idps = await cf('GET', `${acc}/identity_providers`);
 let otp = idps.find((p) => p.type === 'onetimepin');
-if (!otp) otp = await cf('POST', `${acc}/identity_providers`, { name: 'One-time PIN', type: 'onetimepin', config: {} });
-console.log('✔ Sign-in: one-time PIN by email');
+if (otp) console.log('✔ Sign-in: one-time PIN by email (already set up, reused as is)');
+else if (apply) {
+  otp = await cf('POST', `${acc}/identity_providers`, { name: 'One-time PIN', type: 'onetimepin', config: {} });
+  console.log('✔ Sign-in: one-time PIN by email (turned on)');
+} else console.log('· Would turn on the one-time PIN (email code) login');
 
 // 2. Service token for CI
 const tokens = await cf('GET', `${acc}/service_tokens`);
 const svc = tokens.find((t) => t.name === tokenName);
-if (!svc) fail(`Create the service token "${tokenName}" (Zero Trust → Access → Service credentials → Service Tokens, duration: non-expiring), then add its Client ID and Client Secret as the GitHub secrets CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET.`);
-console.log(`✔ Service token "${tokenName}" found`);
+if (!svc) need(`Create the service token "${tokenName}" (Zero Trust → Access → Service credentials → Service Tokens, duration: non-expiring), then add its Client ID and Client Secret as the GitHub secrets CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET.`);
+if (svc) console.log(`✔ Service token "${tokenName}" found`);
 
 // 3. Applications (upsert by name)
 const apps = await cf('GET', `${acc}/apps`);
+// Other applications are never changed. Report (without names or hostnames: these logs are public)
+// whether any of them already covers one of our hostnames, e.g. a *.seolith.com wildcard.
+const uris = (a) => (a.destinations?.length ? a.destinations.map((d) => d.uri) : a.self_hosted_domains?.length ? a.self_hosted_domains : [a.domain]).filter(Boolean);
+const covers = (pattern, h) => {
+  const p = String(pattern).split('/')[0].toLowerCase();
+  const re = new RegExp('^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^.]+') + '$');
+  return re.test(h) || (h.startsWith('*.') && p === h);
+};
+const others = apps.filter((a) => !OURS.includes(a.name));
+const overlapping = others.filter((a) => uris(a).some((u) => hosts.some((h) => covers(u, h.replace(/^\*\./, 'preview.')) || covers(u, h))));
+console.log(`✔ ${others.length} other Access application${others.length === 1 ? '' : 's'} on this account: left untouched`);
+if (overlapping.length) console.log(`::warning::${overlapping.length} existing application(s) already cover one of the Math Coach hostnames. Access uses the most specific match, so Math Coach's own rules still apply, but check them in Zero Trust → Access → Applications.`);
+else console.log('✔ None of them covers the Math Coach hostnames');
+for (const name of OURS) console.log(`${apply ? '✔' : '·'} ${apps.some((a) => a.name === name) ? 'Update' : 'Create'}: "${name}" (${name === OURS[0] ? hosts.join(', ') : 'email confirm and unsubscribe links only'})`);
+if (!apply) {
+  console.log(`· Invited addresses: ${emails.length} · session ${session}`);
+  if (todo.length) {
+    console.log('\nStill to do before applying:');
+    for (const t of todo) console.log(`::warning::${t}`);
+  } else console.log('\nReady: run again with "apply" ticked.');
+  process.exit(0);
+}
 async function upsert(spec) {
   const existing = apps.find((a) => a.name === spec.name);
   const result = existing ? await cf('PUT', `${acc}/apps/${existing.id}`, { ...spec, id: existing.id }) : await cf('POST', `${acc}/apps`, spec);

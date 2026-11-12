@@ -32,3 +32,20 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+/*
+ * The app is behind Cloudflare Access. If this device isn't signed in (or its sign-in expired),
+ * the offline copy would otherwise keep showing an old version forever, without ever asking to sign in.
+ * When a new version installs, check; if signed out, drop the offline copy so the next open goes to the sign-in page.
+ */
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    fetch(new URL('./?auth-check=1', self.registration.scope).href, { redirect: 'manual', cache: 'no-store', credentials: 'same-origin' })
+      .then(async (res) => {
+        if (res.type !== 'opaqueredirect' && res.status !== 401 && res.status !== 403) return;
+        await Promise.all((await caches.keys()).map((k) => caches.delete(k)));
+        await self.registration.unregister();
+      })
+      .catch(() => {}) // offline: keep the copy
+  );
+});

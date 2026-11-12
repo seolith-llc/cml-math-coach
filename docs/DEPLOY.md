@@ -130,7 +130,9 @@ One-time setup:
    (app-scoped policies, nothing shared with other applications) and checks the live result. Re-run it whenever the list changes.
    Each invited person who signs in uses one Zero Trust seat (Free plan: 50).
 
-Exceptions: `/api/email/confirm` and `/api/email/unsubscribe` skip the sign-in so a parent can confirm or unsubscribe
+Exceptions: the service-worker scripts (`/sw.js`, `/push-sw.js`, `/workbox-*.js`: generic code, no data) skip the sign-in,
+because browsers refuse a redirect when checking for an app update; without this an installed copy would stay on an old
+version and never show the sign-in page. `/api/email/confirm` and `/api/email/unsubscribe` also skip the sign-in so a parent can confirm or unsubscribe
 (including Gmail's one-click unsubscribe). Both are protected by their own signed tokens.
 
 ## Rollback

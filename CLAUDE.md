@@ -77,7 +77,7 @@ Triage: Actions → **Feedback** lists ids, screens and statuses and sets status
 
 Push to `main`. GitHub Actions runs `npm run check`, provisions D1, deploys to Cloudflare Pages, smoke-tests `/api/parent` and `/api/tts`, and checks the custom domain.
 Production health and email log: Actions → **Status** (read-only).
-**Private app:** not indexed (robots.txt + `X-Robots-Tag` + meta), crawlers and AI agents get 403 (`functions/_middleware.ts` → `server/guard.ts`), and Cloudflare Access (Actions → **Cloudflare Access**, `scripts/cloudflare-access.mjs`) requires an invited email sign-in on every host. CI calls the site with the Access service token (`CF_ACCESS_CLIENT_ID/SECRET`). Never add a public route; email confirm/unsubscribe are the only bypasses.
+**Private app:** not indexed (robots.txt + `X-Robots-Tag` + meta), crawlers and AI agents get 403 (`functions/_middleware.ts` → `server/guard.ts`), and Cloudflare Access (Actions → **Cloudflare Access**, `scripts/cloudflare-access.mjs`) requires an invited email sign-in on every host. CI calls the site with the Access service token (`CF_ACCESS_CLIENT_ID/SECRET`). Never add a public route; the only bypasses are email confirm/unsubscribe and the service-worker scripts (`/sw.js`, `/push-sw.js`, `/workbox-*`; code only, needed so installed copies can update). `src/pwa.ts` checks for updates (open, foreground, hourly) and, when the sign-in has expired, drops the offline copy and reloads to the sign-in page; `public/push-sw.js` does the same when a new version installs.
 Setup and secrets: `docs/DEPLOY.md`. Tester guide and test cases: `docs/TESTING.md`.
 
 ## Prompt history (standing instruction)

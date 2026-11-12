@@ -10,7 +10,11 @@
  *  3. "Math Coach email links": bypass for /api/email/confirm and /api/email/unsubscribe only, so a
  *     parent can confirm or unsubscribe (including mail providers' one-click unsubscribe) without signing in.
  *     Both are protected by their own signed tokens and reveal nothing else.
- *  4. Verifies the live result: strangers get the sign-in page, the service token gets the app,
+ *  4. "Math Coach app updates": bypass for the service-worker scripts only (/sw.js, /push-sw.js, /workbox-*.js).
+ *     Browsers refuse a redirect when they check for an app update, so behind the sign-in an installed copy could never
+ *     update, nor find out it was signed out. These are generic code (also in the public repository), no data;
+ *     every page and API stays behind the sign-in.
+ *  5. Verifies the live result: strangers get the sign-in page, the service token gets the app,
  *     the email links skip the sign-in.
  */
 const API = 'https://api.cloudflare.com/client/v4';
@@ -25,7 +29,7 @@ const ci = { id: process.env.CF_ACCESS_CLIENT_ID, secret: process.env.CF_ACCESS_
 /** Preview by default: report what would change and touch nothing. APPLY=true makes the changes. */
 const apply = process.env.APPLY === 'true';
 /** The only Access applications this script ever creates or changes; every other application is left alone. */
-const OURS = ['Math Coach', 'Math Coach email links'];
+const OURS = ['Math Coach', 'Math Coach email links', 'Math Coach app updates'];
 const todo = [];
 
 const fail = (msg) => {
@@ -88,7 +92,8 @@ const overlapping = others.filter((a) => uris(a).some((u) => hosts.some((h) => c
 console.log(`✔ ${others.length} other Access application${others.length === 1 ? '' : 's'} on this account: left untouched`);
 if (overlapping.length) console.log(`::warning::${overlapping.length} existing application(s) already cover one of the Math Coach hostnames. Access uses the most specific match, so Math Coach's own rules still apply, but check them in Zero Trust → Access → Applications.`);
 else console.log('✔ None of them covers the Math Coach hostnames');
-for (const name of OURS) console.log(`${apply ? '✔' : '·'} ${apps.some((a) => a.name === name) ? 'Update' : 'Create'}: "${name}" (${name === OURS[0] ? hosts.join(', ') : 'email confirm and unsubscribe links only'})`);
+const WHAT = { [OURS[0]]: hosts.join(', '), [OURS[1]]: 'email confirm and unsubscribe links only', [OURS[2]]: 'service-worker scripts only, so installed copies can update' };
+for (const name of OURS) console.log(`${apply ? '✔' : '·'} ${apps.some((a) => a.name === name) ? 'Update' : 'Create'}: "${name}" (${WHAT[name]})`);
 if (!apply) {
   console.log(`· Invited addresses: ${emails.length} · session ${session}`);
   if (todo.length) {
@@ -123,6 +128,14 @@ await upsert({
   destinations: hosts.slice(0, 2).flatMap((h) => linkPaths.map((p) => ({ type: 'public', uri: h + p }))),
   policies: [{ name: 'Email links (token-protected)', decision: 'bypass', precedence: 1, include: [{ everyone: {} }] }]
 });
+const swPaths = ['/sw.js', '/push-sw.js', '/workbox-*'];
+await upsert({
+  ...common,
+  name: OURS[2],
+  domain: hosts[0] + swPaths[0],
+  destinations: hosts.flatMap((h) => swPaths.map((p) => ({ type: 'public', uri: h + p }))),
+  policies: [{ name: 'Service-worker scripts (code only, no data)', decision: 'bypass', precedence: 1, include: [{ everyone: {} }] }]
+});
 console.log(`✔ ${emails.length} invited email address${emails.length === 1 ? '' : 'es'} · session ${session}`);
 
 // 4. Verify (Access can take a few seconds to apply)
@@ -147,5 +160,9 @@ if (ci.id && ci.secret) {
 } else console.log('::warning::CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET are not set, so deploy smoke tests, the hourly job and the Status probe will be blocked.');
 const unsub = await fetch(appUrl + '/api/email/unsubscribe?u=not-a-real-token', { headers: browser, redirect: 'manual' });
 check(reachedApp(unsub), `Email links skip the sign-in (HTTP ${unsub.status})`);
+const sw = await fetch(appUrl + '/sw.js', { headers: browser, redirect: 'manual' });
+check(sw.status === 200 && reachedApp(sw), `App updates can be fetched without signing in (/sw.js HTTP ${sw.status})`);
+const page = await fetch(appUrl + '/index.html', { headers: browser, redirect: 'manual' });
+check(!reachedApp(page), `…but pages still need the sign-in (/index.html HTTP ${page.status})`);
 if (!ok) fail('Access is configured, but a check failed (see above). It can take a minute to apply; run the workflow again.');
 console.log('\nOnly invited people can open the app now.');

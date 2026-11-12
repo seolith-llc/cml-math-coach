@@ -51,9 +51,10 @@ export function startApp(root: HTMLElement): void {
   const title = h('h1', { class: 'bar-title' });
   const back = iconButton('back', 'Back', () => (history.length > 1 ? history.back() : (location.hash = '#/')), 'bar-back');
   const gear = h('a', { class: 'icon-btn bar-gear', href: '#/settings', 'aria-label': 'Settings', title: 'Settings', html: icon('gear') });
+  const homeLink = h('a', { class: 'icon-btn bar-home', href: '#/', 'aria-label': 'Home', title: 'Home', html: icon('home') });
   const main = h('main', { id: 'main', tabindex: '-1' });
   const feedback = iconButton('feedback', 'Feedback', () => openFeedback());
-  root.replaceChildren(h('header', { class: 'bar' }, back, title, h('div', { class: 'bar-end' }, feedback, gear)), main);
+  root.replaceChildren(h('header', { class: 'bar' }, h('div', { class: 'bar-start' }, back, homeLink), title, h('div', { class: 'bar-end' }, feedback, gear)), main);
 
   const render = () => {
     current?.destroy?.();
@@ -66,6 +67,7 @@ export function startApp(root: HTMLElement): void {
     document.title = home ? 'Math Coach' : `${current.title} · Math Coach`;
     // visibility (not display) keeps the three-column bar centered
     back.style.visibility = home || name === 'parent' ? 'hidden' : '';
+    homeLink.style.visibility = home || name === 'parent' ? 'hidden' : '';
     gear.style.visibility = name === 'settings' || name === 'parent' ? 'hidden' : '';
     feedback.hidden = name === 'parent'; // the parent dashboard is its own page
     main.replaceChildren(current.el);

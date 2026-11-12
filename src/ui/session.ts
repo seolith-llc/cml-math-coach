@@ -1,8 +1,9 @@
-import { load, type ProgressEvent } from '../core/storage';
+import { load, save, type ProgressEvent } from '../core/storage';
+import type { Grade } from '../core/types';
 import { LEVEL_NAMES, starText } from '../core/progress';
 import { topicById } from '../content/topics';
 import { speak } from '../voice/speech';
-import { h, iconButton, toast } from './dom';
+import { h, iconButton, segmented, toast } from './dom';
 
 /**
  * Row of dots, one per problem: green right, red missed, grey done-but-not-checked-yet (Test mode).
@@ -47,4 +48,14 @@ export function celebrate(ev: ProgressEvent): void {
     lines.push("You reached today's goal!");
   }
   if (lines.length && load().settings.speak) setTimeout(() => void speak(lines.join(' ')), 900);
+}
+
+/** Grade 2 / Grade 3 switch. Each grade keeps its own progress; the screen redraws for the new grade. */
+export function gradeSwitch(): HTMLElement {
+  const state = load();
+  return segmented<Grade>('Grade', [{ value: 2, label: 'Grade 2' }, { value: 3, label: 'Grade 3' }], state.settings.grade, (g) => {
+    state.settings.grade = g;
+    save(state);
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  });
 }

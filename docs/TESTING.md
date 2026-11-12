@@ -31,7 +31,7 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 |---|---|---|
 | 1 | Parent dashboard, emails, reminders, sync | D1–D8, N1–N3, X3 |
 | 2 | Math practice, tests, review, goals and stars | P1–P8, T1–T4, R1–R2, E1–E3 |
-| 3 | CogAT (Grade 2 *and* Grade 3) | C1–C8 |
+| 3 | CogAT (Grade 2 *and* Grade 3) | C1–C9 |
 | 4 | Explanations, voice and accessibility | H1–H3, V1–V5, X1–X2 |
 | 5 | Other devices and browsers, offline, edge cases | X1–X6, plus the smoke test on every device you have |
 
@@ -39,7 +39,7 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 
 | ID | Steps | Expected |
 |---|---|---|
-| S1 | Open the app, set Grade, Name, Voice (section 1). | Home shows the grade switch, the **Today** card ("0 of 10") and rows Test, Learn, CogAT, Progress. |
+| S1 | Open the app, set Grade, Name, Voice (section 1). | Home shows the grade switch, the **Today** card ("0 of 10") and rows Test, Learn, CogAT, Progress, Parent dashboard. Every other screen has **⌂ Home** next to Back in the top bar. |
 | S2 | Home → **Practice**. Answer 10 problems (type, or tap the mic and say it). Get some wrong on purpose. | A dot per problem (green/red). Right answers are praised; wrong answers get a specific tip. |
 | S3 | At the end of the round, look at the summary. | Score ("7 of 10"), one line of feedback, **By type**, and the list of **Questions** with ✓/✗. |
 | S4 | Home → **CogAT** → **Practice**. Answer a few by tapping a picture or word. | Choices are big tap targets; a tap checks immediately. |
@@ -73,6 +73,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | C5 | Look closely at 20+ questions of each type. | Exactly **one** answer is defensible. Pictures are clear; nothing is cut off; no two choices look identical. **Report anything ambiguous.** |
 | C6 | Paper folding: watch the explanation. | Each fold opens in turn and the holes mirror across the fold line. |
 | C7 | Finish a CogAT round, leave, then CogAT → **Last round**. | The same summary, explanations and **Try missed again**. |
+| C9 | On the CogAT screen switch **Grade 2 ↔ Grade 3**. | The list redraws for that grade; each grade keeps its own stars and last round. |
 | C8 | Check Learn, Progress and Tests. | CogAT questions do **not** appear in the math sections. |
 
 ### Tests

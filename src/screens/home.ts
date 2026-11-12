@@ -1,10 +1,10 @@
-import type { Grade } from '../core/types';
-import { dayStreak, dueReviews, lastRound, load, save } from '../core/storage';
+import { dayStreak, dueReviews, lastRound, load } from '../core/storage';
 import { savedScore } from './round';
 import { today } from '../core/progress';
 import { summary } from '../core/session';
 import { topicsForGrade } from '../content/topics';
-import { h, list, segmented } from '../ui/dom';
+import { h, list } from '../ui/dom';
+import { gradeSwitch } from '../ui/session';
 import type { View } from '../app';
 
 export function homeScreen(): View {
@@ -20,11 +20,7 @@ export function homeScreen(): View {
   const lastRow = last.at ? savedScore(last.k) : undefined;
   const cogatStars = topicsForGrade(grade, 'cogat').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
 
-  const segment = segmented<Grade>('Grade', [{ value: 2, label: 'Grade 2' }, { value: 3, label: 'Grade 3' }], grade, (g) => {
-    s.grade = g;
-    save(state);
-    window.dispatchEvent(new HashChangeEvent('hashchange'));
-  });
+  const segment = gradeSwitch();
 
   // Today: progress toward the daily goal. When it's met, say so and make "more" optional.
   const pct = Math.min(100, Math.round((t.practiced / t.goal) * 100));
@@ -46,7 +42,9 @@ export function homeScreen(): View {
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', value: stars ? `${stars} ★` : undefined, href: '#/learn' },
         { label: 'CogAT', value: cogatStars ? `${cogatStars} ★` : undefined, href: '#/cogat' },
-        { label: 'Progress', href: '#/progress' }
+        { label: 'Progress', href: '#/progress' },
+        // PIN-protected, so it's safe on the child's Home; set up in Settings when it isn't on yet.
+        { label: 'Parent dashboard', href: state.sync ? `#/parent/${state.sync.familyId}` : '#/settings/parent' }
       ]))
   };
 }

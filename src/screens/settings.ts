@@ -16,7 +16,7 @@ function toggle(label: string, value: boolean, onChange: (v: boolean) => void, d
   return h('label', { class: 'row switch' }, h('span', { class: 'row-label' }, label), box);
 }
 
-export function settingsScreen(): View {
+export function settingsScreen(focus?: string): View {
   const state = load();
   const s = state.settings;
   const persist = () => {
@@ -37,9 +37,7 @@ export function settingsScreen(): View {
   const rate = h('input', { type: 'range', min: '0.6', max: '1.4', step: '0.05', value: String(s.rate), 'aria-label': 'Speed',
     oninput: () => { s.rate = +rate.value; persist(); }, onchange: () => void speak(SAMPLE) });
 
-  return {
-    title: 'Settings',
-    el: h('div', { class: 'stack' },
+  const el = h('div', { class: 'stack' },
       group(null, name),
       group('Voice',
         h('label', { class: 'row' }, h('span', { class: 'row-label' }, 'Voice'), voice),
@@ -56,8 +54,10 @@ export function settingsScreen(): View {
       list([
         { label: 'Privacy', href: '#/privacy' },
         { label: h('span', { class: 'danger' }, 'Reset progress'), onclick: () => { if (confirm('Erase all progress on this device?')) { reset(); toast('Progress erased'); location.hash = '#/'; } } }
-      ]))
-  };
+      ]));
+  // #/settings/parent (from Home): jump to the parent dashboard group once the screen is on the page.
+  if (focus === 'parent') requestAnimationFrame(() => el.querySelector('#parent')?.scrollIntoView({ block: 'start' }));
+  return { title: 'Settings', el };
 }
 
 const hourLabel = (h: number) => `${h % 12 || 12} ${h < 12 ? 'am' : 'pm'}`;
@@ -100,7 +100,7 @@ function reminderGroup(): HTMLElement {
 
 /** Parent dashboard: off → PIN + Turn on. On → private link to share, Turn off. */
 function parentGroup(): HTMLElement {
-  const wrap = h('div');
+  const wrap = h('div', { id: 'parent' });
   const draw = () => {
     const sync = load().sync;
     if (!sync) {

@@ -136,7 +136,7 @@ export const verbalAnalogies: Topic = {
         `<rect x="250" y="8" width="64" height="64" rx="10" stroke-width="2" stroke-dasharray="5 5"/><text x="282" y="52" text-anchor="middle" font-size="28" font-weight="700" stroke="none" fill="currentColor">?</text>`)
       : undefined;
     return {
-      text: pics ? 'The first two pictures go together. Which picture goes with the third one in the same way?' : `**${ab[0]} → ${ab[2]}**  :  **${cd[0]} → ?**`,
+      text: pics ? 'The **first two** pictures go together. Which picture goes with the **third one** in the **same way**?' : `**${ab[0]} → ${ab[2]}**  :  **${cd[0]} → ?**`,
       speech: pics ? `${ab[0]} goes with ${ab[2]}. ${cd[0]} goes with what?` : `${ab[0]} goes with ${ab[2]}. ${cd[0]} goes with what?`,
       figure,
       answer: m.answer,
@@ -274,7 +274,7 @@ export const sentenceCompletion: Topic = {
       const m = mc(rng, it.a, rng.shuffle(it.d), choicesFor(grade), (x) => x[0], (x) => x[0], (x) => x[1]);
       if (!m) return null;
       return {
-        text: it.q,
+        text: it.q.replace(/^(Which (?:one|animal)) (.+)\?$/, '$1 **$2**?'), // the condition that picks the answer
         speech: it.q,
         answer: m.answer,
         hints: ['Try each picture with the question.', it.why.split('.')[0] + '.'],
@@ -286,7 +286,7 @@ export const sentenceCompletion: Topic = {
     const m = mc(rng, it.a, rng.shuffle(it.d), choicesFor(grade), (x) => x, (x) => x);
     if (!m) return null;
     return {
-      text: it.s.replace('___', '______'),
+      text: it.s.replace('___', '**______**'), // the blank to fill
       speech: it.s.replace('___', 'blank'),
       answer: m.answer,
       hints: ['Read the sentence with each word in the blank.', 'Which one makes the sentence true?'],
@@ -393,7 +393,7 @@ export const classification: Topic = {
       ? svgBox(230, 80, stim.map((it) => it[0]).join(', '), stim.map((it, i) => `<rect x="${6 + i * 76}" y="8" width="66" height="64" rx="10" stroke-width="2"/><text x="${39 + i * 76}" y="54" text-anchor="middle" font-size="40" stroke="none" fill="currentColor">${it[1]}</text>`).join(''))
       : undefined;
     return {
-      text: pics ? 'The three pictures go together. Which picture goes with them?' : `**${stim.map((it) => it[0]).join(', ')}**. Which word goes with these three?`,
+      text: pics ? 'The three pictures **go together**. Which picture **goes with them**?' : `**${stim.map((it) => it[0]).join(', ')}**. Which word goes with these three?`,
       speech: `${stim.map((it) => it[0]).join(', ')}. Which one goes with them?`,
       figure,
       answer: m.answer,

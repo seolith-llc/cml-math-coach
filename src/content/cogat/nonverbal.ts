@@ -127,7 +127,7 @@ export const figureMatrices: Topic = {
     if (!m || [a, b, c].some((f) => sameFig(f, d))) return null;
     const rule = cs.map((ch) => changeWords(ch, a)).join(' and ');
     return {
-      text: 'Which picture goes in the empty box?',
+      text: 'Which picture goes in the **empty box**?',
       speech: `Look at the boxes. In the top row, the picture ${rule}. Which picture goes in the empty box?`,
       figure: matrixFigure([a, b, c, null]),
       answer: m.answer,
@@ -215,7 +215,7 @@ export const paperFolding: Topic = {
     if (!m) return null;
     const how = folds.map((f) => FOLD_WORD[f]).join(', then ');
     return {
-      text: 'The paper is folded and a hole is punched. What does it look like when it is opened?',
+      text: 'The paper is **folded** and a hole is **punched**. What does it look like when it is **opened**?',
       speech: `A square paper is folded ${how}. Then a hole is punched. What does the paper look like when it is unfolded?`,
       figure: foldStripSvg(folds, hole),
       answer: m.answer,
@@ -334,7 +334,7 @@ export function classify(grade: Grade, rng: Rng) {
     const cell = 80;
     const figure = svgBox(3 * (cell + 10) + 10, cell + 20, 'three pictures that go together', stim.map((f, i) => `<rect x="${10 + i * (cell + 10)}" y="10" width="${cell}" height="${cell}" rx="8" stroke-width="2"/>` + figMarkup(f, 10 + i * (cell + 10) + cell / 2, 10 + cell / 2, cell)).join(''));
     const problem = {
-      text: 'The three pictures go together. Which picture goes with them?',
+      text: 'The three pictures **go together**. Which picture **goes with them**?',
       speech: 'Look at the three pictures. They are alike in some way. Which answer goes with them?',
       figure,
       answer: m.answer,

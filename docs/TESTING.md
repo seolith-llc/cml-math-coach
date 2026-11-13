@@ -102,6 +102,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | H1 | In any explanation use the controls: ⟲ replay, ‹ back, ▶/❚❚, › next, speed (1× / 1.5× / 0.75×), speaker on/off. | All work; the counter ("3 / 7") is right; speed changes both the animation and the voice. |
 | H2 | Watch 10+ explanations (mix of math and CogAT). | The picture matches what is said; numbers are right; nothing overlaps or is cut off. |
 | H3 | Learn → any topic. | The idea, tips, "watch out", and an animated example. |
+| H5 | CogAT, Grade 2 and Grade 3: answer a few questions of each kind, getting one wrong on purpose. | Key words in each question are highlighted (Grade 3 sentences: the blank). The answer you pick glows, the right answer glows when shown, and a wrong pick has a red border with no glow. Classic: no highlights or glow. |
 | H4 | Practice a problem with key numbers in **bold** (e.g. comparing two sums), then press Answer. Settings → **Highlights**: switch Neon ↔ Classic. Try light and dark mode. | Neon (the default): key words have a lime highlighter, and the box the explanation is talking about glows. Classic: plain bold and no glow. The choice is kept after closing the app. Text stays easy to read in both modes. |
 | V1 | Settings → Voice: try *Natural* voices and *This device* voices, and **Speed**. | The voice changes; natural voices sound human. |
 | V2 | Read aloud on: start a problem. | The question is read automatically. |

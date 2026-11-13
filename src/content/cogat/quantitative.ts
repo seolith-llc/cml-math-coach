@@ -89,7 +89,7 @@ export const numberAnalogies: Topic = {
     if (!m) return null;
     const pairs: [number, number][] = [[a, outs[0]], [b, outs[1]]];
     return {
-      text: grade === 2 ? 'The dots change the same way in each row. Which box goes with the last one?' : 'The numbers in each pair go together in the same way. Which number goes with the last one?',
+      text: grade === 2 ? 'The dots **change the same way** in each row. Which box goes with the **last one**?' : 'The numbers in each pair **go together in the same way**. Which number goes with the **last one**?',
       speech: grade === 2
         ? `${a} dots becomes ${outs[0]} dots. ${b} dots becomes ${outs[1]} dots. ${c} dots becomes how many?`
         : `${a} goes with ${outs[0]}. ${b} goes with ${outs[1]}. What goes with ${c}?`,
@@ -154,7 +154,7 @@ export const numberPuzzles: Topic = {
         dotsMarkup(c, 22, 120 - (Math.ceil(c / 5) - 1) * 7) + `<text x="125" y="135" text-anchor="middle" font-size="24" font-weight="700" fill="currentColor" stroke="none">+</text><rect x="150" y="100" width="76" height="54" rx="8" stroke-dasharray="5 5" stroke-width="2"/><text x="188" y="136" text-anchor="middle" font-size="26" font-weight="700" fill="currentColor" stroke="none">?</text>`)
       : svgBox(300, 64, eq, `<text x="150" y="42" text-anchor="middle" font-size="28" font-weight="700" fill="currentColor" stroke="none">${eq}</text>`);
     return {
-      text: grade === 2 ? 'The bottom row needs the same number of dots as the top row. Which box makes them the same?' : `What number goes in place of the "?" ${form === 2 ? '' : 'to make both sides equal'}?`,
+      text: grade === 2 ? 'The bottom row needs the **same number of dots** as the top row. Which box makes them **the same**?' : `What number goes in place of the **"?"** ${form === 2 ? '' : 'to make **both sides equal**'}?`,
       speech: grade === 2 ? `The top row has ${a} dots and ${b} dots. The bottom row has ${c} dots and a missing box. Which box gives the bottom row the same number of dots?` : eq.replace('?', 'what').replace('−', 'minus').replace(/\+/g, 'plus').replace('=', 'equals'),
       figure,
       answer: m.answer,
@@ -260,7 +260,7 @@ export const numberSeries: Topic = {
       : svgBox(sr.terms.length * 50 + 60, 56, `${sr.terms.join(', ')}, what comes next`,
         [...sr.terms, '?'].map((t, i) => `<rect x="${6 + i * 50}" y="8" width="44" height="40" rx="8" stroke-width="2" ${t === '?' ? 'stroke-dasharray="5 5"' : ''}/><text x="${28 + i * 50}" y="35" text-anchor="middle" font-size="18" font-weight="700" fill="currentColor" stroke="none">${t}</text>`).join(''));
     return {
-      text: grade === 2 ? 'The beads on the rods follow a pattern. Which rod comes next?' : 'What number comes next?',
+      text: grade === 2 ? 'The beads on the rods **follow a pattern**. Which rod comes **next**?' : 'What number comes **next**?',
       speech: grade === 2 ? `The rods have ${sr.terms.join(', ')} beads. Which rod comes next?` : `${sr.terms.join(', ')}. What number comes next?`,
       figure,
       answer: m.answer,

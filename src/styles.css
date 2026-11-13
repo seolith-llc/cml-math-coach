@@ -343,6 +343,9 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-hl='neon'] .stage g.pulse > * { filter: drop-shadow(0 0 3px var(--neon)) drop-shadow(0 0 8px var(--neon-glow)); }
 /* outlined shapes that carry meaning (answer boxes use the series colours, the right answer is "good") glow too */
 :root[data-hl='neon'] .stage :is(.s-accent, .s-s1, .s-s2, .s-good) { filter: drop-shadow(0 0 2px var(--neon)) drop-shadow(0 0 9px var(--neon-glow)); }
+/* multiple-choice answers (CogAT): the picked one and the right one glow; a wrong pick stays plain */
+:root[data-hl='neon'] .choice.picked:not(.wrong) { border-color: var(--neon); box-shadow: 0 0 0 1px var(--neon), 0 0 16px -4px var(--neon-glow); }
+:root[data-hl='neon'] .choice.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -4px var(--neon-glow); }
 :root[data-hl='neon'] .hints li:last-child { box-shadow: inset 4px 0 0 var(--neon), 0 0 14px -6px var(--neon-glow); }
 @media print {
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }

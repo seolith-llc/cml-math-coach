@@ -367,6 +367,9 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-hl='neon'] strong.key {
   color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .18em; box-shadow: 0 0 10px -2px var(--neon-glow);
 }
+/* Progress: the tiles glow (the .tile rule above); the best listed test score gets the highlighter; "Practice next"
+   (the weakest topics) stays plain */
+:root[data-hl='neon'] .best { color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .3em; box-shadow: 0 0 10px -2px var(--neon-glow); }
 @media print {
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
   :root[data-hl='neon'] .stage * { filter: none !important; }

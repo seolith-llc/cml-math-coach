@@ -354,6 +354,10 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-hl='neon'] .answer:focus { box-shadow: inset 0 0 0 2px var(--neon), 0 0 12px -2px var(--neon-glow); }
 :root[data-hl='neon'] .compare dd.right { justify-self: start; color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .3em; box-shadow: 0 0 10px -2px var(--neon-glow); }
 :root[data-hl='neon'] .card.problem.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -6px var(--neon-glow); }
+/* Parent dashboard: the week's numbers and ✓ marks glow; ✗ marks, meters and charts stay plain (a glow on a
+   low meter would flatter a struggling topic, and on a chart it blurs the values) */
+:root[data-hl='neon'] .tile strong { text-shadow: 0 0 12px var(--neon-glow); }
+:root[data-hl='neon'] .mark.good { text-shadow: 0 0 8px var(--neon-glow); }
 @media print {
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
   :root[data-hl='neon'] .stage * { filter: none !important; }

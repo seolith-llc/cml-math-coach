@@ -192,7 +192,7 @@ function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
             p ? h('p', { class: 'question small' }, rich(p.text)) : h('p', {}, topicTitle(m.topicId)),
             h('dl', { class: 'compare' },
               h('dt', {}, 'Yours'), h('dd', {}, outcomeLabel(m)),
-              p ? h('dt', {}, 'Answer') : null, p ? h('dd', {}, formatAnswer(p.answer)) : null));
+              p ? h('dt', {}, 'Answer') : null, p ? h('dd', { class: 'right' }, formatAnswer(p.answer)) : null)); // the right answer: highlighted in Neon
         }))
       : null,
     emailGroup(familyId, pin, data.email ?? null),

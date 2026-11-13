@@ -37,8 +37,9 @@ export function compareAnswer(p: Problem, given: string | undefined, ok: boolean
     return pick.el;
   }
   return h('dl', { class: 'compare' },
-    h('dt', {}, 'Yours'), h('dd', {}, given || (ok ? formatAnswer(p.answer) : '—')),
-    ok ? null : h('dt', {}, 'Answer'), ok ? null : h('dd', {}, formatAnswer(p.answer)));
+    // the entry showing the right answer gets class 'right' (the Neon highlighter marks it)
+    h('dt', {}, 'Yours'), h('dd', { class: ok ? 'right' : '' }, given || (ok ? formatAnswer(p.answer) : '—')),
+    ok ? null : h('dt', {}, 'Answer'), ok ? null : h('dd', { class: 'right' }, formatAnswer(p.answer)));
 }
 
 /** The question, the child's answer against the right one, then the animated explanation. */

@@ -18,7 +18,8 @@ export function progressDots(total: number, onOpen?: (index: number) => void) {
     count = results.length;
     if (prev) prev.disabled = !count;
     row.replaceChildren(...Array.from({ length: total }, (_, i) => {
-      const cls = i < results.length ? (results[i] === null ? 'done' : results[i] ? 'ok' : 'miss') : '';
+      // 'now' marks the question being worked on (the first one without a result)
+      const cls = i < results.length ? (results[i] === null ? 'done' : results[i] ? 'ok' : 'miss') : i === results.length ? 'now' : '';
       return onOpen && i < results.length
         ? h('button', { class: cls, type: 'button', 'aria-label': `Question ${i + 1}`, onclick: () => onOpen(i) })
         : h('span', { class: cls });

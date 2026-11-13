@@ -347,6 +347,13 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-hl='neon'] .choice.picked:not(.wrong) { border-color: var(--neon); box-shadow: 0 0 0 1px var(--neon), 0 0 16px -4px var(--neon-glow); }
 :root[data-hl='neon'] .choice.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -4px var(--neon-glow); }
 :root[data-hl='neon'] .hints li:last-child { box-shadow: inset 4px 0 0 var(--neon), 0 0 14px -6px var(--neon-glow); }
+/* Review and Test: where you are and what's right glow; what's wrong never does */
+:root[data-hl='neon'] .dots > .now { background: var(--neon); box-shadow: 0 0 6px 1px var(--neon-glow); }
+:root[data-hl='neon'] .dots > .ok { box-shadow: 0 0 6px 0 var(--neon-glow); }
+:root[data-hl='neon'] .clock:not(.warn) { text-shadow: 0 0 10px var(--neon-glow); }
+:root[data-hl='neon'] .answer:focus { box-shadow: inset 0 0 0 2px var(--neon), 0 0 12px -2px var(--neon-glow); }
+:root[data-hl='neon'] .compare dd.right { justify-self: start; color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .3em; box-shadow: 0 0 10px -2px var(--neon-glow); }
+:root[data-hl='neon'] .card.problem.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -6px var(--neon-glow); }
 @media print {
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
   :root[data-hl='neon'] .stage * { filter: none !important; }

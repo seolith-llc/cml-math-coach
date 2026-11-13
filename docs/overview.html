@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Coach overview</title>
+<meta name="description" content="How Math Coach works: every use case, the state machines behind them, animated.">
+<style>
+:root {
+  --bg: #f4f5f9; --surface: #ffffff; --surface-2: #eef0f6; --text: #16181d; --muted: #5d6270; --line: #dfe2ea;
+  --accent: #2f6fed; --good: #1f8a3a; --bad: #c62828; --warn: #a85400; --star: #c98a00;
+  --neon: #c6ff00; --neon-dot: #5a8f00; --neon-mark: #e4ff3a; --neon-ink: #16181d; --glow: rgba(160, 220, 0, .55);
+  --radius: 14px; --shadow: 0 1px 2px rgba(20, 24, 40, .06), 0 6px 24px rgba(20, 24, 40, .06);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0d12; --surface: #151821; --surface-2: #1d212d; --text: #eef0f6; --muted: #9aa0b2; --line: #2a2f3d;
+    --accent: #6ea0ff; --good: #4fd17a; --bad: #ff6b6b; --warn: #ffb35c; --star: #ffd257;
+    --neon-dot: #c6ff00; --neon-mark: rgba(198, 255, 0, .26); --neon-ink: #eef0f6; --glow: rgba(198, 255, 0, .5);
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0d12; --surface: #151821; --surface-2: #1d212d; --text: #eef0f6; --muted: #9aa0b2; --line: #2a2f3d;
+  --accent: #6ea0ff; --good: #4fd17a; --bad: #ff6b6b; --warn: #ffb35c; --star: #ffd257;
+  --neon-dot: #c6ff00; --neon-mark: rgba(198, 255, 0, .26); --neon-ink: #eef0f6; --glow: rgba(198, 255, 0, .5);
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; }
+main { max-width: 1040px; margin: 0 auto; padding: 0 16px 64px; }
+header.hero { padding: 48px 0 20px; }
+.eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0 0 8px; }
+h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0 0 12px; letter-spacing: -.02em; }
+h2 { font-size: 24px; margin: 0 0 6px; letter-spacing: -.01em; }
+h3 { font-size: 17px; margin: 0 0 6px; }
+p.lead { font-size: 18px; color: var(--muted); max-width: 62ch; margin: 0; }
+.mark { background: var(--neon-mark); color: var(--neon-ink); border-radius: .3em; padding: 0 .2em; box-shadow: 0 0 10px -2px var(--glow); }
+nav.toc { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); margin: 0 -16px 8px; padding: 8px 16px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+nav.toc a { white-space: nowrap; color: var(--muted); text-decoration: none; font-size: 14px; padding: 6px 10px; border-radius: 999px; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--text); background: var(--surface-2); outline: none; }
+section { margin-top: 40px; scroll-margin-top: 64px; }
+.sub { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 24px; }
+.stat strong { display: block; font-size: 32px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-shadow: 0 0 14px var(--glow); }
+.stat span { color: var(--muted); font-size: 14px; }
+.grid2 { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; }
+@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+button { font: inherit; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 600; min-height: 40px; }
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn[aria-pressed="true"] { border-color: var(--neon-dot); box-shadow: 0 0 0 1px var(--neon-dot), 0 0 12px -3px var(--glow); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.legend { color: var(--muted); font-size: 13px; }
+svg text { font-family: inherit; }
+
+/* ---- daily loop ---- */
+.loop svg { width: 100%; height: auto; display: block; }
+.loop .node rect { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.5; }
+.loop .node text { fill: var(--text); font-size: 14px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.loop .node.on rect { stroke: var(--neon-dot); stroke-width: 2.5; filter: drop-shadow(0 0 6px var(--glow)); }
+.loop .edge { fill: none; stroke: var(--line); stroke-width: 2; }
+.loop .edge.on { stroke: var(--neon-dot); }
+.loop .runner { fill: var(--neon-dot); filter: drop-shadow(0 0 6px var(--glow)); }
+.caption { min-height: 3.2em; margin: 12px 2px 0; }
+
+/* ---- card state machine ---- */
+.sm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.state { border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface-2); transition: border-color .25s, box-shadow .25s, transform .25s; }
+.state h4 { margin: 0 0 2px; font-size: 15px; }
+.state p { margin: 0; font-size: 13px; color: var(--muted); }
+.state.on { border-color: var(--neon-dot); box-shadow: 0 0 0 1px var(--neon-dot), 0 0 18px -4px var(--glow); transform: translateY(-2px); }
+.state.end-good.on { border-color: var(--good); box-shadow: 0 0 0 1px var(--good), 0 0 18px -4px var(--glow); }
+.state.end-plain.on { border-color: var(--muted); box-shadow: 0 0 0 1px var(--muted); }
+.log { margin: 14px 0 0; padding: 0; list-style: none; font-size: 14px; }
+.log li { padding: 6px 0; border-top: 1px solid var(--line); color: var(--muted); }
+.log li.now { color: var(--text); font-weight: 600; }
+.mock { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--surface); }
+.mock .q { font-size: 17px; margin: 0 0 10px; }
+.mock .fb { min-height: 1.6em; font-weight: 600; font-size: 14px; margin: 8px 0 0; }
+.mock .fb.good { color: var(--good); } .mock .fb.bad { color: var(--bad); } .mock .fb.info { color: var(--muted); }
+.mock .answer { display: flex; gap: 8px; }
+.mock .answer span { flex: 1; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; min-height: 42px; font-variant-numeric: tabular-nums; }
+.mock .answer span.typing { border-color: var(--neon-dot); box-shadow: 0 0 10px -3px var(--glow); }
+.mock .hint { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); font-size: 14px; box-shadow: inset 4px 0 0 var(--neon-dot); }
+
+/* ---- leitner ---- */
+.boxes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: end; }
+.box { position: relative; border: 1.5px dashed var(--line); border-radius: 12px; min-height: 120px; padding: 8px; text-align: center; background: var(--surface-2); }
+.box b { display: block; font-size: 14px; }
+.box small { color: var(--muted); font-size: 12px; }
+.box.done { border-style: solid; border-color: var(--good); }
+.chip { position: absolute; left: 50%; bottom: 10px; width: 46px; height: 32px; margin-left: -23px; border-radius: 8px; background: var(--neon-mark); border: 2px solid var(--neon-dot); box-shadow: 0 0 14px -3px var(--glow); color: var(--neon-ink); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.leit-wrap { position: relative; }
+.flying { position: absolute; transition: transform .6s cubic-bezier(.3,.7,.2,1); pointer-events: none; }
+@media (max-width: 560px) { .boxes { grid-template-columns: repeat(3, 1fr); } }
+
+/* ---- mastery ---- */
+.meter { height: 12px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.meter > span { display: block; height: 100%; width: 0; background: var(--neon-dot); transition: width .5s ease; }
+.stars { font-size: 30px; letter-spacing: 2px; color: var(--star); text-shadow: 0 0 10px var(--glow); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 12px 0; font-size: 15px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pop { animation: pop .6s ease; }
+@keyframes pop { 40% { transform: scale(1.25); } }
+table.rules { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.rules th, table.rules td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table.rules th { color: var(--muted); font-weight: 600; }
+
+/* ---- timeline ---- */
+.timeline { position: relative; display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-top: 8px; }
+.day { text-align: center; font-size: 12px; color: var(--muted); }
+.day .dot { width: 18px; height: 18px; border-radius: 50%; margin: 0 auto 6px; background: var(--surface-2); border: 2px solid var(--line); transition: all .3s; }
+.day.idle .dot { border-color: var(--muted); }
+.day.practice .dot { background: var(--good); border-color: var(--good); }
+.day.nudge .dot { background: var(--neon-dot); border-color: var(--neon-dot); box-shadow: 0 0 12px var(--glow); }
+.day.cur .dot { transform: scale(1.3); }
+
+/* ---- catalog ---- */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.filters input { flex: 1 1 220px; min-height: 40px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 8px 14px; font: inherit; }
+.filters input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.uc-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
+.uc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; animation: in .35s ease both; }
+.uc header { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+.uc .id { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.uc h3 { margin: 2px 0 4px; font-size: 15px; }
+.uc p { margin: 4px 0; font-size: 13.5px; color: var(--muted); }
+.uc code { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--surface-2); border-radius: 4px; padding: 0 3px; color: var(--text); overflow-wrap: anywhere; }
+.badge { font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.badge.shipped { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
+.badge.open { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.actor { font-size: 12.5px; color: var(--text); font-weight: 600; }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } }
+.empty { color: var(--muted); padding: 20px 0; }
+footer { margin-top: 56px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .loop .runner { display: none; }
+}
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <p class="eyebrow">Math Coach · how it works</p>
+    <h1>Every use case, and the <span class="mark">state machines</span> behind them</h1>
+    <p class="lead">A voice-first practice app for CML (Grades 2–3) and CogAT-style reasoning. A child practises on an iPad; a parent follows along on their own device. Everything on this page is read from the shipped code.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <nav class="toc" aria-label="Sections">
+    <a href="#loop">Daily loop</a><a href="#card">Problem card</a><a href="#review">Spaced review</a>
+    <a href="#stars">Mastery &amp; stars</a><a href="#email">Parent email</a><a href="#catalog">All use cases</a>
+  </nav>
+
+  <section id="loop" aria-labelledby="loop-h">
+    <h2 id="loop-h">The daily loop</h2>
+    <p class="sub">From opening the app to "Done for today". Each finished round syncs to the parent dashboard.</p>
+    <div class="card loop">
+      <svg id="loopSvg" viewBox="0 0 960 345" role="img" aria-labelledby="loopTitle">
+        <title id="loopTitle">Open app, sign in, Home, then Practice, Review, Test or Learn; rounds end, sync to the parent, and when the goal is met the day is done.</title>
+      </svg>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="loopPlay" type="button" aria-pressed="true">❚❚ Pause</button>
+        <span class="legend">The glowing dot walks one path at a time.</span>
+      </div>
+      <p class="caption" id="loopCaption" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section id="card" aria-labelledby="card-h">
+    <h2 id="card-h">One problem card</h2>
+    <p class="sub">The coach allows <span class="mark">two tries</span>. A wrong answer gets a targeted message and a hint; a second miss shows the answer and the animated explanation. Pick a scenario.</p>
+    <div class="row" id="scenarios" role="group" aria-label="Scenarios" style="margin-bottom:12px"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="sm" id="sm"></div>
+        <ol class="log" id="smLog" aria-live="polite"></ol>
+      </div>
+      <div class="card">
+        <div class="mock" aria-hidden="true">
+          <p class="q">The <span class="mark">sum</span> of two numbers is <span class="mark">23</span>. One number is <span class="mark">7 more</span> than the other. What is the <span class="mark">larger</span> number?</p>
+          <div class="answer"><span id="mockInput"></span></div>
+          <p class="fb" id="mockFb"></p>
+          <div id="mockHint"></div>
+        </div>
+        <p class="legend" style="margin-top:10px">Bold key words get the Neon highlighter. The voice never reads the markers.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="review" aria-labelledby="review-h">
+    <h2 id="review-h">Spaced review (Leitner boxes)</h2>
+    <p class="sub">A missed problem starts in box 1. Each right answer moves it up and pushes the next review further out; a wrong answer sends it back to box 1. Right in box 5: mastered.</p>
+    <div class="card leit-wrap">
+      <div class="boxes" id="boxes"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" type="button" id="leitRight">✓ Right</button>
+        <button class="btn" type="button" id="leitWrong">✗ Wrong</button>
+        <button class="btn" type="button" id="leitReset">Start over</button>
+        <span class="legend" id="leitMsg" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="stars" aria-labelledby="stars-h">
+    <h2 id="stars-h">Mastery, level and stars</h2>
+    <p class="sub">After every answer: <code>mastery ← 0.75 × mastery + 0.25 × (right ? 1 : 0)</code>. The level picks the next problem's difficulty; stars only ever go up.</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="stars" id="starView" aria-live="polite">☆☆☆</div>
+        <dl class="kv">
+          <dt>Mastery</dt><dd id="mVal">0%</dd>
+          <dt>Attempts</dt><dd id="aVal">0</dd>
+          <dt>Level</dt><dd id="lVal">1</dd>
+        </dl>
+        <div class="meter" aria-hidden="true"><span id="mBar"></span></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn primary" type="button" id="mRight">Answer right</button>
+          <button class="btn" type="button" id="mWrong">Answer wrong</button>
+          <button class="btn" type="button" id="mReset">Reset</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Thresholds (from the code)</h3>
+        <table class="rules">
+          <thead><tr><th>Star</th><th>Mastery</th><th>Attempts</th></tr></thead>
+          <tbody><tr><td>★</td><td>≥ 0.5</td><td>≥ 2</td></tr><tr><td>★★</td><td>≥ 0.8</td><td>≥ 4</td></tr><tr><td>★★★</td><td>≥ 0.9</td><td>≥ 8</td></tr></tbody>
+        </table>
+        <p class="legend" style="margin-top:10px">Level: under 2 attempts → 1; mastery ≥ 0.8 and ≥ 4 attempts → 3; mastery ≥ 0.5 → 2; otherwise 1.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="email" aria-labelledby="email-h">
+    <h2 id="email-h">The parent's email</h2>
+    <p class="sub">With a confirmed email: a weekly digest on Sunday from 5 pm Central, and practice reminders after a break: the first after <span class="mark">3 idle days</span>, the second after <span class="mark">7</span>, at 5 pm Central, never on Sunday. Practising again resets the count.</p>
+    <div class="card">
+      <div class="timeline" id="timeline" aria-hidden="true"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" type="button" id="tlPlay">▶ Play a break</button>
+        <span class="legend" id="tlMsg" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalog" aria-labelledby="catalog-h">
+    <h2 id="catalog-h">All use cases</h2>
+    <p class="sub">The full catalog: shipped features with the code that implements them, and the open items recorded in the repository.</p>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Search" aria-label="Search use cases">
+    </div>
+    <div class="row" id="areaChips" role="group" aria-label="Area" style="margin-bottom:8px"></div>
+    <div class="row" id="actorChips" role="group" aria-label="Actor" style="margin-bottom:14px"></div>
+    <p class="legend" id="count" aria-live="polite"></p>
+    <div class="uc-list" id="ucList"></div>
+  </section>
+
+  <footer>Math Coach · generated from <code>docs/USE-CASES.md</code> and <code>docs/WORKFLOWS.md</code> on 2026-11-13. Self-contained: no network requests.</footer>
+</main>
+
+<script>
+"use strict";
+const UC = [{"id": "A1", "area": "A", "areaName": "Getting in and set up", "title": "Sign in to the private app", "actor": "Child, Parent, Tester", "flow": "Open any page → Cloudflare Access asks for the invited email → one-time code → app loads", "code": "Cloudflare Access (`scripts/cloudflare-access.mjs`), `functions/_middleware.ts` → `server/guard.ts`", "status": "Shipped"}, {"id": "A2", "area": "A", "areaName": "Getting in and set up", "title": "Install on the iPad Home Screen", "actor": "Parent", "flow": "Safari → Share → Add to Home Screen → app runs offline from the service worker", "code": "`src/pwa.ts`, vite-plugin-pwa", "status": "Shipped"}, {"id": "A3", "area": "A", "areaName": "Getting in and set up", "title": "Get the new version", "actor": "System", "flow": "App opened, brought to front, or hourly → update check → new version installs; expired sign-in → offline copy dropped, reload to sign-in", "code": "`src/pwa.ts`, `public/push-sw.js`", "status": "Shipped"}, {"id": "A4", "area": "A", "areaName": "Getting in and set up", "title": "Set name and grade", "actor": "Child, Parent", "flow": "Settings → name; Home or CogAT → Grade 2 / Grade 3 switch", "code": "`screens/settings.ts`, `ui/session.gradeSwitch`", "status": "Shipped"}, {"id": "A5", "area": "A", "areaName": "Getting in and set up", "title": "Choose voice, speed, read-aloud, hands-free", "actor": "Parent", "flow": "Settings → Voice (Natural / This device), Speed, Read aloud, Hands-free", "code": "`screens/settings.ts`, `voice/speech.ts`", "status": "Shipped"}, {"id": "A6", "area": "A", "areaName": "Getting in and set up", "title": "Choose highlight style", "actor": "Parent, Child", "flow": "Settings → Highlights → Neon (default) / Classic; mirrored to `<html data-hl>`", "code": "`core/storage.ts` (`highlight`), `ui/dom.applyHighlight`, `styles.css`", "status": "Shipped"}, {"id": "A7", "area": "A", "areaName": "Getting in and set up", "title": "Set the daily goal", "actor": "Parent", "flow": "Settings → Daily goal 5 / 10 / 15 / 20", "code": "`core/progress.ts`, `screens/settings.ts`", "status": "Shipped"}, {"id": "A8", "area": "A", "areaName": "Getting in and set up", "title": "Reset progress on this device", "actor": "Parent", "flow": "Settings → Reset progress → confirm → all local progress erased", "code": "`core/storage.reset`", "status": "Shipped"}, {"id": "A9", "area": "A", "areaName": "Getting in and set up", "title": "Read the privacy summary", "actor": "Parent", "flow": "Settings → Privacy", "code": "`screens/settings.privacyScreen`", "status": "Shipped"}, {"id": "B1", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "See today at a glance", "actor": "Child", "flow": "Home → Today card: \"3 of 10\", streak 🔥, progress bar; main button Practice, or \"Keep going\" after the goal", "code": "`screens/home.ts`, `core/progress.ts`", "status": "Shipped"}, {"id": "B2", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Practise a mixed round", "actor": "Child", "flow": "Home → Practice → adaptive mix of CML topics at the child's level, one card at a time", "code": "`screens/practice.ts`, `core/mastery.ts`, `content/topics.ts`", "status": "Shipped"}, {"id": "B3", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Practise one topic", "actor": "Child", "flow": "Learn → topic → Practice (`#/practice/<topic>`)", "code": "`screens/practice.ts`", "status": "Shipped"}, {"id": "B4", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Answer by typing, tapping or voice", "actor": "Child", "flow": "Type + Check / Enter; tap a choice (checks at once); place digits on a board; mic → spoken answer (\"forty five cents\")", "code": "`ui/problemCard.ts`, `ui/choicePicker.ts`, `ui/placementBoard.ts`, `voice/recognition.ts`, `core/answer.ts`", "status": "Shipped"}, {"id": "B5", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Get coached on a wrong answer", "actor": "Child", "flow": "Wrong → targeted misconception message, hint shown, one more try; second miss → answer + explanation", "code": "`core/coach.ts`, `ui/problemCard.ts`", "status": "Shipped"}, {"id": "B6", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Ask for a hint", "actor": "Child", "flow": "Hint → next hint text; the explanation picture shows its setup steps (never the answer)", "code": "`core/coach.ts`, `ui/player.ts` (hint mode, stops before `reveal`)", "status": "Shipped"}, {"id": "B7", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "See the answer and the animated explanation", "actor": "Child", "flow": "Answer → answer shown, voiced step-by-step scene plays", "code": "`core/explain.sceneFor`, `ui/player.ts`", "status": "Shipped"}, {"id": "B8", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Control an explanation", "actor": "Child, Parent", "flow": "Replay, back, play / pause, next, mute, speed 1× / 1.5× / 0.75×, Space / arrows", "code": "`ui/player.ts`", "status": "Shipped"}, {"id": "B9", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Have the question read aloud", "actor": "Child", "flow": "Automatically (Read aloud on) or the speaker button; natural voice with device fallback; `**` markers never spoken", "code": "`voice/speech.ts` (`prepareForSpeech`), `functions/api/tts.ts`", "status": "Shipped"}, {"id": "B10", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Practise hands-free", "actor": "Child", "flow": "Settings → Hands-free → each question read, then listening; voice commands: repeat, hint, explain, skip, next, slower, faster, stop, help", "code": "`voice/recognition.ts` (`parseCommand`), `ui/problemCard.ts`", "status": "Shipped"}, {"id": "B11", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Look back mid-round", "actor": "Child", "flow": "‹ next to the progress dots, or a tapped dot → earlier question: answer vs right one, explanation, Try again on a missed one", "code": "`ui/roundEnd.peekRound`", "status": "Shipped"}, {"id": "B12", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Finish a round", "actor": "Child", "flow": "Last card → score (first tries), one line of feedback, right/total per question type, every question", "code": "`ui/roundEnd.ts`, `core/feedback.ts`", "status": "Shipped"}, {"id": "B13", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Try missed questions again", "actor": "Child", "flow": "Round end → Try missed again → same problems in review mode; each fix raises the score (\"7 → 9 of 10\")", "code": "`ui/roundEnd.ts`", "status": "Shipped"}, {"id": "B14", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Reopen the last round", "actor": "Child", "flow": "Home → Last round (latest of math/review), or CogAT → Last round (`#/round/<kind>`)", "code": "`screens/round.ts`, `state.rounds`", "status": "Shipped"}, {"id": "B15", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Earn stars and celebrate a level-up", "actor": "Child", "flow": "Adaptive level rises → ★ / ★★ / ★★★ on the topic (never go down), celebration", "code": "`core/mastery.ts`, `core/progress.ts`, `ui/session.celebrate`", "status": "Shipped"}, {"id": "B16", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Keep a streak", "actor": "Child", "flow": "Practise on consecutive local days; one missed day per week forgiven; no loss-framed copy", "code": "`core/progress.ts`, `core/storage.dayStreak`", "status": "Shipped"}, {"id": "B17", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Stop when the goal is met", "actor": "Child", "flow": "Goal reached → \"Done for today\" becomes the main action (no endless play)", "code": "`screens/home.ts`, `screens/practice.ts`", "status": "Shipped"}, {"id": "B18", "area": "B", "areaName": "Practising (the child's daily loop)", "title": "Review missed problems (spaced)", "actor": "Child", "flow": "Home → Review (count shown when due) → missed problems come back on a spaced schedule", "code": "`screens/review.ts`, `core/storage.dueReviews`", "status": "Shipped"}, {"id": "C1", "area": "C", "areaName": "Tests (contest practice)", "title": "Set up a test", "actor": "Child, Parent", "flow": "Test → Questions 6/10/15/20, Mode Learn/Test, Clock Off/Total/Each + time; remembered in `settings.test`", "code": "`screens/test.ts`, `core/session.ts`", "status": "Shipped"}, {"id": "C2", "area": "C", "areaName": "Tests (contest practice)", "title": "Take a paper-style test", "actor": "Child", "flow": "Test mode + clock Off or Total → all questions on one page → Hand in (asks if any are blank); time up hands in", "code": "`screens/test.runPaper`, `ui/answerCard.ts`, `ui/clock.ts`", "status": "Shipped"}, {"id": "C3", "area": "C", "areaName": "Tests (contest practice)", "title": "Take a one-at-a-time timed test", "actor": "Child", "flow": "Test mode + Each → one question per screen; time up moves on", "code": "`screens/test.runEach`", "status": "Shipped"}, {"id": "C4", "area": "C", "areaName": "Tests (contest practice)", "title": "Take a coached test", "actor": "Child", "flow": "Learn mode → coached cards; Each: time up reveals the answer; Total: time up ends the session", "code": "`screens/test.runLearn`", "status": "Shipped"}, {"id": "C5", "area": "C", "areaName": "Tests (contest practice)", "title": "See test results", "actor": "Child", "flow": "After hand-in → score, time, every question with yours vs the right answer, Explain plays the scene; misses go to Review", "code": "`screens/test.finishTest`, `ui/roundEnd.compareAnswer`", "status": "Shipped"}, {"id": "C6", "area": "C", "areaName": "Tests (contest practice)", "title": "Track test history", "actor": "Child, Parent", "flow": "Only Test mode writes a `meets` record → Progress → Tests (best score highlighted) and the parent chart", "code": "`state.meets`, `screens/progress.ts`, `ui/charts.meetChart`", "status": "Shipped"}, {"id": "D1", "area": "D", "areaName": "CogAT-style reasoning", "title": "Browse CogAT question types", "actor": "Child", "flow": "Home → CogAT → 9 types with stars, grade switch, Last round", "code": "`screens/cogat.ts`", "status": "Shipped"}, {"id": "D2", "area": "D", "areaName": "CogAT-style reasoning", "title": "Practise CogAT", "actor": "Child", "flow": "CogAT → a type, or the mix (`#/practice/cogat`) → multiple choice: 3 picture choices read aloud (Grade 2), 5 word choices (Grade 3)", "code": "`content/cogat/*`, `cogat/common.mc`", "status": "Shipped"}, {"id": "D3", "area": "D", "areaName": "CogAT-style reasoning", "title": "Kept separate from CML", "actor": "System", "flow": "`topicsForGrade` returns CML only, so CML mixes, tests, progress and stars never include CogAT", "code": "`content/topics.ts`", "status": "Shipped"}, {"id": "E1", "area": "E", "areaName": "Learning (before practising)", "title": "Browse topics by category", "actor": "Child, Parent", "flow": "Home → Learn → topics grouped by category, with stars", "code": "`screens/learn.learnScreen`", "status": "Shipped"}, {"id": "E2", "area": "E", "areaName": "Learning (before practising)", "title": "Study a topic", "actor": "Child", "flow": "Learn → topic → the idea (read aloud), tips, \"Watch out\", an animated example, Practice", "code": "`screens/learn.topicScreen`", "status": "Shipped"}, {"id": "E3", "area": "E", "areaName": "Learning (before practising)", "title": "Learn the problem-solving method", "actor": "Child, Parent", "flow": "Learn → How to solve any problem → four steps, strategies, contest-day tips", "code": "`screens/learn.strategiesScreen`", "status": "Shipped"}, {"id": "E4", "area": "E", "areaName": "Learning (before practising)", "title": "See own progress", "actor": "Child", "flow": "Home → Progress → day streak, stars, first-try %, Practice next (weakest), Tests", "code": "`screens/progress.ts`", "status": "Shipped"}, {"id": "F1", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Turn on the parent dashboard", "actor": "Parent", "flow": "Settings → Parent dashboard → choose a PIN → Turn on → family created on first sync", "code": "`screens/settings.parentGroup`, `POST /api/sync` → `server/parent.sync`", "status": "Shipped"}, {"id": "F2", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Share the dashboard link", "actor": "Parent", "flow": "Settings → Share dashboard link (share sheet) or Open dashboard", "code": "`screens/settings.ts`", "status": "Shipped"}, {"id": "F3", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Sync the child's practice", "actor": "System", "flow": "Offline-first: attempts queue locally, upload when online; saving a round triggers a sync", "code": "`sync/sync.ts`, `server/parent.sync`", "status": "Shipped"}, {"id": "F4", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Open the dashboard with the PIN", "actor": "Parent", "flow": "`#/parent/<familyId>` → PIN (remembered for the tab only) → `POST /api/parent`", "code": "`screens/parent.ts`, `server/parent.authorize`, `readDashboard`", "status": "Shipped"}, {"id": "F5", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Read the week", "actor": "Parent", "flow": "Dashboard → tiles (problems, first-try %, minutes, days, change vs last week), tips, 30-day chart, Needs help / Building / Strong, test chart", "code": "`core/insights.summarize`, `ui/charts.ts`", "status": "Shipped"}, {"id": "F6", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Look into the last rounds", "actor": "Parent", "flow": "Dashboard → rounds newest first → tap a question → child's answer vs the right one + the explanation", "code": "`insights.lastRounds`, `ui/roundEnd.answerReview`", "status": "Shipped"}, {"id": "F7", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Look at mistakes", "actor": "Parent", "flow": "Dashboard → Mistakes: question, child's answer, right answer", "code": "`screens/parent.ts`, `insights.summarize`", "status": "Shipped"}, {"id": "F8", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Export the data", "actor": "Parent", "flow": "Dashboard → Export CSV", "code": "`screens/parent.csv`", "status": "Shipped"}, {"id": "F9", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Lock the dashboard", "actor": "Parent", "flow": "Dashboard → Lock (forgets the PIN for the tab)", "code": "`screens/parent.ts`", "status": "Shipped"}, {"id": "F10", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Turn the dashboard off", "actor": "Parent", "flow": "Settings → Turn off → family data deleted on the server", "code": "`server/parent.deleteFamily`", "status": "Shipped"}, {"id": "F11", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Add an email for the weekly digest", "actor": "Parent", "flow": "Dashboard → Email → Add → confirmation email → confirm link (public bypass)", "code": "`server/email.setEmail`, `confirmEmail`, `functions/api/email/confirm.ts`", "status": "Shipped"}, {"id": "F12", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Get the weekly digest", "actor": "System → Parent", "flow": "Sunday from 5 pm Central (catch-up until 6 am Monday) → email: the week's summary and a button to open Math Coach; unsubscribe link", "code": "`server/digest.buildDigest`, `email.sendWeekly`, `functions/api/weekly.ts`", "status": "Shipped"}, {"id": "F13", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Get inactivity nudges", "actor": "System → Parent", "flow": "3 days idle, then 7; max 2 per break; 5 pm Chicago; never Sunday", "code": "`server/email.sendNudges`", "status": "Shipped"}, {"id": "F14", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Choose which emails / unsubscribe", "actor": "Parent", "flow": "Dashboard → Email → Weekly email / Practice reminders checkboxes; one-click \"turn off reminders\" / unsubscribe link", "code": "`email.setPrefs`, `stopEmail`, `unsubscribe`", "status": "Shipped"}, {"id": "F15", "area": "F", "areaName": "Parent: dashboard, sync and email", "title": "Send a test email", "actor": "Parent", "flow": "Dashboard → Send test → logged (sent or refusal reason)", "code": "`server/email.testEmail`", "status": "Shipped"}, {"id": "G1", "area": "G", "areaName": "Reminders on the device", "title": "Turn on a daily device reminder", "actor": "Parent", "flow": "Settings → Reminder → hour → permission → web push subscription (iPad: Home Screen app only)", "code": "`notify/reminders.ts`, `server/push.subscribe`", "status": "Shipped"}, {"id": "G2", "area": "G", "areaName": "Reminders on the device", "title": "Receive the reminder", "actor": "System → Child", "flow": "Hourly job at the chosen hour → push (skipped if practised today, paused after 14 idle days) → tap opens Practice", "code": "`server/push.ts`, `public/push-sw.js`", "status": "Shipped"}, {"id": "G3", "area": "G", "areaName": "Reminders on the device", "title": "See reviews due on the app icon", "actor": "Child", "flow": "Number of reviews due shown as the app icon badge (Badging API; iPad: Home Screen app + notification permission)", "code": "`notify/reminders.updateBadge`", "status": "Shipped"}, {"id": "H1", "area": "H", "areaName": "Feedback, testing and operations", "title": "Send feedback from the app", "actor": "Child, Parent, Tester", "flow": "Speech-bubble → Problem / Idea → message → Send; screen, problem id and grade attached", "code": "`ui/feedbackSheet.ts`, `server/userFeedback.ts`", "status": "Shipped"}, {"id": "H2", "area": "H", "areaName": "Feedback, testing and operations", "title": "Rate-limit feedback", "actor": "System", "flow": "10 per hour per install, 200 per day app-wide", "code": "`server/userFeedback.ts`", "status": "Shipped"}, {"id": "H3", "area": "H", "areaName": "Feedback, testing and operations", "title": "Be told about new feedback", "actor": "System → Owner", "flow": "Each message emailed to `FEEDBACK_TO` (else `MAIL_REPLY_TO`)", "code": "`server/userFeedback.ts`, `server/ses.ts`", "status": "Shipped"}, {"id": "H4", "area": "H", "areaName": "Feedback, testing and operations", "title": "Triage feedback", "actor": "Owner", "flow": "Actions → Feedback → list ids/screens/statuses → set triaged / done / wontfix + note (text never in GitHub)", "code": "`.github/workflows/feedback.yml`, `scripts/feedback.mjs`", "status": "Shipped"}, {"id": "H5", "area": "H", "areaName": "Feedback, testing and operations", "title": "Run the tester programme", "actor": "Tester, Owner", "flow": "`docs/TESTING.md` cases (A–H, H1–H9) → replies triaged by case id", "code": "`docs/TESTING.md`", "status": "Shipped"}, {"id": "H6", "area": "H", "areaName": "Feedback, testing and operations", "title": "Deploy", "actor": "Owner", "flow": "Push to `main` → check, D1 migrations, Pages deploy, smoke tests, custom-domain check", "code": "`.github/workflows/deploy-cloudflare.yml`, `scripts/ensure-d1.mjs`", "status": "Shipped"}, {"id": "H7", "area": "H", "areaName": "Feedback, testing and operations", "title": "Check production health", "actor": "Owner", "flow": "Actions → Status (read-only): health, email log, live API probe", "code": "`.github/workflows/status.yml`, `scripts/status.mjs`, `scripts/probe.mjs`", "status": "Shipped"}, {"id": "H8", "area": "H", "areaName": "Feedback, testing and operations", "title": "Run the scheduled jobs", "actor": "System", "flow": "`hourly.yml` → `POST /api/hourly` (bearer) → each part decides if due: digest, nudges, push", "code": "`functions/api/hourly.ts`", "status": "Shipped"}, {"id": "H9", "area": "H", "areaName": "Feedback, testing and operations", "title": "Keep crawlers and AI agents out", "actor": "System", "flow": "robots.txt, `X-Robots-Tag`, meta; crawlers get 403; Access on every host", "code": "`server/guard.ts`", "status": "Shipped"}, {"id": "H10", "area": "H", "areaName": "Feedback, testing and operations", "title": "Manage sign-in access and the voice rate limit", "actor": "Owner", "flow": "Actions → Cloudflare Access (invited emails) / Cloudflare rate limit (WAF rule on `/api/tts`, requests per IP)", "code": "`cloudflare-access.yml`, `cloudflare-rate-limit.yml`", "status": "Shipped"}, {"id": "P1", "area": "P", "areaName": "Open / planned", "title": "Custom MAIL FROM domain and published DMARC records for the email sender", "actor": "Owner", "flow": "prompts-history (SES setup)", "code": "", "status": "Open"}, {"id": "P2", "area": "P", "areaName": "Open / planned", "title": "SES production access (out of the sandbox), so the digest reaches any address", "actor": "Owner", "flow": "prompts-history (step on first SES delivery)", "code": "", "status": "Open: depends on AWS"}, {"id": "P3", "area": "P", "areaName": "Open / planned", "title": "Reply to the testers' feedback rounds already triaged (Areas 1–3)", "actor": "Owner", "flow": "prompts-history step043", "code": "", "status": "Open"}, {"id": "P4", "area": "P", "areaName": "Open / planned", "title": "Verify the iPad's first real dashboard turn-on in production (the DB had never received one)", "actor": "Owner", "flow": "prompts-history (probe follow-up)", "code": "", "status": "Open: needs the iPad"}, {"id": "P5", "area": "P", "areaName": "Open / planned", "title": "Move GitHub Actions off the deprecated Node 20 actions (warning only)", "actor": "Owner", "flow": "prompts-history (deploy note)", "code": "", "status": "Open"}];
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+};
+/* text with `code` spans and **bold**, built as DOM nodes (never innerHTML) */
+function rich(text) {
+  const frag = document.createDocumentFragment();
+  String(text).split(/(`[^`]+`)/).forEach((part) => {
+    if (part.startsWith("`") && part.endsWith("`")) frag.append(el("code", {}, part.slice(1, -1)));
+    else part.split(/(\*\*[^*]+\*\*)/).forEach((p) => {
+      if (p.startsWith("**") && p.endsWith("**")) frag.append(el("strong", {}, p.slice(2, -2)));
+      else if (p) frag.append(document.createTextNode(p));
+    });
+  });
+  return frag;
+}
+
+/* ---------- stats ---------- */
+(() => {
+  const shipped = UC.filter((u) => u.status === "Shipped").length;
+  const areas = new Set(UC.filter((u) => u.area !== "P").map((u) => u.area)).size;
+  const stats = [[shipped, "shipped use cases"], [areas, "areas"], [UC.length - shipped, "open items"], ["11", "state diagrams"]];
+  for (const [n, label] of stats) $("#stats").append(el("div", { class: "card stat" }, el("strong", {}, String(n)), el("span", {}, label)));
+})();
+
+/* ---------- daily loop ---------- */
+(() => {
+  const svg = $("#loopSvg"), NS = "http://www.w3.org/2000/svg";
+  const N = {
+    open: [70, 60, "Open app"], signin: [230, 60, "Sign in"], home: [420, 60, "Home"],
+    practice: [180, 170, "Practice"], review: [340, 170, "Review"], test: [500, 170, "Test"], learn: [660, 170, "Learn"],
+    end: [300, 275, "Round end"], results: [520, 275, "Test results"], sync: [720, 275, "Parent sync"], done: [870, 170, "Done for today"]
+  };
+  const E = [["open","signin"],["signin","home"],["home","practice"],["home","review"],["home","test"],["home","learn"],["learn","practice"],
+             ["practice","end"],["review","end"],["test","results"],["end","sync"],["results","sync"],["sync","done"]];
+  const paths = {
+    practice: { route: ["open","signin","home","practice","end","sync","done"], say: "Open the app, sign in once, then Home → Practice: an adaptive mix, coached card by card. The round ends with a score and Try missed again, and syncs to the parent." },
+    review: { route: ["open","signin","home","review","end","sync","done"], say: "Home shows how many reviews are due. Review brings back missed problems on a spaced schedule; the round ends the same way." },
+    test: { route: ["open","signin","home","test","results","sync","done"], say: "Test: pick questions, Learn or Test mode, and a clock. Results show yours vs the right answer and the explanation; misses go to Review." },
+    learn: { route: ["open","signin","home","learn","practice","end","sync","done"], say: "Learn a topic first: the idea, tips, Watch out and an animated example, then Practice it." }
+  };
+  const g = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const edgeEls = {};
+  for (const [a, b] of E) {
+    const [x1, y1] = N[a], [x2, y2] = N[b];
+    // two edges would cross other nodes as straight lines: curve them around (above / below)
+    const bend = { "learn>practice": [420, 62], "end>sync": [510, 330] }[a + ">" + b];
+    const p = g("path", { d: bend ? `M${x1},${y1} Q${bend[0]},${bend[1]} ${x2},${y2}` : `M${x1},${y1} L${x2},${y2}`, class: "edge" });
+    svg.append(p); edgeEls[a + ">" + b] = p;
+  }
+  const nodeEls = {};
+  for (const [k, [x, y, label]] of Object.entries(N)) {
+    const w = Math.max(96, label.length * 9 + 26);
+    const grp = g("g", { class: "node" });
+    grp.append(g("rect", { x: x - w / 2, y: y - 20, width: w, height: 40, rx: 12 }));
+    const t = g("text", { x, y }); t.textContent = label; grp.append(t);
+    svg.append(grp); nodeEls[k] = grp;
+  }
+  const runner = g("circle", { r: 7, class: "runner", cx: N.open[0], cy: N.open[1] - 30 });
+  svg.append(runner);
+  let timer = null, playing = !reduced, order = Object.keys(paths), idx = 0, step = 0;
+  const btn = $("#loopPlay");
+  function show(name, upto) {
+    const r = paths[name].route;
+    for (const e of Object.values(edgeEls)) e.classList.remove("on");
+    for (const e of Object.values(nodeEls)) e.classList.remove("on");
+    for (let i = 0; i <= upto; i++) {
+      nodeEls[r[i]].classList.add("on");
+      if (i > 0 && edgeEls[r[i - 1] + ">" + r[i]]) edgeEls[r[i - 1] + ">" + r[i]].classList.add("on");
+    }
+    const [x, y] = N[r[upto]];
+    runner.setAttribute("cx", x); runner.setAttribute("cy", y - 30); // just above the node, clear of its label
+    $("#loopCaption").textContent = paths[name].say;
+  }
+  function tick() {
+    const name = order[idx], r = paths[name].route;
+    show(name, step);
+    step++;
+    if (step >= r.length) { step = 0; idx = (idx + 1) % order.length; timer = setTimeout(tick, 1800); }
+    else timer = setTimeout(tick, 700);
+  }
+  function setPlaying(on) {
+    playing = on; btn.setAttribute("aria-pressed", String(on)); btn.textContent = on ? "❚❚ Pause" : "▶ Play";
+    clearTimeout(timer); if (on) tick();
+  }
+  btn.addEventListener("click", () => setPlaying(!playing));
+  if (reduced) { show("practice", paths.practice.route.length - 1); setPlaying(false); } else setPlaying(true);
+})();
+
+/* ---------- problem card state machine ---------- */
+(() => {
+  const S = {
+    asking: ["Asking", "question shown, read aloud"], hinted: ["Hinted", "a hint; the picture's setup only"],
+    second: ["Second try", "wrong once: message + hint"], solved: ["Solved", "right; first try if no hint"],
+    revealed: ["Revealed", "answer + animated explanation"], next: ["Next", "result recorded; misses go to Review"]
+  };
+  const box = $("#sm"), cells = {};
+  for (const [k, [t, d]] of Object.entries(S)) {
+    const c = el("div", { class: "state" + (k === "solved" ? " end-good" : k === "revealed" ? " end-plain" : "") }, el("h4", {}, t), el("p", {}, d));
+    box.append(c); cells[k] = c;
+  }
+  const SC = {
+    "Right first try": [["asking", "", "", ""], ["asking", "15", "", "Typing…"], ["solved", "15", "good:Correct! Great thinking.", ""], ["next", "15", "good:First try ✓ (counts toward stars)", ""]],
+    "Hint, then right": [["asking", "", "", ""], ["hinted", "", "", "hint:Take the difference away from the sum."], ["hinted", "15", "", "hint:Take the difference away from the sum."], ["solved", "15", "good:Correct! You kept going.", ""], ["next", "15", "info:Right, but not first try (a hint was used)", ""]],
+    "Wrong, then right": [["asking", "", "", ""], ["asking", "8", "", ""], ["second", "8", "bad:That's the smaller number. The question asks for the larger.", "hint:Halve what's left, then add the difference."], ["second", "15", "", "hint:Halve what's left, then add the difference."], ["solved", "15", "good:Correct! You kept going.", ""], ["next", "15", "info:Saved to Review: not right the first time", ""]],
+    "Two misses": [["asking", "", "", ""], ["asking", "11", "", ""], ["second", "11", "bad:Not quite. Try again.", "hint:Take the difference away from the sum."], ["second", "8", "", "hint:Take the difference away from the sum."], ["revealed", "8", "info:The answer is 15. Watch how.", ""], ["next", "8", "info:Saved to Review (box 1)", ""]]
+  };
+  let current = null, t = null;
+  const btns = {};
+  function run(name) {
+    clearTimeout(t); current = name;
+    for (const [k, b] of Object.entries(btns)) b.setAttribute("aria-pressed", String(k === name));
+    const steps = SC[name], log = $("#smLog"); log.replaceChildren();
+    let i = 0;
+    const play = () => {
+      const [st, input, fb, hint] = steps[i];
+      for (const [k, c] of Object.entries(cells)) c.classList.toggle("on", k === st);
+      const inp = $("#mockInput"); inp.textContent = input; inp.classList.toggle("typing", !!input && st !== "next");
+      const f = $("#mockFb"); const [kind, msg] = fb ? fb.split(/:(.*)/s) : ["", ""]; f.className = "fb " + kind; f.textContent = msg || "";
+      const h = $("#mockHint"); h.replaceChildren(); if (hint) h.append(el("div", { class: "hint" }, hint.replace(/^hint:/, "")));
+      for (const li of log.children) li.classList.remove("now");
+      log.append(el("li", { class: "now" }, S[st][0] + (input ? " · answer " + input : "") + (msg ? " · " + msg : "")));
+      i++;
+      if (!reduced && i < steps.length) t = setTimeout(play, 1300); // reduced motion: the loop below shows every step at once
+    };
+    if (reduced) { while (i < steps.length) play(); } else play();
+  }
+  for (const name of Object.keys(SC)) {
+    const b = el("button", { class: "btn", type: "button", "aria-pressed": "false", onclick: () => run(name) }, name);
+    btns[name] = b; $("#scenarios").append(b);
+  }
+  run("Wrong, then right");
+})();
+
+/* ---------- Leitner boxes ---------- */
+(() => {
+  const LABEL = ["", "Box 1", "Box 2", "Box 3", "Box 4", "Box 5", "Mastered"];
+  // BOX_DAYS = [0, 0, 1, 3, 7, 14] in core/storage.ts, indexed by box: due in that many days after moving into the box
+  const DUE = ["", "now", "in 1 day", "in 3 days", "in 7 days", "in 14 days", "off the queue"];
+  const wrap = $("#boxes"), boxes = [];
+  for (let b = 1; b <= 6; b++) {
+    const d = el("div", { class: "box" + (b === 6 ? " done" : "") }, el("b", {}, LABEL[b]), el("small", {}, b === 6 ? "removed" : "due " + DUE[b]));
+    wrap.append(d); boxes[b] = d;
+  }
+  let at = 1;
+  const chip = el("div", { class: "chip" }, "#42");
+  function place(msg) {
+    boxes[at].append(chip);
+    chip.classList.remove("pop"); void chip.offsetWidth; chip.classList.add("pop");
+    $("#leitMsg").textContent = msg;
+    $("#leitRight").disabled = $("#leitWrong").disabled = at === 6;
+  }
+  $("#leitRight").addEventListener("click", () => { const from = at; at = Math.min(6, at + 1); place(at === 6 ? "Right in box 5: mastered, removed from Review." : `Right: box ${from} → box ${at}, next review ${DUE[at]}.`); });
+  $("#leitWrong").addEventListener("click", () => { const from = at; at = 1; place(`Wrong: box ${from} → back to box 1, due now.`); });
+  $("#leitReset").addEventListener("click", () => { at = 1; place("A missed problem starts in box 1."); });
+  place("A missed problem starts in box 1.");
+})();
+
+/* ---------- mastery and stars (the app's formulas) ---------- */
+(() => {
+  const RULES = [{ m: 0.5, a: 2 }, { m: 0.8, a: 4 }, { m: 0.9, a: 8 }];
+  let m = 0, a = 0, stars = 0;
+  const level = () => (a < 2 ? 1 : m >= 0.8 && a >= 4 ? 3 : m >= 0.5 ? 2 : 1);
+  function draw(up) {
+    $("#mVal").textContent = Math.round(m * 100) + "%";
+    $("#aVal").textContent = a;
+    $("#lVal").textContent = level();
+    $("#mBar").style.width = Math.round(m * 100) + "%";
+    const s = $("#starView");
+    s.textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+    s.setAttribute("aria-label", stars + " of 3 stars");
+    if (up) { s.classList.remove("pop"); void s.offsetWidth; s.classList.add("pop"); }
+  }
+  function answer(right) {
+    a++; m = m * 0.75 + (right ? 0.25 : 0);
+    let n = 0; for (const r of RULES) if (m >= r.m && a >= r.a) n++;
+    const up = n > stars; stars = Math.max(stars, n); // never goes down
+    draw(up);
+  }
+  $("#mRight").addEventListener("click", () => answer(true));
+  $("#mWrong").addEventListener("click", () => answer(false));
+  $("#mReset").addEventListener("click", () => { m = 0; a = 0; stars = 0; draw(false); });
+  draw(false);
+})();
+
+/* ---------- nudge timeline ---------- */
+(() => {
+  const tl = $("#timeline"), days = [];
+  for (let d = 0; d <= 8; d++) {
+    const c = el("div", { class: "day" }, el("div", { class: "dot" }), el("span", {}, d === 0 ? "practised" : "day " + d));
+    tl.append(c); days.push(c);
+  }
+  let t = null;
+  function reset() { days.forEach((c, i) => c.className = "day" + (i === 0 ? " practice" : "")); }
+  function play() {
+    clearTimeout(t); reset();
+    let d = 1;
+    const step = () => {
+      days.forEach((c) => c.classList.remove("cur"));
+      const c = days[d]; c.classList.add("cur");
+      if (d === 3 || d === 7) { c.classList.add("nudge"); $("#tlMsg").textContent = (d === 3 ? "Day 3 idle: first reminder email (5 pm Central)." : "Day 7 idle: second and last reminder for this break."); }
+      else if (d === 8) { c.classList.add("practice"); $("#tlMsg").textContent = "Practice again: the count resets for the next break."; }
+      else { c.classList.add("idle"); $("#tlMsg").textContent = "Day " + d + " idle: no email."; }
+      d++;
+      if (!reduced && d <= 8) t = setTimeout(step, 750);
+    };
+    if (reduced) { while (d <= 8) step(); } else step();
+  }
+  $("#tlPlay").addEventListener("click", play);
+  reset(); $("#tlMsg").textContent = "Press play to walk through a break.";
+})();
+
+/* ---------- catalog ---------- */
+(() => {
+  const AREA = {}; for (const u of UC) AREA[u.area] = u.areaName;
+  const actors = ["All", "Child", "Parent", "Tester", "Owner", "System"];
+  let area = "All", actor = "All", q = "";
+  const chipRow = (host, items, get, set) => {
+    const btns = items.map(([val, label]) => {
+      const b = el("button", { class: "btn", type: "button", "aria-pressed": String(get() === val), onclick: () => { set(val); btns.forEach((x, i) => x.setAttribute("aria-pressed", String(items[i][0] === val))); render(); } }, label);
+      host.append(b); return b;
+    });
+  };
+  chipRow($("#areaChips"), [["All", "All areas"], ...Object.entries(AREA).map(([k, v]) => [k, (k === "P" ? "" : k + ". ") + v])], () => area, (v) => (area = v));
+  chipRow($("#actorChips"), actors.map((a) => [a, a === "All" ? "Everyone" : a]), () => actor, (v) => (actor = v));
+  $("#q").addEventListener("input", (e) => { q = e.target.value.trim().toLowerCase(); render(); });
+  function render() {
+    const list = UC.filter((u) => (area === "All" || u.area === area) && (actor === "All" || u.actor.includes(actor)) &&
+      (!q || (u.id + " " + u.title + " " + u.flow + " " + u.code + " " + u.actor).toLowerCase().includes(q)));
+    const host = $("#ucList"); host.replaceChildren();
+    $("#count").textContent = list.length + " of " + UC.length + " use cases";
+    if (!list.length) { host.append(el("p", { class: "empty" }, "Nothing matches.")); return; }
+    list.forEach((u, i) => {
+      const open = u.status !== "Shipped";
+      const card = el("article", { class: "uc", style: reduced ? "" : `animation-delay:${Math.min(i, 20) * 18}ms` },
+        el("header", {}, el("span", { class: "id" }, u.id), el("span", { class: "badge " + (open ? "open" : "shipped") }, u.status)),
+        el("h3", {}, rich(u.title)),
+        el("span", { class: "actor" }, u.actor),
+        el("p", {}, rich(u.flow)),
+        u.code ? el("p", {}, rich(u.code)) : null);
+      host.append(card);
+    });
+  }
+  render();
+})();
+</script>
+</body>
+</html>

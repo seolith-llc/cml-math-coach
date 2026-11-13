@@ -324,3 +324,27 @@ a.row:active, button.row:active { background: var(--fill); }
 .feedback-status { min-height: 1.4em; margin: 0; color: var(--muted); }
 .feedback-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .feedback-done { font-size: 20px; font-weight: 600; margin: 8px 0; }
+
+/* ---- Neon highlights (settings.highlight, mirrored to <html data-hl>; "classic" keeps the plain look) ----
+   Key words in a problem (**bold** in the text) get a fluorescent highlighter stroke; in explanations, the shape
+   being pointed at (a pulse) and outlined shapes that carry meaning (accent, series, good) glow; the newest hint gets
+   a lime edge.
+   Contrast (checked): light #1c1c1e on #e4ff3a is 15.1:1; dark #f5f5f7 on the lime tint is 5.7–9.4:1 by surface. */
+:root[data-hl='neon'] { --neon: #c6ff00; --neon-mark: #e4ff3a; --neon-ink: #1c1c1e; --neon-glow: rgba(198, 255, 0, .55); }
+@media (prefers-color-scheme: dark) {
+  :root[data-hl='neon']:not([data-theme='light']) { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; }
+}
+:root[data-hl='neon'][data-theme='dark'] { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; }
+
+:root[data-hl='neon'] .question strong, :root[data-hl='neon'] .caption strong {
+  color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .18em;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone; box-shadow: 0 0 10px -2px var(--neon-glow);
+}
+:root[data-hl='neon'] .stage g.pulse > * { filter: drop-shadow(0 0 3px var(--neon)) drop-shadow(0 0 8px var(--neon-glow)); }
+/* outlined shapes that carry meaning (answer boxes use the series colours, the right answer is "good") glow too */
+:root[data-hl='neon'] .stage :is(.s-accent, .s-s1, .s-s2, .s-good) { filter: drop-shadow(0 0 2px var(--neon)) drop-shadow(0 0 9px var(--neon-glow)); }
+:root[data-hl='neon'] .hints li:last-child { box-shadow: inset 4px 0 0 var(--neon), 0 0 14px -6px var(--neon-glow); }
+@media print {
+  :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
+  :root[data-hl='neon'] .stage * { filter: none !important; }
+}

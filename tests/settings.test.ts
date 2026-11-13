@@ -22,6 +22,12 @@ describe('settings', () => {
     expect(migrateSettings({ goal: 7, reminder: { on: true, hour: 3 } } as never, base)).toMatchObject({ goal: 10, reminder: { on: true, hour: 17 } });
     expect(migrateSettings({ goal: 15, reminder: { on: true, hour: 19 } } as never, base)).toMatchObject({ goal: 15, reminder: { on: true, hour: 19 } });
   });
+  it('adds the highlight style: neon by default, kept when valid', () => {
+    expect(base.highlight).toBe('neon');
+    expect(migrateSettings({ goal: 15 } as never, base).highlight).toBe('neon'); // saved before 2026-11-13
+    expect(migrateSettings({ highlight: 'classic' }, base).highlight).toBe('classic');
+    expect(migrateSettings({ highlight: 'glitter' } as never, base).highlight).toBe('neon');
+  });
   it('adds and cleans the test setup', () => {
     expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
     expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)

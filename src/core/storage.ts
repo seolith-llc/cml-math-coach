@@ -49,7 +49,12 @@ export interface Settings {
   goal: number;
   /** Daily practice reminder on this device (web push), at a local hour. */
   reminder: { on: boolean; hour: number };
+  /** How key words and explanation highlights look: fluorescent ("neon", the default) or plain. */
+  highlight: Highlight;
 }
+
+export type Highlight = 'neon' | 'classic';
+export const HIGHLIGHTS: readonly Highlight[] = ['neon', 'classic'];
 
 /** Settings stored by older versions (before 2026-11-03). */
 interface LegacySettings {
@@ -69,6 +74,7 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   out.goal = (GOALS as readonly number[]).includes(Number(raw.goal)) ? Number(raw.goal) : base.goal;
   const r = raw.reminder;
   out.reminder = { on: !!r?.on, hour: Number.isInteger(r?.hour) && r!.hour >= 6 && r!.hour <= 21 ? r!.hour : base.reminder.hour };
+  out.highlight = HIGHLIGHTS.includes(raw.highlight as Highlight) ? (raw.highlight as Highlight) : base.highlight; // added 2026-11-13: older saves get neon
   return out;
 }
 
@@ -128,7 +134,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 } },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon' },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

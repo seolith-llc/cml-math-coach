@@ -1,10 +1,10 @@
-import { load, reset, save } from '../core/storage';
+import { load, reset, save, type Highlight } from '../core/storage';
 import { PREMIUM_VOICES, listVoices, speak, voiceOptions, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported } from '../voice/recognition';
 import { disableSync, enableSync, parentLink } from '../sync/sync';
 import { disableReminder, enableReminder, reminderSupport } from '../notify/reminders';
 import { GOALS } from '../core/progress';
-import { group, h, list, segmented, toast } from '../ui/dom';
+import { applyHighlight, group, h, list, segmented, toast } from '../ui/dom';
 import { applyVoiceSettings } from '../app';
 import type { View } from '../app';
 
@@ -48,6 +48,11 @@ export function settingsScreen(focus?: string): View {
         s.goal = g;
         save(state);
         if (s.reminder.on && reminderSupport() === 'ok') void enableReminder(s.reminder.hour).catch(() => {}); // keep the reminder text in step
+      })),
+      group('Highlights', segmented<Highlight>('Highlights', [{ value: 'neon', label: 'Neon' }, { value: 'classic', label: 'Classic' }], s.highlight, (v) => {
+        s.highlight = v;
+        save(state);
+        applyHighlight(v);
       })),
       reminderGroup(),
       parentGroup(),

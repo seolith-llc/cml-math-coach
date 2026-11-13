@@ -22,7 +22,7 @@ export const ages: Topic = {
       const d = rng.int(2, 8);
       const old = young + d;
       return {
-        text: `${x} is ${d} years older than ${y}. The sum of their ages is ${young + old}. How old is ${x}?`,
+        text: `${x} is **${d} years older** than ${y}. The **sum** of their ages is **${young + old}**. How old is ${x}?`,
         scene: sumDiffScene(young, d, [x, y]),
         answer: num(old),
         hints: [`Take away the extra ${d} years: ${young + old} − ${d}.`, 'Split what is left into two equal parts. That is the younger age.', `${x} is the older one.`],
@@ -39,7 +39,7 @@ export const ages: Topic = {
       const who = [x, y, z].slice(0, people);
       const intro = who.map((w, i) => `${w} is ${ageList[i]} years old`).join(people === 3 ? ', ' : ' and ');
       return {
-        text: `${intro.replace(/, ([^,]*)$/, ' and $1')}. In ______ years their ages will add to ${total}.`,
+        text: `${intro.replace(/, ([^,]*)$/, ' and $1')}. In ______ years their ages will add to **${total}**.`,
         scene: agesYearsScene(who, ageList, yrs, total),
         answer: num(yrs),
         hints: [`Right now their ages add to ${now}.`, `Each year, the total grows by ${people} (everyone gets 1 year older).`, `The total has to grow by ${total - now}.`],
@@ -52,7 +52,7 @@ export const ages: Topic = {
     const later = rng.int(2, 6);
     const ans = sib + ago + later;
     return {
-      text: `${x}'s brother is ${sib} years old. ${ago} year${ago > 1 ? 's' : ''} ago ${x} was as old as the brother is now. ${later} years from now ${x} will be ______ years old.`,
+      text: `${x}'s brother is **${sib} years old**. **${ago} year${ago > 1 ? 's' : ''} ago** ${x} was as old as the brother is now. **${later} years from now** ${x} will be ______ years old.`,
       scene: agesTimelineScene(x, sib, ago, later),
       answer: num(ans),
       hints: [`${ago} years ago ${x} was ${sib}. How old is ${x} now?`, `Now add the ${later} years.`],
@@ -85,7 +85,7 @@ export const transfer: Topic = {
       const a = b + 2 * c + d + rng.int(3, 15);
       const ans = a - c - d - (b + c);
       return {
-        text: `${x} had ${a} marbles and ${y} had ${b} marbles. ${x} gave ${c} marbles to ${y} and ${d} marbles to ${z}. Now ${x} has ______ more marbles than ${y}.`,
+        text: `${x} had **${a} marbles** and ${y} had **${b} marbles**. ${x} gave **${c}** marbles to ${y} and **${d}** marbles to ${z}. Now ${x} has ______ more marbles than ${y}.`,
         scene: marblesScene(x, y, z, a, b, c, d),
         answer: num(ans),
         hints: [`How many does ${x} have after giving away ${c} and ${d}?`, `${y} GOT ${c} marbles. How many does ${y} have now?`, 'Subtract to compare.'],
@@ -106,7 +106,7 @@ export const transfer: Topic = {
     );
     const total = p.a + p.b;
     return {
-      text: `There are ${p.a} people in Room A and ${p.b} people in Room B. If ______ people were moved from Room A to Room B, there would be twice as many people in Room B as in Room A.`,
+      text: `There are **${p.a} people** in Room A and **${p.b} people** in Room B. If ______ people were moved from Room A to Room B, there would be **twice as many** people in Room B as in Room A.`,
       scene: transferScene(p.a, p.b, p.f, p.k),
       answer: num(p.k),
       hints: [`The total stays ${total}.`, `Twice as many means 3 equal parts: Room A gets 1 part, Room B gets 2.`, `${total} ÷ 3 = ${total / 3}. That is how many end up in Room A.`],
@@ -137,7 +137,7 @@ export const multiStep: Topic = {
       const third = second - less;
       const total = first + second + third;
       return {
-        text: `${x} bought 3 things. The first cost ${cents(first)}. The second cost ${cents(more)} more than the first. The third cost ${cents(less)} less than the second. How much did ${x} pay for all 3?`,
+        text: `${x} bought 3 things. The first cost **${cents(first)}**. The second cost **${cents(more)} more** than the first. The third cost **${cents(less)} less** than the second. How much did ${x} pay for all 3?`,
         scene: shoppingScene(first, more, less),
         answer: money(total),
         hints: ['Find the price of the second item first.', 'Use the second price to find the third.', 'Add all three prices.'],
@@ -156,7 +156,7 @@ export const multiStep: Topic = {
     const total = base + (base + more) + (base - fewer);
     const verb = things[3] === 'trees' ? 'planted' : things[3] === 'cookies' ? 'baked' : 'blew up';
     return {
-      text: `${x} ${verb} ${things[0]}, ${things[1]} and ${things[2]} ${things[3]}. There were ${more} more ${things[1]} ${things[3]} than ${things[0]} ${things[3]}, and ${fewer} fewer ${things[2]} ${things[3]} than ${things[0]} ${things[3]}. There were ${base} ${things[0]} ${things[3]}. How many ${things[3]} were there altogether?`,
+      text: `${x} ${verb} ${things[0]}, ${things[1]} and ${things[2]} ${things[3]}. There were **${more} more** ${things[1]} ${things[3]} than ${things[0]} ${things[3]}, and **${fewer} fewer** ${things[2]} ${things[3]} than ${things[0]} ${things[3]}. There were **${base}** ${things[0]} ${things[3]}. How many ${things[3]} were there altogether?`,
       scene: threeBarsScene([things[0], things[1], things[2]], base, more, fewer),
       answer: num(total),
       hints: [`${things[1]}: ${base} + ${more}.`, `${things[2]}: ${base} − ${fewer}.`, 'Add all three kinds.'],
@@ -186,7 +186,7 @@ export const headsLegs: Topic = {
       const dogs = rng.int(1, 6), cats = rng.int(1, 5), hens = rng.int(1, 6);
       const legs = 4 * dogs + 4 * cats + 2 * hens;
       return {
-        text: `${x} sees ${dogs} dog${dogs > 1 ? 's' : ''}, ${cats} cat${cats > 1 ? 's' : ''} and ${hens} chicken${hens > 1 ? 's' : ''} in the yard. How many legs are there altogether?`,
+        text: `${x} sees **${dogs} dog${dogs > 1 ? 's' : ''}**, **${cats} cat${cats > 1 ? 's' : ''}** and **${hens} chicken${hens > 1 ? 's' : ''}** in the yard. How many **legs** are there altogether?`,
         scene: legsCountScene(dogs, cats, hens),
         answer: num(legs),
         hints: ['Dogs and cats have 4 legs. Chickens have 2.', `${dogs + cats} four-legged animals and ${hens} chickens.`],
@@ -208,10 +208,10 @@ export const headsLegs: Topic = {
     const per = s.lb - s.la;
     const text =
       variant === 2
-        ? `A room has ${heads} tables. Each table has either 4 or 5 chairs. There are ${legs} chairs in the room. How many tables have 5 chairs?`
+        ? `A room has **${heads} tables**. Each table has either 4 or 5 chairs. There are **${legs} chairs** in the room. How many tables have **5 chairs**?`
         : variant === 1
-          ? `In a bike shop there are only bicycles and tricycles. There are ${heads} seats and ${legs} wheels. How many tricycles are there?`
-          : `A farmer has chickens and pigs. The farmer counts ${heads} heads and ${legs} feet. How many pigs are there?`;
+          ? `In a bike shop there are only bicycles and tricycles. There are **${heads} seats** and **${legs} wheels**. How many **tricycles** are there?`
+          : `A farmer has chickens and pigs. The farmer counts **${heads} heads** and **${legs} feet**. How many **pigs** are there?`;
     return {
       text,
       scene: headsLegsScene({ a: s.a, b: s.b, la: s.la, lb: s.lb, leg: s.leg }, heads, bCount),
@@ -252,7 +252,7 @@ export const unitRate: Topic = {
     const n = g * i, m = g * j;
     const ans = q * j;
     return {
-      text: `If ${n} ${things} cost ${cents(q * i)}, then ${m} ${things} would cost ______.`,
+      text: `If **${n} ${things}** cost **${cents(q * i)}**, then **${m} ${things}** would cost ______.`,
       scene: unitRateScene(things, g, q, i, j),
       answer: money(ans),
       hints: [`Put the ${things} in groups of ${g}.`, `${n} is ${i} groups, so one group costs ${cents(q * i)} ÷ ${i}.`, `${m} is ${j} groups.`],
@@ -281,7 +281,7 @@ export const workRate: Topic = {
       const sheds = rng.int(1, 3), weeks = rng.int(2, 7), people = rng.int(2, 4), times = rng.int(2, 3);
       const ans = sheds * people * times;
       return {
-        text: `If 1 person can build ${sheds} shed${sheds > 1 ? 's' : ''} in ${weeks} weeks, how many sheds can ${people} people build in ${weeks * times} weeks?`,
+        text: `If 1 person can build **${sheds} shed${sheds > 1 ? 's' : ''}** in **${weeks} weeks**, how many sheds can **${people} people** build in **${weeks * times} weeks**?`,
         scene: shedsScene(sheds, weeks, people, times),
         answer: num(ans),
         hints: [`In ${weeks} weeks, ${people} people build ${people} × ${sheds}.`, `${weeks * times} weeks is ${times} times as long.`],
@@ -299,7 +299,7 @@ export const workRate: Topic = {
       );
       const ans = p.L / p.b;
       return {
-        text: `A board can be cut into exactly ${p.n} pieces that are each ${p.a} feet long. The same board could instead be cut into ______ pieces that are each ${p.b} feet long.`,
+        text: `A board can be cut into exactly **${p.n} pieces** that are each **${p.a} feet** long. The same board could instead be cut into ______ pieces that are each **${p.b} feet** long.`,
         scene: boardScene(p.n, p.a, p.b),
         answer: num(ans),
         hints: ['How long is the whole board?', `${p.n} × ${p.a} = ? Now cut that into ${p.b}-foot pieces.`],
@@ -314,7 +314,7 @@ export const workRate: Topic = {
       ({ x, k, n }) => Number.isInteger(x) && x > 2 && k < n - 2
     );
     return {
-      text: `There is the same number of peaches in each of ${p.n} baskets. If all the peaches were taken out of ${p.k} basket${p.k > 1 ? 's' : ''}, exactly ${p.e} more peaches could be put into each of the other baskets. How many peaches were in each basket to begin with?`,
+      text: `There is the same number of peaches in each of **${p.n} baskets**. If all the peaches were taken out of **${p.k} basket${p.k > 1 ? 's' : ''}**, exactly **${p.e} more** peaches could be put into each of the other baskets. How many peaches were in each basket to begin with?`,
       scene: basketsScene(p.n, p.k, p.e, p.x),
       answer: num(p.x),
       hints: [`The peaches from ${p.k} basket${p.k > 1 ? 's' : ''} get shared among ${p.n - p.k} baskets.`, `Each of the ${p.n - p.k} baskets gets ${p.e}, so ${(p.n - p.k) * p.e} peaches were moved.`],
@@ -341,7 +341,7 @@ export const backwards: Topic = {
       const gave = had + extra;
       const now = had + gave;
       return {
-        text: `${x} gave ${y} $${extra} more than ${y} already had. Now ${y} has $${now}. How much money did ${x} give to ${y}?`,
+        text: `${x} gave ${y} **$${extra} more** than ${y} already had. Now ${y} has **$${now}**. How much money did ${x} give to ${y}?`,
         scene: gaveMoreScene(y, had, extra, now),
         answer: num(gave, 'dollars'),
         hints: [`${y} now has: what ${y} had + (what ${y} had + $${extra}).`, `Take away the $${extra}: what is left is two equal parts.`],
@@ -354,7 +354,7 @@ export const backwards: Topic = {
     const end = start - a + b - c;
     const item = rng.pick(['stickers', 'cards', 'shells', 'marbles']);
     return {
-      text: `${x} had some ${item}. ${x} gave away ${a}, then found ${b} more, then lost ${c}. Now ${x} has ${end}. How many ${item} did ${x} start with?`,
+      text: `${x} had some ${item}. ${x} gave away **${a}**, then found **${b} more**, then lost **${c}**. Now ${x} has **${end}**. How many ${item} did ${x} start with?`,
       scene: backwardsScene([{ label: `− ${a}`, inverse: `+ ${a}`, value: start }, { label: `+ ${b}`, inverse: `− ${b}`, value: start - a }, { label: `− ${c}`, inverse: `+ ${c}`, value: start - a + b }], start, end),
       answer: num(start),
       hints: ['Start from the end and go backwards.', `Undo "lost ${c}" by adding ${c}. Undo "found ${b}" by subtracting ${b}.`],

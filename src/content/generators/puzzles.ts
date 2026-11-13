@@ -87,8 +87,8 @@ export const cryptarithm: Topic = {
     return {
       scene: cryptScene(c.top, c.bottom, c.result, c.op, vals),
       text: two
-        ? 'In the problem, A and B are different digits. Each time a letter appears it stands for the same digit. What is A + B?'
-        : 'In the problem, "A" stands for the same digit every time it appears. What digit does A stand for?',
+        ? 'In the problem, A and B are **different digits**. Each time a letter appears it stands for the **same digit**. What is **A + B**?'
+        : 'In the problem, "A" stands for the **same digit** every time it appears. What digit does **A** stand for?',
       figure: columnFigure(c.top, c.bottom, c.op, c.result),
       speech: `${two ? 'A and B are different digits.' : 'A stands for the same digit every time.'} The top number is ${spell(c.top)}. ${c.op === '+' ? 'Plus' : 'Minus'} ${spell(c.bottom)}. The answer is ${spell(c.result)}. ${two ? 'What is A plus B?' : 'What digit is A?'}`,
       answer: num(ask),
@@ -136,7 +136,7 @@ export const customOp: Topic = {
       const ans = op.f(hi.a, hi.b) - op.f(lo.a, lo.b);
       return {
         scene: recipeScene(op.show, [hi, lo].map((q) => ({ a: q.a, b: q.b, calc: op.calc(q.a, q.b) })), `${op.f(hi.a, hi.b)} − ${op.f(lo.a, lo.b)} = ${ans}`),
-        text: `${op.show}. ${example} How much larger is ${hi.a} ★ ${hi.b} than ${lo.a} ★ ${lo.b}?`,
+        text: `${op.show}. ${example} How much larger is **${hi.a} ★ ${hi.b}** than **${lo.a} ★ ${lo.b}**?`,
         speech: `${op.show.replace('★', 'star')}. ${example.replace(/★/g, 'star')} How much larger is ${hi.a} star ${hi.b} than ${lo.a} star ${lo.b}?`,
         answer: num(ans),
         hints: ['Work out each ★ separately.', 'Then subtract.'],
@@ -146,7 +146,7 @@ export const customOp: Topic = {
     const ans = op.f(q1.a, q1.b);
     return {
       scene: recipeScene(op.show, [{ a: q1.a, b: q1.b, calc: op.calc(q1.a, q1.b) }]),
-      text: `${op.show}. ${example} What is ${q1.a} ★ ${q1.b}?`,
+      text: `${op.show}. ${example} What is **${q1.a} ★ ${q1.b}**?`,
       speech: `${op.show.replace('★', 'star')}. ${example.replace(/★/g, 'star')} What is ${q1.a} star ${q1.b}?`,
       answer: num(ans),
       hints: [`Put ${q1.a} in place of a and ${q1.b} in place of b.`, 'Work out the brackets first.'],
@@ -175,7 +175,7 @@ export const shapeEquations: Topic = {
       const sq = rng.int(3, 15), k = rng.int(1, sq - 1);
       return {
         scene: shapeScene([`■ − ${k} = ${sq - k}`], [[`Square take away ${k} leaves ${sq - k}, so square is ${sq - k} + ${k} = ${sq}.`, `■ = ${sq}`]], `■ + ■ = ${2 * sq}`),
-        text: `If ■ − ${k} = ${sq - k}, how much is ■ + ■?`,
+        text: `If **■ − ${k} = ${sq - k}**, how much is **■ + ■**?`,
         answer: num(2 * sq),
         hints: [`■ take away ${k} leaves ${sq - k}. So ■ = ${sq - k} + ${k}.`, 'Now add ■ to itself.'],
         steps: [`■ = ${sq - k} + ${k} = ${sq}.`, `■ + ■ = ${sq} + ${sq} = ${2 * sq}.`],
@@ -186,7 +186,7 @@ export const shapeEquations: Topic = {
       const p = until(() => ({ s: rng.int(1, 9), c: rng.int(1, 9), t: rng.int(1, 15) }), ({ s, c, t }) => t > c && s !== c);
       return {
         scene: shapeScene([`■ + ● = ${p.s + p.c}`, `● + ▲ = ${p.c + p.t}`], [[`Square is ${p.s}, so circle is ${p.s + p.c} − ${p.s} = ${p.c}.`, `● = ${p.c}`], [`Then triangle is ${p.c + p.t} − ${p.c} = ${p.t}.`, `▲ = ${p.t}`]], `▲ − ● = ${p.t - p.c}`),
-        text: `■ + ● = ${p.s + p.c} and ● + ▲ = ${p.c + p.t}. If ■ = ${p.s}, then ▲ − ● = ______.`,
+        text: `■ + ● = ${p.s + p.c} and ● + ▲ = ${p.c + p.t}. If **■ = ${p.s}**, then **▲ − ●** = ______.`,
         answer: num(p.t - p.c),
         hints: [`Use ■ = ${p.s} in the first equation to find ●.`, 'Then use ● in the second equation to find ▲.'],
         steps: [`● = ${p.s + p.c} − ${p.s} = ${p.c}.`, `▲ = ${p.c + p.t} − ${p.c} = ${p.t}.`, `▲ − ● = ${p.t} − ${p.c} = ${p.t - p.c}.`],
@@ -196,7 +196,7 @@ export const shapeEquations: Topic = {
     const a = rng.int(6, 40), b = rng.int(1, a - 1);
     return {
       scene: shapeScene([`■ + ▲ = ${a + b}`, `■ − ▲ = ${a - b}`], [[`Add the two lines. The triangles cancel out: square plus square is ${a + b} + ${a - b} = ${2 * a}.`, `■ + ■ = ${2 * a}`]], `■ = ${a}`),
-      text: `■ + ▲ = ${a + b} and ■ − ▲ = ${a - b}. What number is ■?`,
+      text: `**■ + ▲ = ${a + b}** and **■ − ▲ = ${a - b}**. What number is ■?`,
       answer: num(a),
       hints: ['■ is bigger than ▲ by ' + (a - b) + '.', `Add both equations: ■ + ■ = ${a + b} + ${a - b}.`],
       steps: [`Adding: ■ + ▲ + ■ − ▲ = ${2 * a}, so ■ + ■ = ${2 * a}.`, `■ = ${a}. (And ▲ = ${b}.)`],
@@ -236,7 +236,7 @@ export const packages: Topic = {
     const thing = rng.pick(['tennis balls', 'markers', 'cupcakes', 'crayons']);
     return {
       scene: packagesScene(p.a, p.b, p.L, p.bad[0]),
-      text: `${thing[0].toUpperCase() + thing.slice(1)} come in packages of ${p.a} and packages of ${p.b}. What is the only number of ${thing} between ${p.L} and ${p.L + 10} that you can NOT buy exactly without breaking a package?`,
+      text: `${thing[0].toUpperCase() + thing.slice(1)} come in packages of **${p.a}** and packages of **${p.b}**. What is the only number of ${thing} between ${p.L} and ${p.L + 10} that you can **NOT** buy exactly without breaking a package?`,
       answer: num(p.bad[0]),
       hints: [`Multiples of ${p.b}: ${[0, 1, 2, 3].map((i) => i * p.b).join(', ')}…`, `Add packages of ${p.a} to each of them and see which numbers you reach.`],
       steps: [
@@ -279,7 +279,7 @@ export const balance: Topic = {
           { say: `Take one triangle off both sides. A circle weighs as much as ${m - 1} triangle${m > 2 ? 's' : ''}: ${m - 1} × ${w} = ${circle} ounces.`, left: ['●'], right: Array(m - 1).fill('▲') },
           { say: `${n} circles weigh ${n} × ${circle} = ${n * circle} ounces.`, left: Array(n).fill('●'), right: Array(n * (m - 1)).fill('▲'), reveal: true }
         ], `▲ = ${w} ounces`),
-        text: `A ▲ weighs ${w} ounces. A ▲ and a ● together weigh as much as ${m} ▲'s. How much do ${n} ●'s weigh?`,
+        text: `A ▲ weighs **${w} ounces**. A ▲ and a ● together weigh as much as **${m} ▲'s**. How much do **${n} ●'s** weigh?`,
         answer: num(n * circle, 'ounces'),
         hints: [`Take one ▲ off both sides: ● weighs as much as ${m - 1} ▲'s.`, `So ● = ${m - 1} × ${w}.`],
         steps: [`▲ + ● = ${m} ▲'s, so ● = ${m - 1} ▲'s = ${m - 1} × ${w} = ${circle} ounces.`, `${n} ●'s = ${n} × ${circle} = ${n * circle} ounces.`],
@@ -293,7 +293,7 @@ export const balance: Topic = {
         { say: 'Swap each cabbage for 1 onion and 1 potato.', left: [...Array(onions).fill('●'), ...Array(potatoes).fill('■')], right: [...Array(c).fill('●'), ...Array(c).fill('■')] },
         { say: `Take ${c} onions and ${potatoes} potatoes off both sides: ${k} onions balance 1 potato.`, left: Array(k).fill('●'), right: ['■'], reveal: true }
       ], '● onion   ■ potato   ◆ cabbage'),
-      text: `${onions} onions and ${potatoes} potatoes weigh as much as ${c} cabbages. One cabbage weighs as much as 1 onion and 1 potato. How many onions weigh as much as 1 potato?`,
+      text: `**${onions} onions and ${potatoes} potatoes** weigh as much as **${c} cabbages**. One cabbage weighs as much as **1 onion and 1 potato**. How many onions weigh as much as 1 potato?`,
       answer: num(k),
       hints: [`Swap each cabbage for 1 onion + 1 potato: ${c} cabbages = ${c} onions + ${c} potatoes.`, `Now take ${c} onions and ${potatoes} potatoes off both sides.`],
       steps: [`${onions} onions + ${potatoes} potatoes = ${c} onions + ${c} potatoes.`, `Take away ${c} onions and ${potatoes} potatoes from both sides: ${k} onions = 1 potato.`],

@@ -23,7 +23,7 @@ export const coinCount: Topic = {
       const p = rng.int(0, 9), n = rng.int(1, 6), d = rng.int(1, 6);
       const total = p + 5 * n + 10 * d;
       return {
-        text: `${x} has ${p} ${plural('penny', p)}, ${n} ${plural('nickel', n)} and ${d} ${plural('dime', d)}. How much money is that?`,
+        text: `${x} has **${p} ${plural('penny', p)}**, **${n} ${plural('nickel', n)}** and **${d} ${plural('dime', d)}**. How much money is that?`,
         scene: coinsScene([[1, p], [5, n], [10, d]]),
         answer: money(total),
         hints: ['Count the dimes first by tens.', 'Then count the nickels by fives, then the pennies.'],
@@ -35,7 +35,7 @@ export const coinCount: Topic = {
       const coins = 2 * rng.int(3, 8);
       const total = (coins / 2) * 25 + (coins / 2) * 10;
       return {
-        text: `${x} has ${coins} coins. Half of them are quarters and half are dimes. How much money does ${x} have?`,
+        text: `${x} has **${coins} coins**. **Half** of them are quarters and half are dimes. How much money does ${x} have?`,
         scene: coinsScene([[25, coins / 2], [10, coins / 2]]),
         answer: money(total),
         hints: [`Half of ${coins} is ${coins / 2}.`, `${coins / 2} quarters and ${coins / 2} dimes.`],
@@ -47,7 +47,7 @@ export const coinCount: Topic = {
     const cost = rng.int(Math.floor(have / 3), have - 3);
     const left = have - cost;
     return {
-      text: `${x} had ${q} ${plural('quarter', q)}, ${d} ${plural('dime', d)} and ${n} ${plural('nickel', n)}. ${x} bought supplies that cost ${cents(cost)}. How much money does ${x} have left?`,
+      text: `${x} had **${q} ${plural('quarter', q)}**, **${d} ${plural('dime', d)}** and **${n} ${plural('nickel', n)}**. ${x} bought supplies that cost **${cents(cost)}**. How much money does ${x} have left?`,
       scene: coinsScene([[25, q], [10, d], [5, n]], cost),
       answer: money(left),
       hints: ['First find how much money there was to start.', `Then subtract ${cents(cost)}.`],
@@ -80,7 +80,7 @@ export const smallestAmount: Topic = {
     const list = [`${p} ${plural('penny', p)}`, `${n} ${plural('nickel', n)}`, `${d} ${plural('dime', d)}`];
     if (q) list.push(`${q} ${plural('quarter', q)}`);
     return {
-      text: `${x} has ${list.slice(0, -1).join(', ')} and ${list[list.length - 1]} in a pocket. ${x} pulls out ${take} coins. What is the ${smallest ? 'smallest' : 'largest'} amount of money ${x} could pull out?`,
+      text: `${x} has ${list.slice(0, -1).join(', ')} and ${list[list.length - 1]} in a pocket. ${x} pulls out **${take} coins**. What is the **${smallest ? 'smallest' : 'largest'}** amount of money ${x} could pull out?`,
       scene: pickCoinsScene(all, take, smallest),
       answer: money(ans),
       hints: [smallest ? 'Take the coins worth the least first.' : 'Take the coins worth the most first.', `Pick ${take} coins in that order and add them.`],
@@ -107,7 +107,7 @@ export const coinCombos: Topic = {
       const unordered = Math.floor(price / 10) + 1;
       const ans = ways(price);
       return {
-        text: `A machine sells a snack for ${price}¢. It only takes nickels and dimes. A nickel then a dime is a DIFFERENT way from a dime then a nickel. How many different ways can you pay exactly ${price}¢?`,
+        text: `A machine sells a snack for ${price}¢. It only takes nickels and dimes. A nickel then a dime is a **DIFFERENT** way from a dime then a nickel. How many different ways can you pay exactly **${price}¢**?`,
         scene: nickelDimeScene(price),
         answer: num(ans),
         hints: ['Write D for dime and N for nickel.', `Start with as many dimes as possible. Then swap a dime for two nickels.`, 'For each mix of coins, count the different orders.'],
@@ -130,7 +130,7 @@ export const coinCombos: Topic = {
     }
     const [x] = names(rng, 1);
     return {
-      text: `${x} has ${set.length} coins: ${set.map((c) => `a ${c}`).join(', ').replace(/, ([^,]*)$/, ' and $1')}. How many different amounts of money can ${x} make using one or more of the coins?`,
+      text: `${x} has ${set.length} coins: ${set.map((c) => `a ${c}`).join(', ').replace(/, ([^,]*)$/, ' and $1')}. How many different amounts of money can ${x} make using **one or more** of the coins?`,
       scene: amountsScene(vals),
       answer: num(sums.size),
       hints: ['Make a list grouped by number of coins.', `Using 1 coin: ${vals.join('¢, ')}¢.`, 'Now list every pair, every group of three, and so on.'],
@@ -156,7 +156,7 @@ export const pricePuzzle: Topic = {
       const a = rng.int(20, 60), b = rng.int(30, 90);
       const fruit = rng.pick([['orange', 'grapefruit'], ['apple', 'mango'], ['pear', 'melon']]);
       return {
-        text: `Two ${fruit[0]}s cost ${cents(2 * a)}. One ${fruit[0]} and one ${fruit[1]} cost ${cents(a + b)}. How much does one ${fruit[1]} cost?`,
+        text: `**Two ${fruit[0]}s** cost **${cents(2 * a)}**. **One ${fruit[0]} and one ${fruit[1]}** cost **${cents(a + b)}**. How much does one ${fruit[1]} cost?`,
         scene: twoFruitScene(fruit[0], fruit[1], a, b),
         answer: money(b),
         hints: [`One ${fruit[0]} costs half of ${cents(2 * a)}.`, `Take that away from ${cents(a + b)}.`],
@@ -170,7 +170,7 @@ export const pricePuzzle: Topic = {
       const h1 = rng.int(1, 3), h2 = h1 + rng.int(1, 3);
       const t1 = fee + h1 * rate, t2 = fee + h2 * rate;
       return {
-        text: `A repair person charges an hourly rate plus one "visit" fee. For ${h1} hour${h1 > 1 ? 's' : ''} the bill is $${t1}. For ${h2} hours the bill is $${t2}. How many dollars is the visit fee?`,
+        text: `A repair person charges an hourly rate plus one "visit" fee. For **${h1} hour${h1 > 1 ? 's' : ''}** the bill is **$${t1}**. For **${h2} hours** the bill is **$${t2}**. How many dollars is the visit fee?`,
         scene: feeScene(h1, h2, t1, t2, rate, fee),
         answer: num(fee, 'dollars'),
         hints: [`The difference between the bills is ${h2 - h1} extra hour${h2 - h1 > 1 ? 's' : ''}.`, 'Find the cost of 1 hour, then take the hours away from one bill.'],
@@ -188,7 +188,7 @@ export const pricePuzzle: Topic = {
     const t1 = p.x1 * p.b + p.y1 * p.q, t2 = 2 * p.x1 * p.b + p.y2 * p.q;
     const diffPears = 2 * p.y1 - p.y2;
     return {
-      text: `${p.x1} banana${p.x1 > 1 ? 's' : ''} and ${p.y1} pears cost ${cents(t1)}. ${2 * p.x1} bananas and ${p.y2} pear${p.y2 > 1 ? 's' : ''} cost ${cents(t2)}. How much does 1 pear cost?`,
+      text: `${p.x1} banana${p.x1 > 1 ? 's' : ''} and ${p.y1} pears cost **${cents(t1)}**. ${2 * p.x1} bananas and ${p.y2} pear${p.y2 > 1 ? 's' : ''} cost **${cents(t2)}**. How much does 1 pear cost?`,
       scene: fruitListsScene(p.x1, p.y1, p.y2, t1, t2, p.q),
       answer: money(p.q),
       hints: [`Double the first list: ${2 * p.x1} bananas and ${2 * p.y1} pears cost ${cents(2 * t1)}.`, `Now both lists have ${2 * p.x1} bananas. Compare the pears.`],

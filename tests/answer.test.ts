@@ -78,5 +78,6 @@ describe('voice helpers', () => {
     expect(prepareForSpeech('$1.25 and 45¢')).toBe('1 dollars and 25 cents and 45 cents'.replace('1 dollars', '1 dollar'));
     expect(prepareForSpeech('32 − □ = 28')).toBe('32 minus box equals 28');
     expect(prepareForSpeech('4:02 P.M.')).toBe('4:02 P M');
+    expect(prepareForSpeech('Look at **14 + 23** and **31**.')).toBe('Look at 14 plus 23 and 31.');
   });
 });

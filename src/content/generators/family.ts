@@ -126,7 +126,7 @@ export const familyPuzzle: Topic = {
       const family = `The ${rng.pick(['Diaz', 'Kim', 'Patel', 'Brooks', 'Evans'])} family has ${boys} boy${boys > 1 ? 's' : ''} and ${girls} girl${girls > 1 ? 's' : ''}.`;
       return {
         scene: familyCountScene(boys, girls, name, askGirl, askSisters),
-        text: `${family} ${name} is one of the ${askGirl ? 'girls' : 'boys'}. How many ${askSisters ? 'sisters' : 'brothers'} does ${name} have?`,
+        text: `${family} ${name} is one of the ${askGirl ? 'girls' : 'boys'}. How many **${askSisters ? 'sisters' : 'brothers'}** does **${name}** have?`,
         answer: num(ans),
         hints: [`Is ${name} a girl or a boy? ${name} is not ${askGirl ? 'her' : 'his'} own ${askGirl ? 'sister' : 'brother'}.`, self ? `Leave ${name} out when you count the ${askGirl ? 'girls' : 'boys'}.` : `Every one of the ${askSisters ? 'girls' : 'boys'} counts.`],
         steps: self
@@ -164,7 +164,7 @@ export const familyPuzzle: Topic = {
     const gv = view(true, p.boys, p.girls), bv = view(false, p.boys, p.girls);
     return {
       scene: familyTableScene(p.girl, p.boy, p.clues.map((c) => c.text), rows, p.boys, p.girls),
-      text: `${p.boy} is ${p.girl}'s brother. ${p.clues[0].text} ${p.clues[1].text} How many ${askWhat} are in the family?`,
+      text: `${p.boy} is ${p.girl}'s brother. ${p.clues[0].text} ${p.clues[1].text} How many **${askWhat}** are in the family?`,
       answer: num(ans),
       hints: [
         `${p.girl} has (girls − 1) sisters, because she is not her own sister. ${p.boy} has (boys − 1) brothers.`,

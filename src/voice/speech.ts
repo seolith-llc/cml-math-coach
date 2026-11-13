@@ -102,6 +102,7 @@ function chunks(text: string): string[] {
 /** Make written maths sound natural. */
 export function prepareForSpeech(text: string): string {
   return text
+    .replace(/\*\*/g, '') // **bold** key words are for the eyes; never read the asterisks aloud
     .replace(/\$(\d+)\.(\d{2})/g, (_, d, c) => `${d} dollar${d === '1' ? '' : 's'} and ${+c} cent${c === '01' ? '' : 's'}`)
     .replace(/\$(\d+)/g, (_, d) => `${d} dollar${d === '1' ? '' : 's'}`)
     .replace(/(\d+)¢/g, '$1 cents')

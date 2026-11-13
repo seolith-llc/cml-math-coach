@@ -4,6 +4,9 @@ import { checkAnswer, diagnose, parseDigits } from '../src/core/answer';
 import { permutations } from '../src/content/generators/helpers';
 import type { Grade, Level } from '../src/core/types';
 
+/** The question as read (no **bold** markers), for parsing numbers and names out of it. */
+const plain = (s: string) => s.replace(/\*\*/g, '');
+
 const isPal = (s: string) => s === s.split('').reverse().join('');
 
 describe('palindromes', () => {
@@ -67,7 +70,7 @@ describe('digit placement', () => {
   it('corner square: corner number works on every side', () => {
     for (let s = 1; s < 100; s++) {
       const p = makeProblem(t, 3, 1, s);
-      const T = +p.text.match(/adds to (\d+)/)![1];
+      const T = +plain(p.text).match(/adds to (\d+)/)![1];
       const x = (p.answer as { value: number }).value;
       const pairs = [...p.speech!.matchAll(/(\d+) and (\d+)/g)].map((m) => +m[1] + +m[2]);
       expect(pairs).toHaveLength(4);

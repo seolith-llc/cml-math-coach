@@ -37,6 +37,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 - **Styling:** tokens in `src/styles.css` `:root` (light and dark). One accent color. Lists use `list()` / `group()`.
 - **New topic:** add a `Topic` in `src/content/generators/*.ts` and register it in `content/topics.ts`. `tests/generators.test.ts` covers it automatically.
   Problems must be deterministic per seed (ids are `topic:grade:level:seed`). Include hints, steps, and misconceptions for likely wrong answers.
+  Mark the key quantities and conditions in `text` with `**bold**` (1–3 per problem; never in `speech`): `tests/keywords.test.ts` requires it for every CML problem. Tests that parse numbers out of `text` should use the plain text (markers removed); the voice strips them in `prepareForSpeech`.
 - **Explanations:** every problem returns a `scene` (`content/scenes/*.ts`, drawn with `scenes/kit.ts`). A scene is steps of `say` (voice-over) + the full picture; the player animates between them by shape id. Mark the first step that gives the answer away `reveal: true`: hints stop before it. `tests/scenes.test.ts` requires a scene for every topic.
 - **Content:** original problems only. Never commit the CML contest papers or real CogAT items.
 - **Tracks:** `Topic.track` is `'cml'` (default) or `'cogat'`. `topicsForGrade(grade)` returns CML only, so the CML mix, tests, progress and stars never include CogAT. CogAT lives at `#/cogat` (mix: `#/practice/cogat`).

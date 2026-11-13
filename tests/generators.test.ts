@@ -3,6 +3,9 @@ import { TOPICS, makeMeet, makeProblem, problemFromId } from '../src/content/top
 import { checkAnswer, formatAnswer } from '../src/core/answer';
 import type { Grade, Level } from '../src/core/types';
 
+/** The question as read (no **bold** markers), for parsing numbers and names out of it. */
+const plain = (s: string) => s.replace(/\*\*/g, '');
+
 const SEEDS = 120;
 
 describe('every topic generator', () => {
@@ -52,7 +55,7 @@ describe('specific maths checks', () => {
     const topic = TOPICS.find((t) => t.id === 'heads-legs')!;
     for (let s = 1; s < 200; s++) {
       const p = makeProblem(topic, 2, 2, s);
-      const [heads, legs] = (p.text.match(/\d+/g) ?? []).map(Number);
+      const [heads, legs] = (plain(p.text).match(/\d+/g) ?? []).map(Number);
       const big = (p.answer as { value: number }).value;
       const [small, large] = p.text.includes('wheels') ? [2, 3] : [2, 4];
       expect((heads - big) * small + big * large).toBe(legs);
@@ -63,7 +66,7 @@ describe('specific maths checks', () => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     for (let s = 1; s < 200; s++) {
       const p = makeProblem(topic, 2, 1, s);
-      const m = p.text.match(/1st day of the month is a (\w+), then the (\d+)/)!;
+      const m = plain(p.text).match(/1st day of the month is a (\w+), then the (\d+)/)!;
       const start = days.indexOf(m[1]);
       const d = new Date(2024, 0, 1 + ((7 + start - 1) % 7)); // Jan 1 2024 = Monday
       expect(days[d.getDay()]).toBe(m[1]);

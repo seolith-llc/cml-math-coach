@@ -3,6 +3,9 @@ import { makeProblem, topicById } from '../src/content/topics';
 import { checkAnswer, diagnose } from '../src/core/answer';
 import type { Grade, Level } from '../src/core/types';
 
+/** The question as read (no **bold** markers), for parsing numbers and names out of it. */
+const plain = (s: string) => s.replace(/\*\*/g, '');
+
 const topic = topicById('brothers-sisters')!;
 
 /** Independent re-implementation: parse the clue sentences and brute-force all families. */
@@ -38,10 +41,10 @@ describe('brothers & sisters puzzles', () => {
       for (const level of [2, 3] as Level[])
         for (let s = 1; s <= 150; s++) {
           const p = makeProblem(topic, grade, level, s);
-          const fits = familiesFitting(p.text);
+          const fits = familiesFitting(plain(p.text));
           expect(fits, p.text).toHaveLength(1);
           const [B, G] = fits[0];
-          const ask = p.text.match(/How many (\w+) are in the family\?/)![1];
+          const ask = plain(p.text).match(/How many (\w+) are in the family\?/)![1];
           const want = ask === 'children' ? B + G : ask === 'boys' ? B : G;
           expect((p.answer as { value: number }).value, p.text).toBe(want);
           if (grade === 2) expect(p.text).not.toMatch(/twice|three times/);
@@ -51,9 +54,9 @@ describe('brothers & sisters puzzles', () => {
   it('level-1 counting respects "nobody is their own sister/brother"', () => {
     for (let s = 1; s <= 100; s++) {
       const p = makeProblem(topic, 2, 1, s);
-      const [, boys, girls] = p.text.match(/has (\d+) boys? and (\d+) girls?/)!.map(Number);
-      const isGirl = /one of the girls/.test(p.text);
-      const askSisters = /How many sisters/.test(p.text);
+      const [, boys, girls] = plain(p.text).match(/has (\d+) boys? and (\d+) girls?/)!.map(Number);
+      const isGirl = /one of the girls/.test(plain(p.text));
+      const askSisters = /How many sisters/.test(plain(p.text));
       const want = askSisters ? girls - (isGirl ? 1 : 0) : boys - (isGirl ? 0 : 1);
       expect((p.answer as { value: number }).value, p.text).toBe(want);
     }

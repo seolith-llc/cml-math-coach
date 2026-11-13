@@ -330,11 +330,12 @@ a.row:active, button.row:active { background: var(--fill); }
    being pointed at (a pulse) and outlined shapes that carry meaning (accent, series, good) glow; the newest hint gets
    a lime edge.
    Contrast (checked): light #1c1c1e on #e4ff3a is 15.1:1; dark #f5f5f7 on the lime tint is 5.7–9.4:1 by surface. */
-:root[data-hl='neon'] { --neon: #c6ff00; --neon-mark: #e4ff3a; --neon-ink: #1c1c1e; --neon-glow: rgba(198, 255, 0, .55); }
+:root[data-hl='neon'] { --neon: #c6ff00; --neon-mark: #e4ff3a; --neon-ink: #1c1c1e; --neon-glow: rgba(198, 255, 0, .55); --neon-dot: #5a8f00; }
+/* --neon-dot: lime for small marks (bullets, edges); darker in light mode so it stays visible: 3.9:1 on white */
 @media (prefers-color-scheme: dark) {
-  :root[data-hl='neon']:not([data-theme='light']) { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; }
+  :root[data-hl='neon']:not([data-theme='light']) { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; --neon-dot: #c6ff00; }
 }
-:root[data-hl='neon'][data-theme='dark'] { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; }
+:root[data-hl='neon'][data-theme='dark'] { --neon-mark: rgba(198, 255, 0, .28); --neon-ink: #f5f5f7; --neon-dot: #c6ff00; }
 
 :root[data-hl='neon'] .question strong, :root[data-hl='neon'] .caption strong {
   color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .18em;
@@ -358,6 +359,14 @@ a.row:active, button.row:active { background: var(--fill); }
    low meter would flatter a struggling topic, and on a chart it blurs the values) */
 :root[data-hl='neon'] .tile strong { text-shadow: 0 0 12px var(--neon-glow); }
 :root[data-hl='neon'] .mark.good { text-shadow: 0 0 8px var(--neon-glow); }
+/* Learn: earned stars glow, the topic's main idea gets the lime edge, tips get lime bullets, strategy names get
+   the highlighter; "Watch out" (things to avoid) stays plain */
+:root[data-hl='neon'] .stars { text-shadow: 0 0 8px var(--neon-glow); }
+:root[data-hl='neon'] .lead-row:has(> .lead) { box-shadow: inset 4px 0 0 var(--neon-dot); padding-left: 12px; border-radius: 4px; }
+:root[data-hl='neon'] .bullets.tips li::marker { color: var(--neon-dot); }
+:root[data-hl='neon'] strong.key {
+  color: var(--neon-ink); background: var(--neon-mark); border-radius: .3em; padding: 0 .18em; box-shadow: 0 0 10px -2px var(--neon-glow);
+}
 @media print {
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
   :root[data-hl='neon'] .stage * { filter: none !important; }

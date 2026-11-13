@@ -40,7 +40,7 @@ export function topicScreen(id: string): View {
     el: h('div', { class: 'stack' },
       group(null,
         h('div', { class: 'lead-row' }, h('p', { class: 'lead' }, t.guide.idea), iconButton('speaker', 'Read aloud', () => void speak(lesson))),
-        h('ul', { class: 'bullets' }, ...t.guide.tips.map((x) => h('li', {}, x)))),
+        h('ul', { class: 'bullets tips' }, ...t.guide.tips.map((x) => h('li', {}, x)))),
       group('Watch out', h('ul', { class: 'bullets' }, ...t.guide.traps.map((x) => h('li', {}, x)))),
       group('Example',
         h('div', { class: 'lead-row' }, h('p', { class: 'question' }, rich(example.text)), iconButton('speaker', 'Read aloud', () => void speak(example.speech ?? example.text))),
@@ -56,9 +56,9 @@ export function strategiesScreen(): View {
   return {
     title: 'How to solve',
     el: h('div', { class: 'stack' },
-      list(FOUR_STEPS.map((s) => ({ label: h('span', {}, h('strong', {}, s.title.replace(/^\d\.\s*/, '')), h('br'), h('span', { class: 'sub' }, s.text)) })), 'Four steps',
+      list(FOUR_STEPS.map((s) => ({ label: h('span', {}, h('strong', { class: 'key' }, s.title.replace(/^\d\.\s*/, '')), h('br'), h('span', { class: 'sub' }, s.text)) })), 'Four steps',
         iconButton('speaker', 'Read aloud', () => void speak(FOUR_STEPS.map((s) => `${s.title.replace(/^\d\.\s*/, '')}. ${s.text}`).join(' ')))),
-      list(Object.entries(STRATEGIES).map(([k, v]) => ({ label: h('span', {}, h('strong', {}, k), h('br'), h('span', { class: 'sub' }, v)) })), 'Strategies',
+      list(Object.entries(STRATEGIES).map(([k, v]) => ({ label: h('span', {}, h('strong', { class: 'key' }, k), h('br'), h('span', { class: 'sub' }, v)) })), 'Strategies',
         iconButton('speaker', 'Read aloud', () => void speak(Object.entries(STRATEGIES).map(([k, v]) => `${k}. ${v}`).join(' ')))),
       list(CONTEST_TIPS.map((x) => ({ label: x })), 'On contest day')),
     destroy: stopSpeaking

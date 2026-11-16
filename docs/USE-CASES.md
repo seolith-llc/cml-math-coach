@@ -14,7 +14,7 @@ Every use case below is grounded in shipped code (file references are to `src/`,
 | **Owner** | Maintainer: deploys, triages feedback, checks health | GitHub Actions + Cloudflare |
 | **System** | The hourly job, the service worker and the email/push senders | Cloudflare Pages Functions, D1, SES, Web Push |
 
-Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but not built).
+Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but not built) · **Done** (a recorded follow-up that has been completed).
 
 ---
 
@@ -126,15 +126,15 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 | H9 | Keep crawlers and AI agents out | System | robots.txt, `X-Robots-Tag`, meta; crawlers get 403; Access on every host | `server/guard.ts` | Shipped |
 | H10 | Manage sign-in access and the voice rate limit | Owner | Actions → Cloudflare Access (invited emails) / Cloudflare rate limit (WAF rule on `/api/tts`, requests per IP) | `cloudflare-access.yml`, `cloudflare-rate-limit.yml` | Shipped |
 
-## Open / planned (recorded, not built)
+## Open / planned (recorded follow-ups)
 
 | ID | Item | Source | Status |
 |---|---|---|---|
 | P1 | Custom MAIL FROM domain and published DMARC records for the email sender | prompts-history (SES setup) | Open |
 | P2 | SES production access (out of the sandbox), so the digest reaches any address | prompts-history (step on first SES delivery) | Open: depends on AWS |
-| P3 | Reply to the testers' feedback rounds already triaged (Areas 1–3) | prompts-history step043 | Open |
-| P4 | Verify the iPad's first real dashboard turn-on in production (the DB had never received one) | prompts-history (probe follow-up) | Open: needs the iPad |
-| P5 | Move GitHub Actions off the deprecated Node 20 actions (warning only) | prompts-history (deploy note) | Open |
+| P3 | Reply to the testers' feedback rounds already triaged (Areas 1–3) | prompts-history step043 | Done 2026-11-12: both testers answered (one confirmed on 2026-11-13) |
+| P4 | Verify the iPad's first real dashboard turn-on in production (the DB had never received one) | prompts-history (probe follow-up) | Done: Status on 2026-11-16 shows 2 families (last sync 2026-11-12) and device reminders sent through 2026-11-15 |
+| P5 | Move GitHub Actions off the deprecated Node 20 actions (warning only) | prompts-history (deploy note) | Done: workflows use checkout/setup-node v7 and wrangler-action v4; the latest deploy has no deprecation warning |
 
 Not in scope today (no record in the repo of plans for them): accounts with passwords, multiple children per
 family, teacher/classroom views, payments.

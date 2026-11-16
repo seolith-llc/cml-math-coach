@@ -83,7 +83,7 @@ Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../
    Add the DKIM CNAME records it shows to Cloudflare DNS. Then run Actions → **Email DNS** (dry run first; tick *apply* to make the changes):
    it adds MAIL FROM `mail.seolith.com` (already set in SES) (MX + SPF) and, if none exists, a monitor-only DMARC (`p=none`). It never touches the root domain's
    SPF/MX (Google Workspace), never changes an existing DMARC and stops on any conflict. It needs `ses:GetEmailIdentity`, `ses:GetAccount` and
-   `ses:PutEmailIdentityMailFromAttributes` on the IAM user, and a Cloudflare token with Zone → DNS → Edit.
+   `ses:PutEmailIdentityMailFromAttributes` on the IAM user, and a Cloudflare token with Zone → DNS → Read (Edit to apply) for seolith.com, stored as the secret `CLOUDFLARE_DNS_TOKEN` (kept separate from the deploy token).
 2. **Production access:** new SES accounts are in the *sandbox* and can only send to verified addresses.
    Request production access (SES → Account dashboard), or verify your own email address while testing.
 3. **IAM user** with only this permission, then create an access key:

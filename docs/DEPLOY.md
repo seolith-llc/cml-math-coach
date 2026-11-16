@@ -80,7 +80,10 @@ Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../
 
 **One-time setup**
 1. **SES:** in the AWS console (choose a region, e.g. us-east-1) → Amazon SES → *Identities* → **Create identity → Domain** `seolith.com`.
-   Add the DKIM CNAME records it shows to Cloudflare DNS. Optionally set a custom MAIL FROM domain for better deliverability.
+   Add the DKIM CNAME records it shows to Cloudflare DNS. Then run Actions → **Email DNS** (dry run first; tick *apply* to make the changes):
+   it adds MAIL FROM `bounce.seolith.com` (MX + SPF) and, if none exists, a monitor-only DMARC (`p=none`). It never touches the root domain's
+   SPF/MX (Google Workspace), never changes an existing DMARC and stops on any conflict. It needs `ses:GetEmailIdentity`, `ses:GetAccount` and
+   `ses:PutEmailIdentityMailFromAttributes` on the IAM user, and a Cloudflare token with Zone → DNS → Edit.
 2. **Production access:** new SES accounts are in the *sandbox* and can only send to verified addresses.
    Request production access (SES → Account dashboard), or verify your own email address while testing.
 3. **IAM user** with only this permission, then create an access key:

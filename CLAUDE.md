@@ -26,7 +26,7 @@ public/push-sw.js   imported by the service worker: shows reminders, opens Pract
 server/             backend logic shared by functions/ (unit-tested on SQLite): parent, email (+ nudges), digest, ses, push (RFC 8291/8292), userFeedback, env
 functions/api/      Cloudflare Pages Functions: tts, sync, parent, push, feedback, hourly, weekly, email/{confirm,unsubscribe}
 migrations/         D1 schema, applied once each by scripts/ensure-d1.mjs on deploy
-scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), feedback (triage), consolidate-prompts
+scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), feedback (triage), email-dns (+ email-dns-plan: SES MAIL FROM + DMARC, dry run by default), consolidate-prompts
 tests/              vitest, including a sweep of every topic × grade × level × 120 seeds
 ```
 

@@ -1,10 +1,11 @@
 import type { Problem } from '../core/types';
 import { answerPlaceholder, parseChoice, parseDigits } from '../core/answer';
-import { speak, stopSpeaking } from '../voice/speech';
+import { stopSpeaking } from '../voice/speech';
 import { listen, sttSupported } from '../voice/recognition';
 import { h, iconButton, rich, svg } from './dom';
 import { placementBoard } from './placementBoard';
 import { choicePicker } from './choicePicker';
+import { voiceControls } from './voiceControls';
 
 /** A question with an answer field and no feedback (Test mode). `answers()` returns what to check later. */
 export function answerCard(p: Problem, n: number, onEnter?: () => void) {
@@ -33,12 +34,13 @@ export function answerCard(p: Problem, n: number, onEnter?: () => void) {
         }
       }, 'mic')
     : null;
+  const voice = voiceControls(() => p.speech ?? p.text);
   const el = h('article', { class: 'card problem', 'data-problem-id': p.id },
     h('p', { class: 'qnum' }, String(n)),
     h('p', { class: 'question' }, rich(p.text)),
     board ? board.el : p.figure ? svg(p.figure) : null,
     picker?.el,
-    h('div', { class: 'answer-row' }, board || picker ? null : input, iconButton('speaker', 'Read aloud', () => void speak(p.speech ?? p.text)), mic));
+    h('div', { class: 'answer-row' }, board || picker ? null : input, voice.el, mic));
   return {
     el,
     answers: () => answers,

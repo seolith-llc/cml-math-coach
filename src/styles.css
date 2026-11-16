@@ -291,6 +291,11 @@ a.row:active, button.row:active { background: var(--fill); }
 .player-bar .play-main { width: 52px; height: 52px; border-radius: 26px; margin: 0 4px; background: var(--accent); color: var(--accent-ink); }
 .player-bar .play-main:active { filter: brightness(0.9); background: var(--accent); }
 .player-bar .voice.off { background: var(--fill); color: var(--muted); }
+/* Question read-aloud: the same Pause/Mute pair as the explanation player */
+.voice-controls { display: inline-flex; align-items: center; gap: 2px; }
+.voice-controls .play-main { width: 44px; height: 44px; border-radius: 22px; background: var(--accent); color: var(--accent-ink); }
+.voice-controls .play-main:active { filter: brightness(0.9); background: var(--accent); }
+.voice-controls .voice.off { background: var(--fill); color: var(--muted); }
 
 /* ---------- multiple choice (tap a picture or a word) ---------- */
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; margin-top: 14px; }

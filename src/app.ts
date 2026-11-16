@@ -67,8 +67,9 @@ export function startApp(root: HTMLElement): void {
     title.textContent = home ? 'Math Coach' : current.title;
     document.title = home ? 'Math Coach' : `${current.title} · Math Coach`;
     // visibility (not display) keeps the three-column bar centered
-    back.style.visibility = home || name === 'parent' ? 'hidden' : '';
-    homeLink.style.visibility = home || name === 'parent' ? 'hidden' : '';
+    // The parent dashboard keeps Back and Home too: opened from the child's Home row, it needs a way back.
+    back.style.visibility = home ? 'hidden' : '';
+    homeLink.style.visibility = home ? 'hidden' : '';
     gear.style.visibility = name === 'settings' || name === 'parent' ? 'hidden' : '';
     feedback.hidden = name === 'parent'; // the parent dashboard is its own page
     main.replaceChildren(current.el);

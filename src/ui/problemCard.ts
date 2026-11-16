@@ -3,12 +3,13 @@ import { Coach } from '../core/coach';
 import { Rng, randomSeed } from '../core/rng';
 import { answerPlaceholder, formatAnswer, parseChoice, parseDigits } from '../core/answer';
 import { load, save } from '../core/storage';
-import { configureSpeech, speak, stopSpeaking } from '../voice/speech';
+import { configureSpeech, stopSpeaking } from '../voice/speech';
 import { COMMAND_HELP, listen, parseCommand, stopListening, sttSupported, type VoiceCommand } from '../voice/recognition';
 import { h, iconButton, rich, svg } from './dom';
 import { placementBoard } from './placementBoard';
 import { choicePicker } from './choicePicker';
 import { scenePlayer, type Player } from './player';
+import { voiceControls } from './voiceControls';
 import { sceneFor } from '../core/explain';
 
 export interface CardResult {
@@ -65,8 +66,10 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
   const hintBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void showHint() }, 'Hint');
   const answerBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void reveal(false) }, 'Answer');
 
-  const say = (text: string) => (destroyed || !settings.speak ? Promise.resolve() : speak(text));
-  const sayAlways = (text: string) => (destroyed ? Promise.resolve() : speak(text)); // explicit taps
+  // Everything said about this question goes through Pause/Mute, so the child can always quiet it.
+  const voice = voiceControls(() => problem.speech ?? problem.text);
+  const say = (text: string) => (destroyed || voice.muted() ? Promise.resolve() : voice.talk(text));
+  const sayAlways = (text: string) => (destroyed ? Promise.resolve() : voice.talk(text)); // explicit taps
 
   function setFeedback(kind: 'good' | 'bad' | 'info', text: string) {
     feedback.className = `feedback ${kind}`;
@@ -235,7 +238,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     hints,
     solution,
     h('div', { class: 'tools' },
-      iconButton('speaker', 'Read aloud', () => void sayAlways(problem.speech ?? problem.text)),
+      voice.el,
       mic,
       status,
       hintBtn,

@@ -15,7 +15,7 @@ Kid practices on an iPad; a parent follows along on their own device.
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          home, practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button)
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button), voiceControls (Pause/Mute on questions)
   core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
@@ -32,7 +32,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 
 ## Conventions
 
-- **Screens** export `xScreen(param?) => View` (`{ title, el, destroy? }`) and get registered in `src/app.ts`. The top bar has Back + ⌂ Home (hidden on Home and the parent dashboard), Feedback and Settings. The grade switch is `ui/session.gradeSwitch()` (Home and CogAT).
+- **Screens** export `xScreen(param?) => View` (`{ title, el, destroy? }`) and get registered in `src/app.ts`. The top bar has Back + ⌂ Home (hidden on Home only), Feedback and Settings. Every question card has the Pause/Mute pair (`ui/voiceControls.ts`): Mute is the Read aloud setting, so it carries over to the next questions and the explanation player. The grade switch is `ui/session.gradeSwitch()` (Home and CogAT).
 - **UI copy:** no taglines, helper text or secondary labels. A list row's right side shows data (a count, a time), never an explanation. If a screen needs words to make sense, change the layout.
 - **Styling:** tokens in `src/styles.css` `:root` (light and dark). One accent color. Lists use `list()` / `group()`.
 - **New topic:** add a `Topic` in `src/content/generators/*.ts` and register it in `content/topics.ts`. `tests/generators.test.ts` covers it automatically.

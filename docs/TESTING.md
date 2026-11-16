@@ -113,6 +113,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | V3 | In Safari (not the Home Screen app): Settings → **Hands-free** on. Answer by voice; say "hint", "repeat", "explain", "skip", "next", "slower", "faster", "stop". | Each command works. (Apple blocks the microphone in Home Screen apps; that is expected.) |
 | V4 | Say answers in different ways: "forty five cents", "four oh five P M". | Understood. |
 | V5 | Tap the speaker on a problem while another sound plays. | No overlapping voices. |
+| V6 | With Read aloud on, open a question. While it's being read, tap the filled **Pause** button; tap ▶ to hear it again. Tap **Mute** (next to it), then go to the next question and open an explanation. | Pause stops the voice at once. Muted, the next questions and the spoken feedback stay quiet and the explanation player starts muted; ▶ still reads a question when tapped. Unmute anywhere (or Settings → Read aloud) turns it back on. Same pair on every Test question. |
 
 ### Parent dashboard and email
 
@@ -125,6 +126,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | D5 | Check the **Mistakes** list. | Each says what happened: "Showed the answer", "Skipped", "Right after a hint", the wrong answer, or "(b) octopus" for a choice. |
 | D6 | Dashboard → **Email** → enter your address → **Add**. | A confirmation email arrives (check spam). Clicking it confirms. *If nothing arrives within 10 minutes, report it as Blocked; it may mean the sender is still restricted.* |
 | D7 | After confirming: **Send test**. | A weekly summary email with KPIs, the chart, **CogAT** (if you did CogAT), and Mistakes. Links work. |
+| D9 | On the child's device: Home → **Parent dashboard**, then **⌂ Home** (or Back) in the top bar. | The dashboard opens (PIN as usual) and Home/Back return to the app's home page. |
 | D8 | Wrong PIN 5 times. **Lock**. **Export CSV**. | Locked for a while after 5 tries; Lock asks for the PIN again; the CSV downloads. |
 
 ### Reminders (iPad/iPhone Home Screen app, or desktop Chrome)

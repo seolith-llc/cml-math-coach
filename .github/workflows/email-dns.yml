@@ -14,7 +14,7 @@ on:
       mail_from:
         description: MAIL FROM subdomain
         type: string
-        default: bounce.seolith.com
+        default: mail.seolith.com
       dmarc_rua:
         description: Optional address for DMARC aggregate reports (only used if no DMARC record exists)
         type: string

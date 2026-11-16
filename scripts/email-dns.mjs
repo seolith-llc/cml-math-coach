@@ -10,7 +10,7 @@
  *
  * Env: CLOUDFLARE_API_TOKEN (Zone → DNS → Read; Edit to apply), CLOUDFLARE_ZONE_ID (optional),
  *      AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (ses:GetEmailIdentity, ses:GetAccount; ses:PutEmailIdentityMailFromAttributes to apply),
- *      AWS_REGION (default us-east-1), ZONE_NAME (default seolith.com), MAIL_FROM_DOMAIN (default bounce.<zone>),
+ *      AWS_REGION (default us-east-1), ZONE_NAME (default seolith.com), MAIL_FROM_DOMAIN (default mail.<zone>),
  *      DMARC_RUA (optional report address), APPLY ("true" to apply).
  */
 import { appendFileSync } from 'node:fs';
@@ -19,7 +19,7 @@ import { planEmailDns, unquote } from './email-dns-plan.mjs';
 
 const env = process.env;
 const zoneName = (env.ZONE_NAME || 'seolith.com').toLowerCase();
-const mailFrom = (env.MAIL_FROM_DOMAIN || `bounce.${zoneName}`).toLowerCase();
+const mailFrom = (env.MAIL_FROM_DOMAIN || `mail.${zoneName}`).toLowerCase();
 const region = env.AWS_REGION || 'us-east-1';
 const apply = env.APPLY === 'true';
 const dmarcRua = (env.DMARC_RUA || '').trim() || undefined;

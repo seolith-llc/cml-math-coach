@@ -130,7 +130,7 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 
 | ID | Item | Source | Status |
 |---|---|---|---|
-| P1 | Custom MAIL FROM domain and published DMARC records for the email sender | prompts-history (SES setup) | Partly done: SES MAIL FROM is already `mail.seolith.com` (SUCCESS, seen 2026-11-16); DMARC still to check via Actions → Email DNS (needs a Cloudflare token with DNS Read) |
+| P1 | Custom MAIL FROM domain and published DMARC records for the email sender | prompts-history (SES setup) | Done: MAIL FROM mail.seolith.com (MX + SPF, SES SUCCESS) and DMARC p=quarantine already published; verified by Actions → Email DNS on 2026-11-16 |
 | P2 | SES production access (out of the sandbox), so the digest reaches any address | prompts-history (step on first SES delivery) | Done: SES account has production access, 50,000/day (Email DNS run, 2026-11-16) |
 | P3 | Reply to the testers' feedback rounds already triaged (Areas 1–3) | prompts-history step043 | Done 2026-11-12: both testers answered (one confirmed on 2026-11-13) |
 | P4 | Verify the iPad's first real dashboard turn-on in production (the DB had never received one) | prompts-history (probe follow-up) | Done: Status on 2026-11-16 shows 2 families (last sync 2026-11-12) and device reminders sent through 2026-11-15 |

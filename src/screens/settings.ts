@@ -1,10 +1,10 @@
-import { load, reset, save, type Highlight } from '../core/storage';
+import { load, reset, save, type Highlight, type Look } from '../core/storage';
 import { PREMIUM_VOICES, listVoices, speak, voiceOptions, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported } from '../voice/recognition';
 import { disableSync, enableSync, parentLink } from '../sync/sync';
 import { disableReminder, enableReminder, reminderSupport } from '../notify/reminders';
 import { GOALS } from '../core/progress';
-import { applyHighlight, group, h, list, segmented, toast } from '../ui/dom';
+import { applyHighlight, applyLook, group, h, list, segmented, toast } from '../ui/dom';
 import { applyVoiceSettings } from '../app';
 import type { View } from '../app';
 
@@ -49,6 +49,13 @@ export function settingsScreen(focus?: string): View {
         save(state);
         if (s.reminder.on && reminderSupport() === 'ok') void enableReminder(s.reminder.hour).catch(() => {}); // keep the reminder text in step
       })),
+      group('Look',
+        segmented<Look>('Look', [{ value: 'classic', label: 'Classic' }, { value: 'game', label: 'Game' }], s.look, (v) => {
+          s.look = v;
+          save(state);
+          applyLook(v, s.motion);
+        }),
+        toggle('Less motion', s.motion === 'reduced', (v) => { s.motion = v ? 'reduced' : 'full'; save(state); applyLook(s.look, s.motion); })),
       group('Highlights', segmented<Highlight>('Highlights', [{ value: 'neon', label: 'Neon' }, { value: 'classic', label: 'Classic' }], s.highlight, (v) => {
         s.highlight = v;
         save(state);

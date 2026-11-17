@@ -45,7 +45,7 @@ The calm, adult-style look is what's missing for some children. Game mode is a s
 
 ## Phases
 
-1. **Look and feel (about 1 week):** the setting, game tokens and font, the bright background, stepping-stone dots, juicy right/wrong feedback, reduced motion. *Exit:* testers' children choose Game when offered, contrast passes, no change in first-try accuracy.
+1. **Look and feel: shipped 2026-11-17 (step063)** (Settings → Look → Game, and Less motion; the first-run offer and the self-hosted font move to phase 2): the setting, game tokens and font, the bright background, stepping-stone dots, juicy right/wrong feedback, reduced motion. *Exit:* testers' children choose Game when offered, contrast passes, no change in first-try accuracy.
 2. **Buddy and world map (about 1–2 weeks):** buddy choice and poses, `#/world`, islands lit by stars, the goal shown as stones.
 3. **Sound (about 3 days):** loops, effects, ducking, Settings switch and volume.
 4. **Stickers and round-end celebration (about 3 days):** sticker book, sized celebrations, parent dashboard shows stickers.

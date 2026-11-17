@@ -379,3 +379,76 @@ a.row:active, button.row:active { background: var(--fill); }
   :root[data-hl='neon'] .question strong { background: #fff3a0; box-shadow: none; color: #000; }
   :root[data-hl='neon'] .stage * { filter: none !important; }
 }
+
+/* ---------- Game look (docs/GAME-MODE.md, phase 1) ----------
+   Bright colour and motion go around the question card, never on it: the card keeps --surface and --text (contrast unchanged).
+   Animations are short; [data-motion=reduced] and prefers-reduced-motion turn them off. */
+:root[data-look='game'] {
+  --accent: #6a3fe0; --accent-ink: #ffffff; --good: #1f7a36; --bad: #b3261e; --star: #e08a00;
+  --radius: 20px;
+  --game-bg: linear-gradient(135deg, #ffe3f1 0%, #e5ecff 35%, #dff8f0 65%, #fff4cf 100%);
+  --game-blob-1: #ffb3d1; --game-blob-2: #b9c9ff; --game-blob-3: #b5f0dc;
+  --game-shadow: 0 10px 30px -12px rgb(106 63 224 / 0.45);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-look='game']:not([data-theme='light']) {
+    --accent: #9b7bff; --accent-ink: #14062e; --good: #4ade80; --bad: #ff8a80; --star: #ffd25a;
+    --game-bg: linear-gradient(135deg, #1b1340 0%, #102a43 50%, #0f2e2a 100%);
+    --game-blob-1: #5b2a6e; --game-blob-2: #22397a; --game-blob-3: #1d5a4a;
+    --game-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+  }
+}
+:root[data-look='game'][data-theme='dark'] {
+  --accent: #9b7bff; --accent-ink: #14062e; --good: #4ade80; --bad: #ff8a80; --star: #ffd25a;
+  --game-bg: linear-gradient(135deg, #1b1340 0%, #102a43 50%, #0f2e2a 100%);
+  --game-blob-1: #5b2a6e; --game-blob-2: #22397a; --game-blob-3: #1d5a4a;
+  --game-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.7);
+}
+:root[data-look='game'] body {
+  background: var(--game-bg) fixed; min-height: 100vh;
+  font-family: ui-rounded, 'SF Pro Rounded', 'Arial Rounded MT Bold', 'Nunito', -apple-system, system-ui, sans-serif;
+}
+/* soft floating shapes behind everything */
+:root[data-look='game'] body::before, :root[data-look='game'] body::after {
+  content: ''; position: fixed; z-index: -1; border-radius: 50%; filter: blur(40px); opacity: 0.55; pointer-events: none;
+  animation: game-float 18s ease-in-out infinite alternate;
+}
+:root[data-look='game'] body::before { width: 46vmax; height: 46vmax; left: -12vmax; top: 20vh; background: var(--game-blob-1); }
+:root[data-look='game'] body::after { width: 40vmax; height: 40vmax; right: -10vmax; top: -8vmax; background: var(--game-blob-2); animation-duration: 23s; }
+@keyframes game-float { to { transform: translate(6vmax, -4vmax) scale(1.08); } }
+:root[data-look='game'] .bar { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-look='game'] .card, :root[data-look='game'] .list, :root[data-look='game'] .group > ul { box-shadow: var(--game-shadow); }
+:root[data-look='game'] .card.problem { position: relative; border: 3px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+:root[data-look='game'] .btn { font-weight: 700; transition: transform .12s ease; }
+:root[data-look='game'] .btn:active { transform: scale(.94); opacity: 1; }
+:root[data-look='game'] .btn.primary { box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+:root[data-look='game'] .btn.primary:active { box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 60%, #000); transform: translateY(3px); }
+:root[data-look='game'] .btn.hero { min-height: 64px; font-size: 21px; }
+:root[data-look='game'] .answer-row .btn, :root[data-look='game'] .answer-row input { min-height: 60px; }
+/* progress dots become stepping stones */
+:root[data-look='game'] .dots { gap: 8px; }
+:root[data-look='game'] .dots > span, :root[data-look='game'] .dots > button {
+  width: 22px; height: 16px; border-radius: 50% 50% 45% 45%; background: color-mix(in srgb, var(--text) 18%, transparent);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.12);
+}
+:root[data-look='game'] .dots > .ok { background: #8ac926; }
+:root[data-look='game'] .dots > .miss { background: #ffb703; }
+:root[data-look='game'] .dots > .done { background: #9aa5b1; }
+:root[data-look='game'] .dots > .now { background: var(--accent); transform: translateY(-3px); animation: game-hop 1.2s ease-in-out infinite; }
+@keyframes game-hop { 50% { transform: translateY(-6px); } }
+/* right / wrong */
+:root[data-look='game'] .feedback.good { font-size: 20px; }
+.fx-pop { animation: fx-pop .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes fx-pop { 40% { transform: scale(1.035); } }
+.fx-wobble { animation: fx-wobble .45s ease-in-out; }
+@keyframes fx-wobble { 20% { transform: translateX(-6px) rotate(-.6deg); } 50% { transform: translateX(5px) rotate(.4deg); } 80% { transform: translateX(-2px); } }
+.fx-burst { position: absolute; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.fx-burst i { position: absolute; width: 10px; height: 10px; border-radius: 50%; animation: fx-fly .6s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes fx-fly { from { transform: translate(0, 0) scale(.4); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
+:root[data-motion='reduced'] *, :root[data-motion='reduced'] *::before, :root[data-motion='reduced'] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-look='game'] *, :root[data-look='game'] *::before, :root[data-look='game'] *::after { animation: none !important; transition: none !important; }
+}
+:root[data-look='game'] .btn.primary.hero { background: linear-gradient(90deg, #6a3fe0, #c2368f); }
+@media (prefers-color-scheme: dark) { :root[data-look='game']:not([data-theme='light']) .btn.primary.hero { background: linear-gradient(90deg, #9b7bff, #ff8ac6); } }
+:root[data-look='game'][data-theme='dark'] .btn.primary.hero { background: linear-gradient(90deg, #9b7bff, #ff8ac6); }

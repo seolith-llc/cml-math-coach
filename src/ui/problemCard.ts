@@ -11,6 +11,7 @@ import { choicePicker } from './choicePicker';
 import { scenePlayer, type Player } from './player';
 import { voiceControls } from './voiceControls';
 import { sceneFor } from '../core/explain';
+import { cheer } from './fx';
 
 export interface CardResult {
   correct: boolean;
@@ -74,6 +75,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
   function setFeedback(kind: 'good' | 'bad' | 'info', text: string) {
     feedback.className = `feedback ${kind}`;
     feedback.textContent = text;
+    if (kind !== 'info') cheer(el, kind === 'good');
   }
 
   async function showHint() {

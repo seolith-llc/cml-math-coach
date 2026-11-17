@@ -1,7 +1,7 @@
 import { load } from './core/storage';
 import { configureSpeech, stopSpeaking, unlockSpeechOnFirstGesture, voiceOptions } from './voice/speech';
 import { stopListening } from './voice/recognition';
-import { applyHighlight, h, iconButton } from './ui/dom';
+import { applyHighlight, applyLook, h, iconButton } from './ui/dom';
 import { icon } from './ui/icons';
 import { homeScreen } from './screens/home';
 import { practiceScreen } from './screens/practice';
@@ -46,6 +46,7 @@ export function applyVoiceSettings(): void {
 
 export function startApp(root: HTMLElement): void {
   applyHighlight(load().settings.highlight);
+  applyLook(load().settings.look, load().settings.motion);
   applyVoiceSettings();
   unlockSpeechOnFirstGesture();
   let current: View | undefined;

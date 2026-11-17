@@ -28,6 +28,13 @@ describe('settings', () => {
     expect(migrateSettings({ highlight: 'classic' }, base).highlight).toBe('classic');
     expect(migrateSettings({ highlight: 'glitter' } as never, base).highlight).toBe('neon');
   });
+  it('adds the look and motion: classic and full by default, kept when valid', () => {
+    expect(base.look).toBe('classic');
+    expect(base.motion).toBe('full');
+    expect(migrateSettings({ goal: 15 } as never, base)).toMatchObject({ look: 'classic', motion: 'full' }); // saved before 2026-11-17
+    expect(migrateSettings({ look: 'game', motion: 'reduced' }, base)).toMatchObject({ look: 'game', motion: 'reduced' });
+    expect(migrateSettings({ look: 'arcade', motion: 'wild' } as never, base)).toMatchObject({ look: 'classic', motion: 'full' });
+  });
   it('adds and cleans the test setup', () => {
     expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
     expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)

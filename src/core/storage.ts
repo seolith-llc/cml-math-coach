@@ -51,7 +51,15 @@ export interface Settings {
   reminder: { on: boolean; hour: number };
   /** How key words and explanation highlights look: fluorescent ("neon", the default) or plain. */
   highlight: Highlight;
+  /** Overall look: calm "classic" (default) or bright, playful "game" (docs/GAME-MODE.md). */
+  look: Look;
+  /** "reduced" turns game animations into fades (the system's reduced-motion setting does too). */
+  motion: Motion;
 }
+
+export type Look = 'classic' | 'game';
+export const LOOKS: readonly Look[] = ['classic', 'game'];
+export type Motion = 'full' | 'reduced';
 
 export type Highlight = 'neon' | 'classic';
 export const HIGHLIGHTS: readonly Highlight[] = ['neon', 'classic'];
@@ -75,6 +83,8 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   const r = raw.reminder;
   out.reminder = { on: !!r?.on, hour: Number.isInteger(r?.hour) && r!.hour >= 6 && r!.hour <= 21 ? r!.hour : base.reminder.hour };
   out.highlight = HIGHLIGHTS.includes(raw.highlight as Highlight) ? (raw.highlight as Highlight) : base.highlight; // added 2026-11-13: older saves get neon
+  out.look = LOOKS.includes(raw.look as Look) ? (raw.look as Look) : base.look; // added 2026-11-17: older saves stay classic
+  out.motion = raw.motion === 'reduced' ? 'reduced' : 'full';
   return out;
 }
 
@@ -134,7 +144,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon' },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full' },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

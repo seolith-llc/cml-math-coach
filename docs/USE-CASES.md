@@ -136,7 +136,7 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 | P3 | Reply to the testers' feedback rounds already triaged (Areas 1–3) | prompts-history step043 | Done 2026-11-12: both testers answered (one confirmed on 2026-11-13) |
 | P4 | Verify the iPad's first real dashboard turn-on in production (the DB had never received one) | prompts-history (probe follow-up) | Done: Status on 2026-11-16 shows 2 families (last sync 2026-11-12) and device reminders sent through 2026-11-15 |
 | P5 | Move GitHub Actions off the deprecated Node 20 actions (warning only) | prompts-history (deploy note) | Done: workflows use checkout/setup-node v7 and wrangler-action v4; the latest deploy has no deprecation warning |
-| P6 | Game mode: bright look, buddy and world map, soft music, stickers (plan in `docs/GAME-MODE.md`) | Tester feedback (2026-11-17) | Planned |
+| P6 | Game mode: bright look, buddy and world map, soft music, stickers (plan in `docs/GAME-MODE.md`) | Tester feedback (2026-11-17) | In progress: phase 1 (look, feedback effects, less motion) shipped in step063 |
 
 Not in scope today (no record in the repo of plans for them): accounts with passwords, multiple children per
 family, teacher/classroom views, payments.

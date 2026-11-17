@@ -127,6 +127,20 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 | H10 | Manage sign-in access and the voice rate limit | Owner | Actions → Cloudflare Access (invited emails) / Cloudflare rate limit (WAF rule on `/api/tts`, requests per IP) | `cloudflare-access.yml`, `cloudflare-rate-limit.yml` | Shipped |
 | H11 | Check email authentication | Owner | Actions → Email DNS → dry run reports SES, MAIL FROM (MX + SPF), DMARC; apply only adds what is missing, stops on conflicts | `email-dns.yml`, `scripts/email-dns.mjs` | Shipped |
 
+## I. Game look (child-first play)
+
+| ID | Use case | Actor | Trigger → flow | Code | Status |
+|---|---|---|---|---|---|
+| I1 | Choose Game or Classic | Child, Parent | Classic Home asks once (four buddies, Game look / Classic); later Settings → Look; Less motion switch | `screens/home.lookOffer`, `settings.look` / `lookOffered`, `ui/dom.applyLook` | Shipped |
+| I2 | Pick and name a buddy | Child | First open in the game look → buddy picker (owl, fox, bunny, dino) → name; changeable in Settings | `screens/buddy.ts`, `content/buddies.ts` | Shipped |
+| I3 | Explore the world map | Child | Game Home: buddy + today's goal as stones, Play, four islands lit by real stars → island → topics or the island mix | `screens/world.ts`, `content/world.ts` | Shipped |
+| I4 | Practise with the buddy | Child | Bright background around a calm card; the buddy walks the progress stones and reacts to every answer with effort-based lines | `ui/buddy.ts`, `ui/fx.cheer` | Shipped |
+| I5 | Feel right and wrong answers | Child | Right → card pop, confetti, chime; miss → gentle wobble, soft low tone, hint (never a buzzer or red flash) | `ui/fx.ts`, `voice/music.ts` | Shipped |
+| I6 | Listen to soft music | Child, Parent | Pick Breeze, Bubbles, Stars or Off; quieter on questions, ducks under the voice and mic, off in Tests and the parent area | `core/tunes.ts`, `voice/music.ts`, `voice/activity.ts` | Shipped |
+| I7 | Celebrate a round and collect stickers | Child | Round end → buddy cheers about effort, confetti sized to the score; stickers for a fixed miss, new star, today's goal, careful round (max 3 a day) | `ui/roundEnd.ts`, `content/stickers.ts` | Shipped |
+| I8 | Open the sticker book | Child, Parent | World map → Sticker book (collected only, with why and when); the parent dashboard shows the latest 12 | `screens/stickers.ts`, `snapshot.stickers` | Shipped |
+| I9 | Compare Game vs Classic | Owner | Each finished round logged (numbers only) → Actions → Status prints rounds, days, first-try % per look and with/without music | `state.roundLog`, `scripts/lib/experiment.mjs` | Shipped |
+
 ## Open / planned (recorded follow-ups)
 
 | ID | Item | Source | Status |
@@ -136,7 +150,7 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 | P3 | Reply to the testers' feedback rounds already triaged (Areas 1–3) | prompts-history step043 | Done 2026-11-12: both testers answered (one confirmed on 2026-11-13) |
 | P4 | Verify the iPad's first real dashboard turn-on in production (the DB had never received one) | prompts-history (probe follow-up) | Done: Status on 2026-11-16 shows 2 families (last sync 2026-11-12) and device reminders sent through 2026-11-15 |
 | P5 | Move GitHub Actions off the deprecated Node 20 actions (warning only) | prompts-history (deploy note) | Done: workflows use checkout/setup-node v7 and wrangler-action v4; the latest deploy has no deprecation warning |
-| P6 | Game mode: bright look, buddy and world map, soft music, stickers (plan in `docs/GAME-MODE.md`) | Tester feedback (2026-11-17) | In progress: phase 1 (look, feedback effects, less motion) shipped in step063 |
+| P6 | Game mode: bright look, buddy and world map, soft music, stickers (plan in `docs/GAME-MODE.md`) | Tester feedback (2026-11-17) | Done: phases 1–4 shipped (steps 063–069, area I); phase 5 tester round running from 2026-11-17 |
 
 Not in scope today (no record in the repo of plans for them): accounts with passwords, multiple children per
 family, teacher/classroom views, payments.

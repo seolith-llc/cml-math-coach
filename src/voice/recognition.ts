@@ -3,6 +3,7 @@
  * Returns several alternatives so the answer checker can accept the answer if ANY
  * hypothesis is correct, which helps a lot with children's voices and homophones ("for" vs "four").
  */
+import { setListening } from './activity';
 
 type Ctor = new () => SpeechRecognitionLike;
 interface SpeechRecognitionLike {
@@ -36,6 +37,7 @@ let active: SpeechRecognitionLike | null = null;
 export function stopListening(): void {
   active?.abort();
   active = null;
+  setListening(false);
 }
 
 export function listen(onInterim?: (text: string) => void, timeoutMs = 9000): Promise<ListenResult> {
@@ -61,11 +63,15 @@ export function listen(onInterim?: (text: string) => void, timeoutMs = 9000): Pr
     rec.onerror = (e) => (error = e.error);
     rec.onend = () => {
       clearTimeout(timer);
-      if (active === rec) active = null;
+      if (active === rec) {
+        active = null;
+        setListening(false);
+      }
       resolve({ alternatives: finalAlts.filter(Boolean), error: finalAlts.length ? undefined : error ?? 'no-speech' });
     };
     try {
       rec.start();
+      setListening(true); // the game music ducks while the mic listens
     } catch {
       clearTimeout(timer);
       resolve({ alternatives: [], error: 'start-failed' });

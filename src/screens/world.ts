@@ -1,9 +1,12 @@
-import { dayStreak, dueReviews, lastRound, load } from '../core/storage';
+import { dayStreak, dueReviews, lastRound, load, save } from '../core/storage';
+import { TUNES, type Tune } from '../core/tunes';
+import { refreshSound } from '../voice/music';
+import { icon } from '../ui/icons';
 import { today } from '../core/progress';
 import { summary } from '../core/session';
 import { topicsForGrade } from '../content/topics';
 import { ISLANDS, goalStones, islandById, islandProgress, type Island } from '../content/world';
-import { h, list } from '../ui/dom';
+import { h, iconButton, list } from '../ui/dom';
 import { gradeSwitch } from '../ui/session';
 import { buddyName, buddyView } from '../ui/buddy';
 import { savedScore } from './round';
@@ -41,8 +44,29 @@ export function worldScreen(): View {
   const stones = h('div', { class: 'goal-stones', role: 'progressbar', 'aria-label': `${t.practiced} of ${t.goal} today`, 'aria-valuemin': 0, 'aria-valuemax': t.goal, 'aria-valuenow': t.practiced },
     ...goalStones(t.practiced, t.goal).map((k) => h('span', { class: `goal-stone ${k}` })));
 
+  // Quick music on/off for the child (the tune itself is picked in Settings); remembers the last tune.
+  const PREV = 'cml-last-tune';
+  const music = iconButton(s.music.tune === 'off' ? 'musicOff' : 'music', s.music.tune === 'off' ? 'Music on' : 'Music off', () => {
+    if (s.music.tune === 'off') {
+      let prev: string | null = null;
+      try { prev = sessionStorage.getItem(PREV); } catch { /* private mode */ }
+      s.music.tune = (TUNES as readonly string[]).includes(prev ?? '') ? (prev as Tune) : 'breeze';
+    } else {
+      try { sessionStorage.setItem(PREV, s.music.tune); } catch { /* private mode */ }
+      s.music.tune = 'off';
+    }
+    save(state);
+    refreshSound();
+    const on = s.music.tune !== 'off';
+    music.innerHTML = icon(on ? 'music' : 'musicOff');
+    music.setAttribute('aria-label', on ? 'Music off' : 'Music on');
+    music.title = on ? 'Music off' : 'Music on';
+    music.classList.toggle('off', !on);
+  }, 'world-music');
+  music.classList.toggle('off', s.music.tune === 'off');
+
   const hero = h('section', { class: `card world-hero${t.goalMet ? ' met' : ''}` },
-    h('div', { class: 'world-hero-top' }, buddy.el,
+    h('div', { class: 'world-hero-top' }, buddy.el, music,
       h('div', { class: 'world-hero-side' },
         h('span', { class: 'today-count' }, t.goalMet ? 'Done for today' : `${t.practiced} of ${t.goal}`),
         streak ? h('span', { class: 'today-streak', 'aria-label': `${streak} day streak` }, `🔥 ${streak}`) : null,

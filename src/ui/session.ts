@@ -3,6 +3,7 @@ import type { Grade } from '../core/types';
 import { LEVEL_NAMES, starText } from '../core/progress';
 import { topicById } from '../content/topics';
 import { speak } from '../voice/speech';
+import { sfx } from '../voice/music';
 import { h, iconButton, segmented, toast } from './dom';
 
 /**
@@ -39,6 +40,8 @@ export function done(score: string, actions: (Node | null)[]): HTMLElement {
 /** Celebrate a level-up or the daily goal: a toast, and a spoken line if Read aloud is on. */
 export function celebrate(ev: ProgressEvent): void {
   const lines: string[] = [];
+  if (ev.goalReached) sfx('goal');
+  else if (ev.stars) sfx('star');
   if (ev.stars) {
     const title = topicById(ev.stars.topicId)?.title ?? '';
     toast(`${starText(ev.stars.stars)}  ${title}`);

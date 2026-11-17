@@ -6,6 +6,8 @@ import { disableReminder, enableReminder, reminderSupport } from '../notify/remi
 import { GOALS } from '../core/progress';
 import { applyHighlight, applyLook, group, h, list, segmented, toast } from '../ui/dom';
 import { BUDDIES } from '../content/buddies';
+import { TUNES, TUNE_INFO, type TuneChoice } from '../core/tunes';
+import { refreshSound } from '../voice/music';
 import { applyVoiceSettings } from '../app';
 import type { View } from '../app';
 
@@ -38,6 +40,9 @@ export function settingsScreen(focus?: string): View {
   const rate = h('input', { type: 'range', min: '0.6', max: '1.4', step: '0.05', value: String(s.rate), 'aria-label': 'Speed',
     oninput: () => { s.rate = +rate.value; persist(); }, onchange: () => void speak(SAMPLE) });
 
+  const musicVolume = h('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(s.music.volume), 'aria-label': 'Music volume',
+    oninput: () => { s.music.volume = +musicVolume.value; save(state); refreshSound(); } });
+
   const el = h('div', { class: 'stack' },
       group(null, name),
       group('Voice',
@@ -55,10 +60,20 @@ export function settingsScreen(focus?: string): View {
           s.look = v;
           save(state);
           applyLook(v, s.motion);
+          refreshSound();
         }),
         toggle('Less motion', s.motion === 'reduced', (v) => { s.motion = v ? 'reduced' : 'full'; save(state); applyLook(s.look, s.motion); })),
       // The game look's buddy: chosen once, changed here (nothing else to customise).
       list([{ label: 'Buddy', value: s.buddy ? s.buddy.name || BUDDIES[s.buddy.kind].label : undefined, href: '#/buddy' }]),
+      // Game look sound (docs/GAME-MODE.md phase 3): the child's tune or Off, its volume, and effects.
+      group('Music',
+        segmented<TuneChoice>('Music', [{ value: 'off', label: 'Off' }, ...TUNES.map((t) => ({ value: t, label: TUNE_INFO[t].label }))], s.music.tune, (v) => {
+          s.music.tune = v;
+          save(state);
+          refreshSound();
+        }),
+        h('label', { class: 'row' }, h('span', { class: 'row-label' }, 'Volume'), musicVolume),
+        toggle('Sound effects', s.sfx, (v) => { s.sfx = v; save(state); })),
       group('Highlights', segmented<Highlight>('Highlights', [{ value: 'neon', label: 'Neon' }, { value: 'classic', label: 'Classic' }], s.highlight, (v) => {
         s.highlight = v;
         save(state);

@@ -1,6 +1,7 @@
 import { BUDDY_KINDS, load, save, type BuddyKind } from '../core/storage';
 import { BUDDIES, buddySvg } from '../content/buddies';
 import { h } from '../ui/dom';
+import { sfx } from '../voice/music';
 import type { View } from '../app';
 
 /**
@@ -13,6 +14,7 @@ export function buddyScreen(): View {
   const name = h('input', { class: 'answer buddy-name', type: 'text', maxlength: 16, autocomplete: 'off', placeholder: BUDDIES[kind].label, 'aria-label': 'Buddy name', value: state.settings.buddy?.name ?? '' });
   const tiles = BUDDY_KINDS.map((k) => {
     const b = h('button', { class: `buddy-tile${k === kind ? ' picked' : ''}`, type: 'button', 'aria-label': BUDDIES[k].label, 'aria-pressed': String(k === kind), onclick: () => {
+      sfx('pop');
       kind = k;
       tiles.forEach((t, i) => {
         t.classList.toggle('picked', BUDDY_KINDS[i] === k);

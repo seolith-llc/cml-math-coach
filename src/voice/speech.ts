@@ -3,6 +3,7 @@
  * - Splits long text into sentences (Chrome stops long utterances after ~15 s).
  * - Resolves when finished so the caller can chain "speak, then listen".
  */
+import { setSpeaking } from './activity';
 export type VoiceEngine = 'premium' | 'device';
 
 export interface SpeakOptions {
@@ -155,6 +156,7 @@ export function unlockSpeechOnFirstGesture(): void {
 
 export function stopSpeaking(): void {
   token++;
+  setSpeaking(false);
   if (ttsSupported()) speechSynthesis.cancel();
   if (audioEl) {
     audioEl.pause();
@@ -239,13 +241,18 @@ export async function speak(text: string, opts: SpeakOptions = {}): Promise<void
   if (!text) return;
   stopSpeaking();
   const my = token;
-  const o = { ...defaults, ...opts };
-  const prepared = prepareForSpeech(text);
-  if (o.engine === 'premium' && premiumAvailable()) {
-    if (await speakPremium(cloudChunks(prepared), o, my)) return;
-    if (my !== token) return;
+  setSpeaking(true); // the game music ducks while the coach talks
+  try {
+    const o = { ...defaults, ...opts };
+    const prepared = prepareForSpeech(text);
+    if (o.engine === 'premium' && premiumAvailable()) {
+      if (await speakPremium(cloudChunks(prepared), o, my)) return;
+      if (my !== token) return;
+    }
+    await speakDevice(chunks(prepared), o, my);
+  } finally {
+    if (my === token) setSpeaking(false);
   }
-  await speakDevice(chunks(prepared), o, my);
 }
 
 function speakDevice(parts: string[], o: SpeakOptions, my: number): Promise<void> {

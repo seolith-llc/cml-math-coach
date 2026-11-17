@@ -53,4 +53,11 @@ describe('settings', () => {
     expect(migrateSettings({ buddy: { kind: 'dragon', name: 'X' } } as never, base).buddy).toBeNull();
     expect(migrateSettings({ buddy: { kind: 'owl' } } as never, base).buddy).toEqual({ kind: 'owl', name: '' });
   });
+  it('music and sound effects: defaults, valid choices, bounded volume (added 2026-11-17)', () => {
+    const base = defaultState().settings;
+    expect(migrateSettings({}, base)).toMatchObject({ music: { tune: 'breeze', volume: 0.5 }, sfx: true });
+    expect(migrateSettings({ music: { tune: 'stars', volume: 0.2 }, sfx: false } as never, base)).toMatchObject({ music: { tune: 'stars', volume: 0.2 }, sfx: false });
+    expect(migrateSettings({ music: { tune: 'off', volume: 3 } } as never, base).music).toEqual({ tune: 'off', volume: 1 });
+    expect(migrateSettings({ music: { tune: 'rock', volume: 'loud' } } as never, base).music).toEqual({ tune: 'breeze', volume: 0.5 });
+  });
 });

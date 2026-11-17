@@ -1,4 +1,6 @@
 import { load } from './core/storage';
+import { sceneForRoute } from './core/tunes';
+import { setMusicScene, startSound } from './voice/music';
 import { configureSpeech, stopSpeaking, unlockSpeechOnFirstGesture, voiceOptions } from './voice/speech';
 import { stopListening } from './voice/recognition';
 import { applyHighlight, applyLook, h, iconButton } from './ui/dom';
@@ -52,6 +54,7 @@ export function applyVoiceSettings(): void {
 export function startApp(root: HTMLElement): void {
   applyHighlight(load().settings.highlight);
   applyLook(load().settings.look, load().settings.motion);
+  startSound();
   applyVoiceSettings();
   unlockSpeechOnFirstGesture();
   let current: View | undefined;
@@ -69,6 +72,7 @@ export function startApp(root: HTMLElement): void {
     stopListening();
     const [, name = '', param] = location.hash.replace(/^#/, '').split('/');
     current = (routes[name] ?? routes[''])(param);
+    setMusicScene(sceneForRoute(routes[name] ? name : ''));
     const home = !name || !routes[name];
     title.textContent = home ? 'Math Coach' : current.title;
     document.title = home ? 'Math Coach' : `${current.title} · Math Coach`;

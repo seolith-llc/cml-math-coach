@@ -2,6 +2,8 @@
  * Game-look feedback (docs/GAME-MODE.md, phase 1): a short burst around the card on a right answer, a gentle wobble on a miss.
  * Only with <html data-look="game">; never animates the question text itself, and nothing moves under reduced motion.
  */
+import { sfx } from '../voice/music';
+
 const COLORS = ['#ff6b9a', '#ffb703', '#2ec4b6', '#7b5cff', '#3a86ff', '#8ac926'];
 
 export function gameLook(): boolean {
@@ -17,6 +19,7 @@ export function cheer(card: HTMLElement, right: boolean): void {
   if (!gameLook()) return;
   // Lets the buddy (ui/buddy.ts trailBuddy) react to every checked answer, including a first wrong try.
   card.dispatchEvent(new CustomEvent('cml:answer', { bubbles: true, detail: { right } }));
+  sfx(right ? 'right' : 'miss');
   const cls = right ? 'fx-pop' : 'fx-wobble';
   card.classList.remove('fx-pop', 'fx-wobble');
   void card.offsetWidth; // restart the animation

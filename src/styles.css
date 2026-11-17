@@ -530,3 +530,8 @@ a.row:active, button.row:active { background: var(--fill); }
 .buddy-tile.picked { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
 .buddy-tile-art svg { display: block; width: 110px; height: 110px; }
 .buddy-name { width: 100%; text-align: center; }
+/* game look phase 3: the world map's quick music switch */
+.world-hero-top { position: relative; }
+.world-music { position: absolute; top: -4px; right: -4px; background: var(--fill); color: var(--accent); }
+.world-music.off { color: var(--muted); }
+.world-hero-side { padding-top: 44px; }

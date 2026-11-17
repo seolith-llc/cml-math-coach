@@ -1,3 +1,4 @@
+import { TUNES, type TuneChoice } from './tunes';
 import type { Grade } from './types';
 import { normalizeTest, type TestConfig } from './session';
 import { GOALS, awardStars, localDay, streak } from './progress';
@@ -57,6 +58,10 @@ export interface Settings {
   motion: Motion;
   /** Game look: the child's buddy, chosen once (changeable in Settings). null until chosen. */
   buddy: Buddy | null;
+  /** Game look: the child's tune (or off) and its volume 0–1 (docs/GAME-MODE.md phase 3). */
+  music: { tune: TuneChoice; volume: number };
+  /** Game look: short sound effects (right, miss, star, goal). */
+  sfx: boolean;
 }
 
 export type Look = 'classic' | 'game';
@@ -65,6 +70,7 @@ export type Motion = 'full' | 'reduced';
 export type BuddyKind = 'owl' | 'fox' | 'bunny' | 'dino';
 export const BUDDY_KINDS: readonly BuddyKind[] = ['owl', 'fox', 'bunny', 'dino'];
 export interface Buddy { kind: BuddyKind; name: string }
+
 
 export type Highlight = 'neon' | 'classic';
 export const HIGHLIGHTS: readonly Highlight[] = ['neon', 'classic'];
@@ -95,6 +101,14 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   out.buddy = b && BUDDY_KINDS.includes(b.kind as BuddyKind)
     ? { kind: b.kind as BuddyKind, name: (typeof b.name === 'string' ? b.name : '').trim().slice(0, 16) }
     : null;
+  // added 2026-11-17 (game mode phase 3)
+  const m = raw.music as Partial<Settings['music']> | undefined;
+  const vol = Number(m?.volume);
+  out.music = {
+    tune: (['off', ...TUNES] as string[]).includes(String(m?.tune)) ? (m!.tune as TuneChoice) : base.music.tune,
+    volume: Number.isFinite(vol) ? Math.max(0, Math.min(1, vol)) : base.music.volume
+  };
+  out.sfx = raw.sfx === undefined ? base.sfx : !!raw.sfx;
   return out;
 }
 
@@ -154,7 +168,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null, music: { tune: 'breeze', volume: 0.5 }, sfx: true },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

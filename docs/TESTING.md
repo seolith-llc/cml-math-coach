@@ -158,6 +158,9 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | G4 | In a round, get one wrong first, then one right. | The buddy above the progress stones thinks with the child on a miss ("Let's look together.") and cheers a right answer with a short, varied line about effort; it walks one stone forward per question. The question card itself never moves. |
 | G5 | Reach the daily goal, then go Home. | The buddy waves goodnight ("See you tomorrow"); **See my stars** is the main button, Keep going is secondary. |
 | G6 | Settings → **Less motion** (or the system's Reduce Motion). | The buddy and stones stop moving; everything still works. |
+| G7 | Game look, sound on. Tap once on the world map. Try Settings → **Music**: Breeze, Bubbles, Stars, Off, and the Volume slider; then the ♪ button on the map. | Soft instrumental music starts after the first tap (no lyrics, no drums). Each tune sounds different; Off and ♪ stop it; ♪ again brings back the same tune. |
+| G8 | Start Play. Listen while a question is read aloud, then while answering; tap the mic and speak. | On questions the music is much quieter, and it fades almost to silence whenever the coach talks or the mic listens, then comes back. |
+| G9 | Answer right, then wrong; earn a star or reach the daily goal; open a Test. | A short rising chime for right, a soft low note for a miss (never a buzzer), a sparkle for a star or the goal. Tests have no music. Settings → **Sound effects** off silences the effects only. |
 
 ## 5. What we especially want to know
 

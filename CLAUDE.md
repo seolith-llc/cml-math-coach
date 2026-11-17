@@ -33,7 +33,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 
 ## Conventions
 
-- **Screens** export `xScreen(param?) => View` (`{ title, el, destroy? }`) and get registered in `src/app.ts`. The top bar has Back + ⌂ Home (hidden on Home only), Feedback and Settings. Every question card has the Pause/Mute pair (`ui/voiceControls.ts`): Mute is the Read aloud setting, so it carries over to the next questions and the explanation player. The grade switch is `ui/session.gradeSwitch()` (Home and CogAT).
+- **Screens** export `xScreen(param?) => View` (`{ title, el, destroy? }`) and get registered in `src/app.ts`. The top bar has Back + ⌂ Home (hidden on Home only), Feedback and Settings, plus ♪ music on/off in the game look (`ui/musicToggle.ts`, hidden where music is silent). Every question card has the Pause/Mute pair (`ui/voiceControls.ts`): Mute is the Read aloud setting, so it carries over to the next questions and the explanation player. The grade switch is `ui/session.gradeSwitch()` (Home and CogAT).
 - **UI copy:** no taglines, helper text or secondary labels. A list row's right side shows data (a count, a time), never an explanation. If a screen needs words to make sense, change the layout.
 - **Styling:** tokens in `src/styles.css` `:root` (light and dark). One accent color. Lists use `list()` / `group()`.
 - **New topic:** add a `Topic` in `src/content/generators/*.ts` and register it in `content/topics.ts`. `tests/generators.test.ts` covers it automatically.

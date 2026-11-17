@@ -128,6 +128,7 @@ function schedule() {
 
 /** Bring the music to where it should be now: which tune, how loud (with ducking), or stopped. */
 export function refreshSound(): void {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:music')); // the top-bar button follows
   const c = ctx;
   if (!c || !musicBus) return;
   const s = settings();
@@ -148,6 +149,11 @@ export function refreshSound(): void {
     timer = undefined;
   }
   if (playingTune) schedule();
+}
+
+/** The screen's music scene (the top-bar button hides where it is 'off'). */
+export function musicScene(): MusicScene {
+  return scene;
 }
 
 /** The screen changed (app.ts): map, question or silent. */

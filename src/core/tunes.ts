@@ -98,3 +98,13 @@ export function sceneForRoute(route: string): MusicScene {
   if (route === 'practice' || route === 'review' || route === 'round') return 'question';
   return 'map';
 }
+
+/**
+ * The music button (top bar, game look): Off when a tune plays; back to the last tune (else Breeze) when off.
+ * Pure, so the rule is tested; ui/musicToggle.ts keeps `last` on the device.
+ */
+export function toggleTune(current: TuneChoice, last: string | null): { tune: TuneChoice; last: Tune | null } {
+  if (current !== 'off') return { tune: 'off', last: current };
+  const back = (TUNES as readonly string[]).includes(last ?? '') ? (last as Tune) : 'breeze';
+  return { tune: back, last: back };
+}

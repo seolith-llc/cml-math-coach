@@ -533,8 +533,6 @@ a.row:active, button.row:active { background: var(--fill); }
 .buddy-name { width: 100%; text-align: center; }
 /* game look phase 3: the world map's quick music switch */
 .world-hero-top { position: relative; }
-.world-music { position: absolute; top: -4px; right: -4px; background: var(--fill); color: var(--accent); }
-.world-music.off { color: var(--muted); }
 .world-hero-side { padding-top: 44px; }
 
 /* ---------- Game look, phase 4: round-end celebration and stickers (docs/GAME-MODE.md) ---------- */
@@ -565,3 +563,7 @@ a.row:active, button.row:active { background: var(--fill); }
 .look-offer .offer-buddies { display: flex; justify-content: space-around; margin-bottom: 14px; }
 .look-offer .offer-buddies svg { width: 56px; height: 56px; }
 .look-offer .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Game look: the top bar's music button (ui/musicToggle.ts). Three buttons on the right, so both sides widen to keep the title centred. */
+html[data-look="game"] .bar:has(.bar-music:not([hidden])) { grid-template-columns: 132px 1fr 132px; }
+.bar-music.off { color: var(--muted); }

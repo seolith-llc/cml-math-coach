@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TUNES, TUNE_INFO, barEvents, beatSeconds, midiToHz, musicLevel, sceneForRoute } from '../src/core/tunes';
+import { TUNES, TUNE_INFO, barEvents, beatSeconds, midiToHz, musicLevel, sceneForRoute, toggleTune } from '../src/core/tunes';
 
 describe('game music (composed in code)', () => {
   for (const tune of TUNES)
@@ -51,5 +51,19 @@ describe('game music (composed in code)', () => {
     expect(midiToHz(69)).toBeCloseTo(440);
     expect(midiToHz(81)).toBeCloseTo(880);
     expect(beatSeconds('breeze')).toBeCloseTo(60 / 64);
+  });
+});
+
+describe('toggleTune (the top-bar music button)', () => {
+  it('turns a playing tune off and remembers it', () => {
+    expect(toggleTune('bubbles', null)).toEqual({ tune: 'off', last: 'bubbles' });
+  });
+  it('brings back the last tune', () => {
+    expect(toggleTune('off', 'stars')).toEqual({ tune: 'stars', last: 'stars' });
+  });
+  it('falls back to Breeze with no (or a bad) last tune', () => {
+    expect(toggleTune('off', null).tune).toBe('breeze');
+    expect(toggleTune('off', 'off').tune).toBe('breeze');
+    expect(toggleTune('off', 'rock').tune).toBe('breeze');
   });
 });

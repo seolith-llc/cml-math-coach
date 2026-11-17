@@ -4,6 +4,7 @@ import { setMusicScene, startSound } from './voice/music';
 import { configureSpeech, stopSpeaking, unlockSpeechOnFirstGesture, voiceOptions } from './voice/speech';
 import { stopListening } from './voice/recognition';
 import { applyHighlight, applyLook, h, iconButton } from './ui/dom';
+import { musicToggle } from './ui/musicToggle';
 import { icon } from './ui/icons';
 import { homeScreen } from './screens/home';
 import { islandScreen, worldScreen } from './screens/world';
@@ -66,7 +67,8 @@ export function startApp(root: HTMLElement): void {
   const homeLink = h('a', { class: 'icon-btn bar-home', href: '#/', 'aria-label': 'Home', title: 'Home', html: icon('home') });
   const main = h('main', { id: 'main', tabindex: '-1' });
   const feedback = iconButton('feedback', 'Feedback', () => openFeedback());
-  root.replaceChildren(h('header', { class: 'bar' }, h('div', { class: 'bar-start' }, back, homeLink), title, h('div', { class: 'bar-end' }, feedback, gear)), main);
+  const music = musicToggle(); // game look: stop or bring back the music from any screen
+  root.replaceChildren(h('header', { class: 'bar' }, h('div', { class: 'bar-start' }, back, homeLink), title, h('div', { class: 'bar-end' }, music.el, feedback, gear)), main);
 
   const render = () => {
     current?.destroy?.();

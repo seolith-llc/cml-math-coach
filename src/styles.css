@@ -554,3 +554,14 @@ a.row:active, button.row:active { background: var(--fill); }
 .sticker-cell:nth-child(3n + 2) .sticker-art { transform: rotate(4deg); }
 .sticker-book.compact { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
 .sticker-book.compact .sticker-art svg { width: 64px; height: 64px; }
+
+/* ---------- Game look: merged from the parallel phase 2 (step069) ---------- */
+/* Self-hosted rounded type (Nunito, OFL, @fontsource/nunito; precached for offline) */
+:root[data-look='game'] body { font-family: 'Nunito', ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif; }
+/* The gradient covers the whole page, not just the first screen */
+:root[data-look='game'] { background: var(--game-bg); min-height: 100%; }
+:root[data-look='game'] body { background: transparent; }
+/* One-time Game / Classic offer on the classic Home */
+.look-offer .offer-buddies { display: flex; justify-content: space-around; margin-bottom: 14px; }
+.look-offer .offer-buddies svg { width: 56px; height: 56px; }
+.look-offer .actions { display: flex; gap: 10px; flex-wrap: wrap; }

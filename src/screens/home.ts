@@ -1,4 +1,6 @@
-import { dayStreak, dueReviews, lastRound, load } from '../core/storage';
+import { BUDDY_KINDS, dayStreak, dueReviews, lastRound, load, save, type AppState } from '../core/storage';
+import { buddySvg } from '../content/buddies';
+import { applyLook } from '../ui/dom';
 import { savedScore } from './round';
 import { today } from '../core/progress';
 import { summary } from '../core/session';
@@ -35,6 +37,7 @@ export function homeScreen(): View {
     title: 'Math Coach',
     el: h('div', { class: 'stack' },
       segment,
+      s.lookOffered ? null : lookOffer(state),
       todayCard,
       list([
         lastRow ? { label: 'Last round', value: lastRow.score, href: lastRow.href } : null,
@@ -47,4 +50,20 @@ export function homeScreen(): View {
         { label: 'Parent dashboard', href: state.sync ? `#/parent/${state.sync.familyId}` : '#/settings/parent' }
       ]))
   };
+}
+
+/** One-time choice on the classic Home: try the game look (then pick a buddy) or keep Classic. Changeable later in Settings → Look. */
+function lookOffer(state: AppState): HTMLElement {
+  const choose = (look: 'game' | 'classic') => {
+    state.settings.look = look;
+    state.settings.lookOffered = true;
+    save(state);
+    applyLook(look, state.settings.motion);
+    window.dispatchEvent(new HashChangeEvent('hashchange')); // Home redraws: the world map (or the buddy picker) for Game
+  };
+  return h('section', { class: 'card look-offer' },
+    h('div', { class: 'offer-buddies', 'aria-hidden': 'true', html: BUDDY_KINDS.map((k, i) => buddySvg(k, i % 2 ? 'happy' : 'idle')).join('') }),
+    h('div', { class: 'actions' },
+      h('button', { class: 'btn primary hero wide', type: 'button', onclick: () => choose('game') }, 'Game look'),
+      h('button', { class: 'btn wide', type: 'button', onclick: () => choose('classic') }, 'Classic')));
 }

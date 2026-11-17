@@ -63,6 +63,8 @@ export interface Settings {
   music: { tune: TuneChoice; volume: number };
   /** Game look: short sound effects (right, miss, star, goal). */
   sfx: boolean;
+  /** The one-time Game / Classic choice on the classic Home has been answered (or the game look was chosen). */
+  lookOffered: boolean;
 }
 
 export type Look = 'classic' | 'game';
@@ -110,6 +112,7 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
     volume: Number.isFinite(vol) ? Math.max(0, Math.min(1, vol)) : base.music.volume
   };
   out.sfx = raw.sfx === undefined ? base.sfx : !!raw.sfx;
+  out.lookOffered = raw.lookOffered === true || out.look === 'game'; // added 2026-11-17: older classic saves get the offer once
   return out;
 }
 
@@ -222,7 +225,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null, music: { tune: 'breeze', volume: 0.5 }, sfx: true },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null, music: { tune: 'breeze', volume: 0.5 }, sfx: true, lookOffered: false },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

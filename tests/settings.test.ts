@@ -35,6 +35,12 @@ describe('settings', () => {
     expect(migrateSettings({ look: 'game', motion: 'reduced' }, base)).toMatchObject({ look: 'game', motion: 'reduced' });
     expect(migrateSettings({ look: 'arcade', motion: 'wild' } as never, base)).toMatchObject({ look: 'classic', motion: 'full' });
   });
+  it('asks Game or Classic once: older classic saves get the offer, game saves never do', () => {
+    expect(base.lookOffered).toBe(false);
+    expect(migrateSettings({ goal: 15 } as never, base).lookOffered).toBe(false);
+    expect(migrateSettings({ look: 'game' }, base).lookOffered).toBe(true);
+    expect(migrateSettings({ lookOffered: true }, base).lookOffered).toBe(true);
+  });
   it('adds and cleans the test setup', () => {
     expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
     expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)

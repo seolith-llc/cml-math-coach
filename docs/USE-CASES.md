@@ -125,6 +125,7 @@ Status: **Shipped** (in `main` and deployed) · **Open / planned** (recorded but
 | H8 | Run the scheduled jobs | System | `hourly.yml` → `POST /api/hourly` (bearer) → each part decides if due: digest, nudges, push | `functions/api/hourly.ts` | Shipped |
 | H9 | Keep crawlers and AI agents out | System | robots.txt, `X-Robots-Tag`, meta; crawlers get 403; Access on every host | `server/guard.ts` | Shipped |
 | H10 | Manage sign-in access and the voice rate limit | Owner | Actions → Cloudflare Access (invited emails) / Cloudflare rate limit (WAF rule on `/api/tts`, requests per IP) | `cloudflare-access.yml`, `cloudflare-rate-limit.yml` | Shipped |
+| H11 | Check email authentication | Owner | Actions → Email DNS → dry run reports SES, MAIL FROM (MX + SPF), DMARC; apply only adds what is missing, stops on conflicts | `email-dns.yml`, `scripts/email-dns.mjs` | Shipped |
 
 ## Open / planned (recorded follow-ups)
 

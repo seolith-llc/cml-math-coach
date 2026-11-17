@@ -15,6 +15,8 @@ export function reducedMotion(): boolean {
 /** Celebrate (right) or soften (wrong) on the card. Short (≤ 600 ms) and removed afterwards. */
 export function cheer(card: HTMLElement, right: boolean): void {
   if (!gameLook()) return;
+  // Lets the buddy (ui/buddy.ts trailBuddy) react to every checked answer, including a first wrong try.
+  card.dispatchEvent(new CustomEvent('cml:answer', { bubbles: true, detail: { right } }));
   const cls = right ? 'fx-pop' : 'fx-wobble';
   card.classList.remove('fx-pop', 'fx-wobble');
   void card.offsetWidth; // restart the animation

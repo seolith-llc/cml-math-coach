@@ -7,17 +7,21 @@ import { problemCard } from '../ui/problemCard';
 import { celebrate, progressDots } from '../ui/session';
 import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
 import { today } from '../core/progress';
+import { islandById, islandTopics } from '../content/world';
+import { trailBuddy } from '../ui/buddy';
 import type { View } from '../app';
 
 const SESSION = 10;
 
-/** Smart mix (weakest topics more often), the CogAT mix (#/practice/cogat), or one topic: #/practice/<topicId>. 10 problems per round. */
+/** Smart mix (weakest topics more often), the CogAT mix (#/practice/cogat), an island mix (#/practice/island-<id>), or one topic: #/practice/<topicId>. 10 problems per round. */
 export function practiceScreen(topicId?: string): View {
   const state = load();
   const grade = state.settings.grade;
   const cogat = topicId === 'cogat';
-  const fixed = topicId && !cogat ? topicById(topicId) : undefined;
-  const pool = topicsForGrade(grade, cogat ? 'cogat' : 'cml');
+  // #/practice/island-<id>: a mix of one world-map island's topics (game look)
+  const island = topicId?.startsWith('island-') ? islandById(topicId.slice('island-'.length)) : undefined;
+  const fixed = topicId && !cogat && !island ? topicById(topicId) : undefined;
+  const pool = island ? islandTopics(grade, island) : topicsForGrade(grade, cogat ? 'cogat' : 'cml');
   const results: boolean[] = [];
   let round: RoundItem[] = [];
   let last: string | undefined;
@@ -26,6 +30,7 @@ export function practiceScreen(topicId?: string): View {
   let currentCard: HTMLElement | undefined;
   let currentDone = false;
   const slot = h('div');
+  const root = h('div', { class: 'stack' });
   // Look back at an earlier question (‹ or a dot); the current card waits untouched.
   const dots = progressDots(SESSION, (index) => peekRound({
     slot,
@@ -55,6 +60,7 @@ export function practiceScreen(topicId?: string): View {
         results.push(ok);
         round.push({ problem, ok, answer: r.wrongAnswer });
         dots.update(results);
+        trail?.place();
         const ev = recordAttempt(state, grade, problem.topicId, ok, {
           problemId: problem.id, level: problem.level, correct: r.correct, firstTry: ok, skipped: r.skipped,
           hints: r.hints, seconds: r.seconds, answer: r.wrongAnswer, mode: 'practice'
@@ -87,6 +93,7 @@ export function practiceScreen(topicId?: string): View {
           round = [];
           dots.update(results);
           dots.el.hidden = false;
+          trail?.place();
           next();
         } }, 'Keep going')
       ],
@@ -96,6 +103,9 @@ export function practiceScreen(topicId?: string): View {
     });
   }
 
+  root.append(dots.el, slot);
+  // Game look: the buddy walks the round's stones and reacts to each answer.
+  const trail = trailBuddy(dots.el, root);
   next();
-  return { title: fixed ? fixed.title : cogat ? 'CogAT' : 'Practice', el: h('div', { class: 'stack' }, dots.el, slot), destroy: () => { stopPeek(); destroyCard(); } };
+  return { title: fixed ? fixed.title : island ? island.name : cogat ? 'CogAT' : 'Practice', el: root, destroy: () => { stopPeek(); destroyCard(); trail?.destroy(); } };
 }

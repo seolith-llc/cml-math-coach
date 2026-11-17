@@ -4,6 +4,8 @@ import { stopListening } from './voice/recognition';
 import { applyHighlight, applyLook, h, iconButton } from './ui/dom';
 import { icon } from './ui/icons';
 import { homeScreen } from './screens/home';
+import { islandScreen, worldScreen } from './screens/world';
+import { buddyScreen } from './screens/buddy';
 import { practiceScreen } from './screens/practice';
 import { reviewScreen } from './screens/review';
 import { testScreen } from './screens/test';
@@ -24,7 +26,10 @@ export interface View {
 
 /** #/<route>/<param>. One screen per file in src/screens. */
 const routes: Record<string, (param?: string) => View> = {
-  '': homeScreen,
+  // Game look: the world map is Home (after choosing a buddy once). Classic look: the usual Home.
+  '': () => (load().settings.look !== 'game' ? homeScreen() : load().settings.buddy ? worldScreen() : buddyScreen()),
+  world: (p) => (p ? islandScreen(p) : worldScreen()),
+  buddy: buddyScreen,
   practice: practiceScreen,
   review: reviewScreen,
   test: testScreen,

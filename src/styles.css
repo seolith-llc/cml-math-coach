@@ -452,3 +452,81 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-look='game'] .btn.primary.hero { background: linear-gradient(90deg, #6a3fe0, #c2368f); }
 @media (prefers-color-scheme: dark) { :root[data-look='game']:not([data-theme='light']) .btn.primary.hero { background: linear-gradient(90deg, #9b7bff, #ff8ac6); } }
 :root[data-look='game'][data-theme='dark'] .btn.primary.hero { background: linear-gradient(90deg, #9b7bff, #ff8ac6); }
+
+/* ---------- Game look, phase 2: buddy and world map (docs/GAME-MODE.md) ----------
+   Text stays on --surface/--text (contrast unchanged). Tap targets on the map are ≥ 100 px (≈ 2 cm on iPad).
+   All motion is CSS animation on the buddy wrapper, so [data-motion=reduced] and prefers-reduced-motion stop it. */
+.buddy { position: relative; display: inline-flex; flex-direction: column; align-items: center; }
+.buddy-art { display: block; }
+.buddy-art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.buddy.big .buddy-art { width: 112px; height: 112px; }
+.buddy.small .buddy-art { width: 58px; height: 58px; }
+.buddy-bubble {
+  position: absolute; bottom: calc(100% - 6px); left: 50%; transform: translateX(-50%); z-index: 4;
+  width: max-content; max-width: 220px; padding: 8px 12px; border-radius: 16px; background: var(--surface); color: var(--text);
+  font-size: 15px; font-weight: 700; line-height: 1.25; text-align: center; box-shadow: 0 6px 18px -6px rgb(0 0 0 / .35);
+}
+.buddy-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -7px; border: 7px solid transparent; border-top-color: var(--surface); }
+.buddy.big .buddy-bubble { bottom: auto; top: -6px; left: calc(100% + 4px); transform: none; max-width: 180px; }
+.buddy.big .buddy-bubble::after { top: 18px; left: -14px; margin: 0; border-top-color: transparent; border-right-color: var(--surface); }
+.buddy.pose-idle .buddy-art { animation: buddy-bob 2.6s ease-in-out infinite; }
+.buddy.pose-happy .buddy-art { animation: buddy-hop .55s cubic-bezier(.3, 1.6, .5, 1); }
+.buddy.pose-cheer .buddy-art { animation: buddy-hop .5s cubic-bezier(.3, 1.6, .5, 1) 3; }
+.buddy.pose-think .buddy-art { animation: buddy-tilt 1.4s ease-in-out infinite alternate; }
+.buddy.pose-sleep .buddy-art { animation: buddy-breathe 3.2s ease-in-out infinite; }
+@keyframes buddy-bob { 50% { transform: translateY(-4px); } }
+@keyframes buddy-hop { 40% { transform: translateY(-16px) scale(1.06, .96); } 70% { transform: translateY(0) scale(.98, 1.03); } }
+@keyframes buddy-tilt { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+@keyframes buddy-breathe { 50% { transform: scale(1.03, .98); } }
+
+/* the buddy on the round's stones */
+.has-buddy { position: relative; padding-top: 66px; }
+.has-buddy > .buddy { position: absolute; top: 0; left: 50%; transform: translateX(-50%); transition: left .6s cubic-bezier(.4, 1.4, .5, 1); pointer-events: none; }
+.has-buddy > .buddy .buddy-bubble { pointer-events: none; }
+
+/* world map */
+.world-hero { display: flex; flex-direction: column; gap: 14px; }
+.world-hero-top { display: flex; align-items: flex-start; gap: 6px; min-height: 120px; }
+.world-hero-side { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding-top: 4px; }
+.world-buddy-name { font-weight: 700; color: var(--muted); }
+.goal-stones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.goal-stone { width: 30px; height: 22px; border-radius: 50% 50% 45% 45%; background: color-mix(in srgb, var(--text) 14%, transparent); box-shadow: inset 0 -4px 0 rgb(0 0 0 / .12); }
+.goal-stone.done { background: #8ac926; }
+.goal-stone.next { background: var(--accent); animation: game-hop 1.2s ease-in-out infinite; }
+.world-hero .actions { display: flex; flex-direction: column; gap: 10px; }
+.islands { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.island {
+  display: flex; flex-direction: column; gap: 4px; min-height: 150px; padding: 12px; border-radius: var(--radius); background: var(--surface); color: var(--text);
+  text-decoration: none; border-top: 6px solid var(--island, var(--accent)); box-shadow: var(--game-shadow, none); transition: transform .12s ease;
+}
+.island:active { transform: scale(.97); }
+.island-art svg { display: block; width: 100%; height: auto; max-height: 70px; }
+.island-name { font-size: 17px; font-weight: 800; }
+.island-stars { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.island-bar { display: block; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden; }
+.island-bar > span { display: block; height: 100%; border-radius: 4px; background: var(--island, var(--accent)); }
+.island-meadow { --island: #5cb85c; } .island-cove { --island: #e0a400; } .island-tower { --island: #ef8354; } .island-peaks { --island: #7b5cff; }
+.island-head { display: flex; flex-direction: column; align-items: center; gap: 8px; border-top: 6px solid var(--island, var(--accent)); }
+.island-head .island-art svg { width: 220px; max-height: none; }
+.island-head .btn { align-self: stretch; }
+.stone-path { list-style: none; margin: 0; padding: 4px 0 12px; display: flex; flex-direction: column; gap: 14px; }
+.stone-step { display: flex; justify-content: flex-start; }
+.stone-step.right { justify-content: flex-end; }
+.stone {
+  display: flex; flex-direction: column; justify-content: center; gap: 4px; width: min(78%, 360px); min-height: 100px; padding: 12px 18px;
+  border-radius: 50px 50px 46px 46px; background: var(--surface); color: var(--text); text-decoration: none;
+  border: 3px solid color-mix(in srgb, var(--text) 12%, transparent); box-shadow: inset 0 -6px 0 rgb(0 0 0 / .08), var(--game-shadow, none);
+}
+.stone.lit { border-color: var(--island, var(--accent)); }
+.stone-title { font-size: 17px; font-weight: 800; }
+.stone-stars { color: var(--star); font-size: 20px; letter-spacing: 2px; }
+
+/* buddy picker */
+.buddy-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.buddy-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 160px; padding: 12px; border-radius: var(--radius);
+  border: 3px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-weight: 800; font-size: 18px; cursor: pointer;
+}
+.buddy-tile.picked { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.buddy-tile-art svg { display: block; width: 110px; height: 110px; }
+.buddy-name { width: 100%; text-align: center; }

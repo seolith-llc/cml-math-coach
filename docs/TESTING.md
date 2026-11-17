@@ -148,6 +148,17 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | X5 | Tap fast, double-tap, press back mid-animation, lock the screen while the voice is talking. | No freezes, no double-counting, no voice that keeps talking after leaving. |
 | X6 | Type nonsense answers, very long answers, emoji. | A gentle "I didn't understand" message, never a crash. |
 
+### Game look (Settings → Look → Game)
+
+| ID | Steps | Expected |
+|---|---|---|
+| G1 | Turn on **Look → Game**, go Home. | First time: pick one of 4 buddies (Owl, Fox, Bunny, Dino) and optionally name it, then **Let's go**. Settings → **Buddy** changes it later. Nothing else to dress up or buy. |
+| G2 | Look at the world map. | The buddy greets the child; today's goal shows as stepping stones (crossed ones green); **Play** starts practice. Four islands (Numbers Meadow, Coin Cove, Clock Tower, Puzzle Peaks) show the stars really earned. Everything from the normal Home is still listed below. |
+| G3 | Tap an island, then a stone; go back and tap the island's **Play**. | Each topic is a big stone with its stars; a stone practises that topic, Play practises a mix of the island's topics. |
+| G4 | In a round, get one wrong first, then one right. | The buddy above the progress stones thinks with the child on a miss ("Let's look together.") and cheers a right answer with a short, varied line about effort; it walks one stone forward per question. The question card itself never moves. |
+| G5 | Reach the daily goal, then go Home. | The buddy waves goodnight ("See you tomorrow"); **See my stars** is the main button, Keep going is secondary. |
+| G6 | Settings → **Less motion** (or the system's Reduce Motion). | The buddy and stones stop moving; everything still works. |
+
 ## 5. What we especially want to know
 
 - **Correctness:** any problem with a wrong answer key, two right answers, or an explanation that doesn't match. These matter most.

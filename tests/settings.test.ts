@@ -45,4 +45,12 @@ describe('settings', () => {
     expect(voiceOptions('device:urn:voice:a:b', 1)).toEqual({ rate: 1, engine: 'device', voiceURI: 'urn:voice:a:b' });
     expect(voiceOptions('device:', 1)).toEqual({ rate: 1, engine: 'device', voiceURI: undefined });
   });
+  it('keeps a valid buddy and drops a broken one (added 2026-11-17)', () => {
+    const base = defaultState().settings;
+    expect(migrateSettings({}, base).buddy).toBeNull();
+    expect(migrateSettings({ buddy: { kind: 'fox', name: '  Sunny  ' } } as never, base).buddy).toEqual({ kind: 'fox', name: 'Sunny' });
+    expect(migrateSettings({ buddy: { kind: 'fox', name: 'A very long buddy name here' } } as never, base).buddy?.name).toHaveLength(16);
+    expect(migrateSettings({ buddy: { kind: 'dragon', name: 'X' } } as never, base).buddy).toBeNull();
+    expect(migrateSettings({ buddy: { kind: 'owl' } } as never, base).buddy).toEqual({ kind: 'owl', name: '' });
+  });
 });

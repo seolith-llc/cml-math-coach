@@ -5,6 +5,7 @@ import { disableSync, enableSync, parentLink } from '../sync/sync';
 import { disableReminder, enableReminder, reminderSupport } from '../notify/reminders';
 import { GOALS } from '../core/progress';
 import { applyHighlight, applyLook, group, h, list, segmented, toast } from '../ui/dom';
+import { BUDDIES } from '../content/buddies';
 import { applyVoiceSettings } from '../app';
 import type { View } from '../app';
 
@@ -56,6 +57,8 @@ export function settingsScreen(focus?: string): View {
           applyLook(v, s.motion);
         }),
         toggle('Less motion', s.motion === 'reduced', (v) => { s.motion = v ? 'reduced' : 'full'; save(state); applyLook(s.look, s.motion); })),
+      // The game look's buddy: chosen once, changed here (nothing else to customise).
+      list([{ label: 'Buddy', value: s.buddy ? s.buddy.name || BUDDIES[s.buddy.kind].label : undefined, href: '#/buddy' }]),
       group('Highlights', segmented<Highlight>('Highlights', [{ value: 'neon', label: 'Neon' }, { value: 'classic', label: 'Classic' }], s.highlight, (v) => {
         s.highlight = v;
         save(state);

@@ -3,6 +3,7 @@ import { problemFromId } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { progressDots } from '../ui/session';
+import { trailBuddy } from '../ui/buddy';
 import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
 import type { View } from '../app';
 
@@ -56,6 +57,7 @@ export function reviewScreen(): View {
         results.push(ok);
         round.push({ problem: item.p, ok, answer: res.wrongAnswer });
         dots.update(results);
+        trail?.place();
         recordSecondTry(state, grade, item.p, res);
       },
       onNext: next
@@ -66,6 +68,9 @@ export function reviewScreen(): View {
     slot.replaceChildren(card.el);
   }
 
+  const root = h('div', { class: 'stack' }, queue.length ? dots.el : null, slot);
+  // Game look: the buddy walks the stones and reacts to each answer.
+  const trail = queue.length ? trailBuddy(dots.el, root) : null;
   next();
-  return { title: 'Review', el: h('div', { class: 'stack' }, queue.length ? dots.el : null, slot), destroy: () => { stopPeek(); destroyCard(); } };
+  return { title: 'Review', el: root, destroy: () => { stopPeek(); destroyCard(); trail?.destroy(); } };
 }

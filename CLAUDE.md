@@ -14,11 +14,12 @@ Kid practices on an iPad; a parent follows along on their own device.
 ```
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
-  screens/          home, practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
-  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button), fx (game-look feedback), voiceControls (Pause/Mute on questions)
+  screens/          home, world (game-look Home: map + islands), buddy (picker), practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
+  ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button), fx (game-look feedback), buddy (game-look buddy: poses, bubble, walking the round's stones), voiceControls (Pause/Mute on questions)
   core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
+                    + world.ts (game-look islands → CML topics), buddies.ts (buddy SVGs, poses, effort-based lines)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands)
   sync/             offline-first upload of the attempt log to /api/sync
   notify/           daily reminder (web push subscribe, practiced-today touch) and app icon badge

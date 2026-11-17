@@ -55,11 +55,16 @@ export interface Settings {
   look: Look;
   /** "reduced" turns game animations into fades (the system's reduced-motion setting does too). */
   motion: Motion;
+  /** Game look: the child's buddy, chosen once (changeable in Settings). null until chosen. */
+  buddy: Buddy | null;
 }
 
 export type Look = 'classic' | 'game';
 export const LOOKS: readonly Look[] = ['classic', 'game'];
 export type Motion = 'full' | 'reduced';
+export type BuddyKind = 'owl' | 'fox' | 'bunny' | 'dino';
+export const BUDDY_KINDS: readonly BuddyKind[] = ['owl', 'fox', 'bunny', 'dino'];
+export interface Buddy { kind: BuddyKind; name: string }
 
 export type Highlight = 'neon' | 'classic';
 export const HIGHLIGHTS: readonly Highlight[] = ['neon', 'classic'];
@@ -85,6 +90,11 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   out.highlight = HIGHLIGHTS.includes(raw.highlight as Highlight) ? (raw.highlight as Highlight) : base.highlight; // added 2026-11-13: older saves get neon
   out.look = LOOKS.includes(raw.look as Look) ? (raw.look as Look) : base.look; // added 2026-11-17: older saves stay classic
   out.motion = raw.motion === 'reduced' ? 'reduced' : 'full';
+  // added 2026-11-17 (game mode phase 2): a valid buddy, else none yet
+  const b = raw.buddy as Partial<Buddy> | null | undefined;
+  out.buddy = b && BUDDY_KINDS.includes(b.kind as BuddyKind)
+    ? { kind: b.kind as BuddyKind, name: (typeof b.name === 'string' ? b.name : '').trim().slice(0, 16) }
+    : null;
   return out;
 }
 
@@ -144,7 +154,7 @@ const KEY = 'cml-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full' },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],

@@ -12,6 +12,12 @@ import { choicePicker } from './choicePicker';
 import { problemCard, type CardResult } from './problemCard';
 import { scenePlayer, type Player } from './player';
 import { celebrate, progressDots } from './session';
+import { awardStickers, stickersToday, type Sticker } from '../core/storage';
+import { today } from '../core/progress';
+import { DAILY_MAX, STICKER_LABELS, roundStickers, stickerSvg } from '../content/stickers';
+import { buddyView } from './buddy';
+import { confetti, gameLook } from './fx';
+import { sfx } from '../voice/music';
 
 export interface RoundItem {
   problem: Problem;
@@ -66,6 +72,9 @@ export function roundEnd(o: {
   setCleanup: (fn: () => void) => void;
   /** Called when the round first shows and after every fix, so it can be saved. */
   onChange?: (items: RoundItem[]) => void;
+  /** Game look: stars and today's goal when the round started, so the round end can celebrate and award stickers.
+   *  Left out when reopening a saved round, so nothing is earned twice. */
+  celebrate?: RoundStart;
 }): void {
   const { slot, items } = o;
   let cleanup = () => {};
@@ -76,12 +85,64 @@ export function roundEnd(o: {
   };
   const title = (p: Problem) => topicById(p.topicId)?.title ?? p.topicId;
 
+  // Game look: the celebration card and stickers (docs/GAME-MODE.md phase 4), computed once per round.
+  let earned: Sticker[] | undefined;
+  let celebrated = false;
+  const playful = () => !!o.celebrate && gameLook();
+  const facts = () => roundFeedback(items.map((i) => ({ topicId: i.problem.topicId, title: title(i.problem), ok: i.ok, fixed: i.fixed })));
+  function award() {
+    if (!playful() || earned) return;
+    const state = load();
+    const grade = state.settings.grade;
+    const f = facts();
+    const goalNow = today({ log: state.log, goal: state.settings.goal, reviewDue: 0, meets: [] }).goalMet;
+    earned = awardStickers(state, roundStickers({
+      right: f.right, fixed: f.fixed, total: f.total,
+      starsGained: roundStars(state, grade) - o.celebrate!.starsBefore,
+      goalReached: !o.celebrate!.goalBefore && goalNow,
+      todayCount: stickersToday(state)
+    }), grade);
+  }
+  /** A miss fixed after the summary appeared also earns "Fixed a miss" (once a round, within today's cap). */
+  function awardFix() {
+    if (!playful() || !earned || earned.some((x) => x.kind === 'fixer')) return;
+    const state = load();
+    if (stickersToday(state) >= DAILY_MAX) return;
+    earned.push(...awardStickers(state, ['fixer'], state.settings.grade));
+    celebrated = false; // show the new sticker with a small burst
+  }
+  function celebration(): HTMLElement | null {
+    if (!playful()) return null;
+    const f = facts();
+    const buddy = buddyView('big');
+    const missedLeft = f.total - f.right - f.fixed;
+    buddy.say(
+      f.fixed && !missedLeft ? 'You fixed every miss!'
+        : f.right >= Math.ceil(f.total * 0.8) ? 'What a careful round!'
+        : f.fixed ? 'You went back and fixed it!'
+        : "You kept going. That's how we grow!",
+      'cheer', 5000, true);
+    const card = h('section', { class: 'card round-cheer' }, buddy.el,
+      earned?.length
+        ? h('div', { class: 'sticker-row', role: 'list', 'aria-label': 'New stickers' }, ...earned.map((st) =>
+          h('div', { class: 'sticker-new', role: 'listitem' }, h('span', { class: 'sticker-art', html: stickerSvg(st.design) }), h('span', { class: 'sticker-why' }, STICKER_LABELS[st.kind]))))
+        : null);
+    if (!celebrated) {
+      celebrated = true;
+      requestAnimationFrame(() => confetti(card, Math.min(36, 8 + 2 * (f.right + f.fixed))));
+      sfx(earned?.length ? 'star' : 'right');
+    }
+    return card;
+  }
+
   function summary(spoken = true) {
     own(() => {});
     const f = roundFeedback(items.map((i) => ({ topicId: i.problem.topicId, title: title(i.problem), ok: i.ok, fixed: i.fixed })));
     const missed = items.filter((i) => !i.ok && !i.fixed);
     if (spoken && load().settings.speak) void speak(`${scoreText(f).replace('→', 'now')}. ${f.line}`);
+    award();
     slot.replaceChildren(h('div', { class: 'stack' },
+      celebration(),
       h('div', { class: 'card done' },
         h('p', { class: 'score' }, scoreText(f)),
         h('p', { class: 'round-line' }, f.line),
@@ -125,6 +186,7 @@ export function roundEnd(o: {
           if (good) {
             it.fixed = true;
             o.onChange?.(items);
+            awardFix();
           }
           results.push(good);
           dots.update(results);
@@ -140,6 +202,23 @@ export function roundEnd(o: {
 
   o.onChange?.(items);
   summary();
+}
+
+/** What the round-end celebration compares against (taken when a round starts). */
+export interface RoundStart {
+  starsBefore: number;
+  goalBefore: boolean;
+}
+
+/** All stars of a grade (CML and CogAT), to see whether a round earned one. */
+export function roundStars(state: AppState, grade: Grade): number {
+  return Object.values(state.stats[String(grade)] ?? {}).reduce((n, st) => n + ((st as { stars?: number }).stars ?? 0), 0);
+}
+
+/** Snapshot at the start of a round (game look celebrations). */
+export function roundStart(state: AppState): RoundStart {
+  const s = state.settings;
+  return { starsBefore: roundStars(state, s.grade), goalBefore: today({ log: state.log, goal: s.goal, reviewDue: 0, meets: [] }).goalMet };
 }
 
 /** A second try from the summary counts as a review attempt (and moves it along the spaced Review queue). */

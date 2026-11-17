@@ -28,13 +28,19 @@ export function cheer(card: HTMLElement, right: boolean): void {
   if (right && !reducedMotion()) burst(card);
 }
 
-function burst(card: HTMLElement): void {
+/** A celebration burst on any element, sized by `amount` (game look, full motion only). */
+export function confetti(el: HTMLElement, amount = 18): void {
+  if (!gameLook() || reducedMotion()) return;
+  burst(el, amount);
+}
+
+function burst(card: HTMLElement, count = 18): void {
   const layer = document.createElement('div');
   layer.className = 'fx-burst';
   layer.setAttribute('aria-hidden', 'true');
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < count; i++) {
     const s = document.createElement('i');
-    const angle = (i / 18) * Math.PI * 2 + Math.random() * 0.3;
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.3;
     const dist = 90 + Math.random() * 70;
     s.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
     s.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);

@@ -96,6 +96,7 @@ export function worldScreen(): View {
       hero,
       islands,
       list([
+        { label: 'Sticker book', value: state.stickers?.length || undefined, href: '#/stickers' },
         lastRow ? { label: 'Last round', value: lastRow.score, href: lastRow.href } : null,
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
         { label: 'CogAT', value: cogatStars ? `${cogatStars} ★` : undefined, href: '#/cogat' },

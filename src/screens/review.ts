@@ -4,7 +4,7 @@ import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { progressDots } from '../ui/session';
 import { trailBuddy } from '../ui/buddy';
-import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
+import { keepRound, peekRound, recordSecondTry, roundEnd, roundStart, type RoundItem } from '../ui/roundEnd';
 import type { View } from '../app';
 
 /** Missed problems come back (same problem) on a spaced schedule: same day, 1, 3, 7, 14 days. */
@@ -14,6 +14,7 @@ export function reviewScreen(): View {
   const queue = dueReviews(state, grade).map((r) => ({ r, p: problemFromId(r.problemId)! })).filter((x) => x.p);
   const results: boolean[] = [];
   const round: RoundItem[] = [];
+  const start = roundStart(state); // game-look celebration compares against this
   const slot = h('div');
   let destroyCard = () => {};
   let stopPeek = () => {};
@@ -44,6 +45,7 @@ export function reviewScreen(): View {
           actions: (missedLeft) => [h('a', { class: `btn ${missedLeft ? '' : 'primary'}`, href: '#/practice' }, 'Practice')],
           record: (it, res) => recordSecondTry(state, grade, it.problem, res),
           onChange: (all) => keepRound(state, grade, 'review', all, at),
+          celebrate: start,
           setCleanup: (fn) => (destroyCard = fn)
         });
       }

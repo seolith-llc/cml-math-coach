@@ -8,6 +8,7 @@ import { icon } from './ui/icons';
 import { homeScreen } from './screens/home';
 import { islandScreen, worldScreen } from './screens/world';
 import { buddyScreen } from './screens/buddy';
+import { stickersScreen } from './screens/stickers';
 import { practiceScreen } from './screens/practice';
 import { reviewScreen } from './screens/review';
 import { testScreen } from './screens/test';
@@ -32,6 +33,7 @@ const routes: Record<string, (param?: string) => View> = {
   '': () => (load().settings.look !== 'game' ? homeScreen() : load().settings.buddy ? worldScreen() : buddyScreen()),
   world: (p) => (p ? islandScreen(p) : worldScreen()),
   buddy: buddyScreen,
+  stickers: stickersScreen,
   practice: practiceScreen,
   review: reviewScreen,
   test: testScreen,

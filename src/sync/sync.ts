@@ -38,7 +38,9 @@ export function snapshot(state: AppState) {
     reviewQueue: state.review.length,
     reviewDue: state.review.filter((r) => r.due <= now).length,
     // last round per grade and kind: problem ids and results only (problems regenerate from ids)
-    rounds: state.rounds ?? {}
+    rounds: state.rounds ?? {},
+    // game-look stickers: design, why, when (no free text)
+    stickers: (state.stickers ?? []).slice(-100)
   };
 }
 

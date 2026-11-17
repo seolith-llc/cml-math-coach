@@ -1,4 +1,5 @@
 import { TUNES, type TuneChoice } from './tunes';
+import { nextDesign, type StickerKind } from '../content/stickers';
 import type { Grade } from './types';
 import { normalizeTest, type TestConfig } from './session';
 import { GOALS, awardStars, localDay, streak } from './progress';
@@ -162,6 +163,34 @@ export interface AppState {
   sync?: SyncState;
   /** Last round per `${grade}:${kind}`. */
   rounds?: Record<string, SavedRound>;
+  /** Game look: stickers earned at round ends (docs/GAME-MODE.md phase 4), oldest first. */
+  stickers?: Sticker[];
+}
+
+export interface Sticker {
+  design: number;
+  kind: StickerKind;
+  at: number;
+  grade: Grade;
+}
+
+/** Stickers earned today (local day), for the daily cap. */
+export const stickersToday = (state: AppState, now = Date.now()) => (state.stickers ?? []).filter((s) => localDay(s.at) === localDay(now)).length;
+
+/** Add stickers of these kinds (each a surprise design), save, and let the dashboard sync pick them up. */
+export function awardStickers(state: AppState, kinds: StickerKind[], grade: Grade, now = Date.now()): Sticker[] {
+  const list = (state.stickers ??= []);
+  const added = kinds.map((kind) => {
+    const st: Sticker = { design: nextDesign(list.map((x) => x.design)), kind, at: now, grade };
+    list.push(st);
+    return st;
+  });
+  if (list.length > 500) list.splice(0, list.length - 500);
+  if (added.length) {
+    save(state);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+  }
+  return added;
 }
 
 const KEY = 'cml-coach-v1';

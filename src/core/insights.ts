@@ -2,7 +2,8 @@ import type { Category, Grade } from './types';
 import { problemFromId, topicById, topicsForGrade } from '../content/topics';
 import { parseChoice } from './answer';
 import { roundFeedback, scoreText } from './feedback';
-import type { SavedRound } from './storage';
+import type { SavedRound, Sticker } from './storage';
+import { DESIGNS, STICKER_LABELS } from '../content/stickers';
 
 /** Data the parent dashboard receives from /api/parent. */
 export interface DashboardData {
@@ -17,6 +18,8 @@ export interface DashboardData {
     reviewQueue?: number;
     /** The child's last round per `${grade}:${kind}` (see core/storage.ts SavedRound). */
     rounds?: Record<string, SavedRound>;
+    /** Game-look stickers (design, why, when). */
+    stickers?: Sticker[];
   } | null;
   attempts: {
     ts: number; problemId: string; topicId: string; grade: number; level: number; correct: boolean; firstTry: boolean;
@@ -202,4 +205,14 @@ export function cogatWeek(data: DashboardData, now = Date.now()): CogatWeek | nu
     byType: [...map.values()].sort((a, b) => a.right / a.total - b.right / b.total || b.total - a.total),
     ...(round ? { lastRound: { at: round.at, score: round.score } } : {})
   };
+}
+
+/** The child's latest stickers for the dashboard, newest first, with why each was earned. Tolerates old or partial data. */
+export function recentStickers(data: DashboardData, n = 12): (Sticker & { why: string })[] {
+  const list = Array.isArray(data.snapshot?.stickers) ? data.snapshot!.stickers! : [];
+  return list
+    .filter((s) => s && Number.isInteger(s.design) && s.design >= 0 && s.design < DESIGNS && STICKER_LABELS[s.kind] && Number.isFinite(s.at))
+    .sort((a, b) => b.at - a.at)
+    .slice(0, n)
+    .map((s) => ({ ...s, why: STICKER_LABELS[s.kind] }));
 }

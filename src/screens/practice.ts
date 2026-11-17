@@ -5,7 +5,7 @@ import { makeProblem, topicById, topicsForGrade } from '../content/topics';
 import { h } from '../ui/dom';
 import { problemCard } from '../ui/problemCard';
 import { celebrate, progressDots } from '../ui/session';
-import { keepRound, peekRound, recordSecondTry, roundEnd, type RoundItem } from '../ui/roundEnd';
+import { keepRound, peekRound, recordSecondTry, roundEnd, roundStart, type RoundItem } from '../ui/roundEnd';
 import { today } from '../core/progress';
 import { islandById, islandTopics } from '../content/world';
 import { trailBuddy } from '../ui/buddy';
@@ -24,6 +24,7 @@ export function practiceScreen(topicId?: string): View {
   const pool = island ? islandTopics(grade, island) : topicsForGrade(grade, cogat ? 'cogat' : 'cml');
   const results: boolean[] = [];
   let round: RoundItem[] = [];
+  let start = roundStart(state); // game-look celebration compares against this
   let last: string | undefined;
   let destroyCard = () => {};
   let stopPeek = () => {};
@@ -91,6 +92,7 @@ export function practiceScreen(topicId?: string): View {
         h('button', { class: `btn ${goalMet || missedLeft ? '' : 'primary'}`, type: 'button', onclick: () => {
           results.length = 0;
           round = [];
+          start = roundStart(state);
           dots.update(results);
           dots.el.hidden = false;
           trail?.place();
@@ -99,6 +101,7 @@ export function practiceScreen(topicId?: string): View {
       ],
       record: (it, res) => recordSecondTry(state, grade, it.problem, res),
       onChange: (all) => keepRound(state, grade, kind, all, at),
+      celebrate: start,
       setCleanup: (fn) => (destroyCard = fn)
     });
   }

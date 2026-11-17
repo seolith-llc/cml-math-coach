@@ -14,12 +14,12 @@ Kid practices on an iPad; a parent follows along on their own device.
 ```
 src/
   app.ts            route table (#/<route>/<param>) → one screen per file
-  screens/          home, world (game-look Home: map + islands), buddy (picker), practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
+  screens/          home, world (game-look Home: map + islands), buddy (picker), stickers (sticker book), practice, review, test, learn (+ topic, strategies), cogat, round (reopen the last round), progress, settings (+ privacy), parent
   ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button), fx (game-look feedback), buddy (game-look buddy: poses, bubble, walking the round's stones), voiceControls (Pause/Mute on questions)
   core/             pure logic, no DOM: types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line), tunes (game music composed in code, levels per screen)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + cogat/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
-                    + world.ts (game-look islands → CML topics), buddies.ts (buddy SVGs, poses, effort-based lines)
+                    + world.ts (game-look islands → CML topics), buddies.ts (buddy SVGs, poses, effort-based lines), stickers.ts (round-end sticker rules, 24 designs)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands), activity (talking/listening signal), music (game-look tunes and effects, Web Audio)
   sync/             offline-first upload of the attempt log to /api/sync
   notify/           daily reminder (web push subscribe, practiced-today touch) and app icon badge
@@ -54,6 +54,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 **Try missed again** replays the missed problems (same ids, review mode); each one fixed raises the score, shown as "7 → 9 of 10". Missed problems also stay in the spaced Review queue.
 The last round per grade and kind (`cml`, `cogat`, `review`) is saved in `state.rounds` (problem ids + results, updated after every fix) and reopens at `#/round/<kind>`: a **Last round** row on Home (latest of cml/review) and on the CogAT screen.
 Mid-round, **‹** next to the progress dots (or a tapped dot) opens earlier questions (`peekRound`): answer vs right one, explanation, **Try again** on a missed one (counts as a fix). The current card is kept as is. Practice and Review only, never a scored Test.
+Game look: `roundEnd({ celebrate: roundStart(state) })` (Practice and Review only) adds the celebration card and awards stickers (`state.stickers`, at most 3 a day, synced in `snapshot.stickers`).
 Rounds sync to the parent dashboard inside the existing snapshot (`snapshot.rounds`, no schema change); saving a round triggers a sync. The dashboard lists them newest first (`insights.lastRounds`), and a tapped question shows the child's answer and plays the explanation.
 
 ## Tests (the screen)

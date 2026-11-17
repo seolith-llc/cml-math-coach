@@ -1,5 +1,6 @@
-import { lastRounds, outcomeLabel, summarize, topicTitle, type DashboardData, type RoundView, type TopicRow } from '../core/insights';
+import { lastRounds, outcomeLabel, recentStickers, summarize, topicTitle, type DashboardData, type RoundView, type TopicRow } from '../core/insights';
 import { answerReview } from '../ui/roundEnd';
+import { stickerSvg } from '../content/stickers';
 import type { Player } from '../ui/player';
 import { formatAnswer } from '../core/answer';
 import { problemFromId } from '../content/topics';
@@ -156,6 +157,16 @@ function roundsSection(rounds: RoundView[], onPlayer: (p: Player | undefined) =>
   });
 }
 
+/** Game-look stickers: what the child earned and why (effort, not ability). Hidden until there are some. */
+function stickerSection(stickers: ReturnType<typeof recentStickers>): HTMLElement | null {
+  if (!stickers.length) return null;
+  return group('Stickers', h('div', { class: 'sticker-book compact' }, ...stickers.map((st) =>
+    h('div', { class: 'sticker-cell' },
+      h('span', { class: 'sticker-art', html: stickerSvg(st.design) }),
+      h('span', { class: 'sticker-why' }, st.why),
+      h('span', { class: 'sticker-day' }, day(st.at))))));
+}
+
 let activePlayer: Player | undefined;
 const swapPlayer = (p: Player | undefined) => {
   activePlayer?.destroy();
@@ -185,6 +196,7 @@ function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
     s.strong.length ? list(topicRows(s.strong), 'Strong') : null,
     s.meets.length ? group('Tests', meetChart(s.meets)) : null,
     ...roundsSection(lastRounds(data), swapPlayer),
+    stickerSection(recentStickers(data)),
     s.mistakes.length
       ? group('Mistakes', ...s.mistakes.map((m) => {
           const p = problemFromId(m.problemId);

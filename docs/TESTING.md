@@ -164,6 +164,7 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | G10 | Game look: finish a round (Play). | A card above the score: the buddy cheers about effort, confetti sized to the score, a chime. If earned, stickers pop in with why: **Fixed a miss**, **New star**, **Today's goal** or **Careful round** (8+ right first time). An ordinary round can earn none. That's by design. |
 | G11 | At the summary use **Try missed again** and fix one; then reopen the round from **Last round**. | Fixing earns **Fixed a miss** (once a round). Reopening a saved round shows no celebration and earns nothing. No more than 3 stickers a day. |
 | G12 | World map → **Sticker book**; parent dashboard → **Stickers**. | Only collected stickers, newest first, each with why and the date (no empty slots or "x of 24"). The parent sees the latest ones with the same reasons. |
+| G13 | Tester round (2 weeks, with a child aged 7–9): turn on the parent dashboard; week 1 Game look with music; week 2 Game look with Settings → Music → Off. Ask the child what they liked and didn't. | Rounds keep syncing. The owner sees Classic vs Game and music on vs off in Actions → Status (anonymous). Send the child's comments by reply or the Feedback button. |
 
 ## 5. What we especially want to know
 

@@ -165,6 +165,31 @@ export interface AppState {
   rounds?: Record<string, SavedRound>;
   /** Game look: stickers earned at round ends (docs/GAME-MODE.md phase 4), oldest first. */
   stickers?: Sticker[];
+  /** One line per finished round, in either look (docs/GAME-MODE.md phase 5): compares Game with Classic. */
+  roundLog?: RoundLogEntry[];
+}
+
+/** A finished round, for the Game vs Classic comparison. Numbers only: no names, answers or free text. */
+export interface RoundLogEntry {
+  at: number;
+  look: Look;
+  /** The tune playing (game look), or 'off'. */
+  music: TuneChoice;
+  kind: RoundKind;
+  grade: Grade;
+  total: number;
+  /** Right on the first try. */
+  right: number;
+  /** Missed, then fixed (so far). */
+  fixed: number;
+}
+
+export function logRound(state: AppState, e: RoundLogEntry): void {
+  const list = (state.roundLog ??= []);
+  list.push(e);
+  if (list.length > 400) list.splice(0, list.length - 400);
+  save(state);
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
 }
 
 export interface Sticker {

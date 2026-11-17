@@ -102,6 +102,7 @@ export function practiceScreen(topicId?: string): View {
       record: (it, res) => recordSecondTry(state, grade, it.problem, res),
       onChange: (all) => keepRound(state, grade, kind, all, at),
       celebrate: start,
+      kind,
       setCleanup: (fn) => (destroyCard = fn)
     });
   }

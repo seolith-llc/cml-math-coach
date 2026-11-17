@@ -46,6 +46,7 @@ export function reviewScreen(): View {
           record: (it, res) => recordSecondTry(state, grade, it.problem, res),
           onChange: (all) => keepRound(state, grade, 'review', all, at),
           celebrate: start,
+          kind: 'review',
           setCleanup: (fn) => (destroyCard = fn)
         });
       }

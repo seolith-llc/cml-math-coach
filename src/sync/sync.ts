@@ -40,7 +40,9 @@ export function snapshot(state: AppState) {
     // last round per grade and kind: problem ids and results only (problems regenerate from ids)
     rounds: state.rounds ?? {},
     // game-look stickers: design, why, when (no free text)
-    stickers: (state.stickers ?? []).slice(-100)
+    stickers: (state.stickers ?? []).slice(-100),
+    // finished rounds with look and music, for the Game vs Classic tester round (numbers only)
+    roundLog: (state.roundLog ?? []).slice(-300)
   };
 }
 

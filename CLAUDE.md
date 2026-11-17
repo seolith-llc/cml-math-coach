@@ -27,7 +27,7 @@ public/push-sw.js   imported by the service worker: shows reminders, opens Pract
 server/             backend logic shared by functions/ (unit-tested on SQLite): parent, email (+ nudges), digest, ses, push (RFC 8291/8292), userFeedback, env
 functions/api/      Cloudflare Pages Functions: tts, sync, parent, push, feedback, hourly, weekly, email/{confirm,unsubscribe}
 migrations/         D1 schema, applied once each by scripts/ensure-d1.mjs on deploy
-scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report), probe (live API round-trip), feedback (triage), email-dns (+ email-dns-plan: SES MAIL FROM + DMARC, dry run by default), consolidate-prompts
+scripts/            CI helpers: ensure-d1, ensure-domain, status (prod report; lib/experiment: Game vs Classic tester round), probe (live API round-trip), feedback (triage), email-dns (+ email-dns-plan: SES MAIL FROM + DMARC, dry run by default), consolidate-prompts
 tests/              vitest, including a sweep of every topic × grade × level × 120 seeds
 ```
 
@@ -54,7 +54,7 @@ tests/              vitest, including a sweep of every topic × grade × level �
 **Try missed again** replays the missed problems (same ids, review mode); each one fixed raises the score, shown as "7 → 9 of 10". Missed problems also stay in the spaced Review queue.
 The last round per grade and kind (`cml`, `cogat`, `review`) is saved in `state.rounds` (problem ids + results, updated after every fix) and reopens at `#/round/<kind>`: a **Last round** row on Home (latest of cml/review) and on the CogAT screen.
 Mid-round, **‹** next to the progress dots (or a tapped dot) opens earlier questions (`peekRound`): answer vs right one, explanation, **Try again** on a missed one (counts as a fix). The current card is kept as is. Practice and Review only, never a scored Test.
-Game look: `roundEnd({ celebrate: roundStart(state) })` (Practice and Review only) adds the celebration card and awards stickers (`state.stickers`, at most 3 a day, synced in `snapshot.stickers`).
+Game look: `roundEnd({ celebrate: roundStart(state) })` (Practice and Review only) adds the celebration card and awards stickers (`state.stickers`, at most 3 a day, synced in `snapshot.stickers`), and logs the finished round in either look (`state.roundLog`, numbers only, synced in `snapshot.roundLog`) for the Game vs Classic comparison in Actions → Status.
 Rounds sync to the parent dashboard inside the existing snapshot (`snapshot.rounds`, no schema change); saving a round triggers a sync. The dashboard lists them newest first (`insights.lastRounds`), and a tapped question shows the child's answer and plays the explanation.
 
 ## Tests (the screen)

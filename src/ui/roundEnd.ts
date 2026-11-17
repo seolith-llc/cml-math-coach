@@ -12,7 +12,7 @@ import { choicePicker } from './choicePicker';
 import { problemCard, type CardResult } from './problemCard';
 import { scenePlayer, type Player } from './player';
 import { celebrate, progressDots } from './session';
-import { awardStickers, stickersToday, type Sticker } from '../core/storage';
+import { awardStickers, logRound, stickersToday, type Sticker } from '../core/storage';
 import { today } from '../core/progress';
 import { DAILY_MAX, STICKER_LABELS, roundStickers, stickerSvg } from '../content/stickers';
 import { buddyView } from './buddy';
@@ -75,6 +75,8 @@ export function roundEnd(o: {
   /** Game look: stars and today's goal when the round started, so the round end can celebrate and award stickers.
    *  Left out when reopening a saved round, so nothing is earned twice. */
   celebrate?: RoundStart;
+  /** What kind of round, for the round log (Practice: cml or cogat; Review: review). */
+  kind?: RoundKind;
 }): void {
   const { slot, items } = o;
   let cleanup = () => {};
@@ -90,6 +92,19 @@ export function roundEnd(o: {
   let celebrated = false;
   const playful = () => !!o.celebrate && gameLook();
   const facts = () => roundFeedback(items.map((i) => ({ topicId: i.problem.topicId, title: title(i.problem), ok: i.ok, fixed: i.fixed })));
+  // Phase 5: log every live round once (both looks), the first time its summary shows.
+  let logged = false;
+  function logOnce() {
+    if (!o.celebrate || logged) return;
+    logged = true;
+    const state = load();
+    const st = state.settings;
+    const f = facts();
+    logRound(state, {
+      at: Date.now(), look: st.look, music: st.look === 'game' ? st.music.tune : 'off', kind: o.kind ?? 'cml',
+      grade: st.grade, total: f.total, right: f.right, fixed: f.fixed
+    });
+  }
   function award() {
     if (!playful() || earned) return;
     const state = load();
@@ -140,6 +155,7 @@ export function roundEnd(o: {
     const f = roundFeedback(items.map((i) => ({ topicId: i.problem.topicId, title: title(i.problem), ok: i.ok, fixed: i.fixed })));
     const missed = items.filter((i) => !i.ok && !i.fixed);
     if (spoken && load().settings.speak) void speak(`${scoreText(f).replace('→', 'now')}. ${f.line}`);
+    logOnce();
     award();
     slot.replaceChildren(h('div', { class: 'stack' },
       celebration(),

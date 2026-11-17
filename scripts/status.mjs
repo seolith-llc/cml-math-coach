@@ -4,6 +4,8 @@
  * Prints counts and recent email activity. Email addresses are masked; nothing is changed.
  * Needs CLOUDFLARE_API_TOKEN (D1 read) and CLOUDFLARE_ACCOUNT_ID.
  */
+import { compareLooks, formatComparison } from './lib/experiment.mjs';
+
 const API = 'https://api.cloudflare.com/client/v4';
 const { CLOUDFLARE_API_TOKEN: token, CLOUDFLARE_ACCOUNT_ID: account } = process.env;
 const NAME = process.env.D1_NAME || 'cml-math-coach';
@@ -57,6 +59,20 @@ if (tables.has('push_subs')) {
 if (tables.has('families') && (await q("SELECT COUNT(*) AS n FROM pragma_table_info('families') WHERE name = 'email_nudges'"))[0].n) {
   for (const r of await q('SELECT email, email_weekly, email_nudges, nudges_sent, nudged_day FROM families WHERE email IS NOT NULL'))
     console.log(`  ${mask(r.email)} · weekly: ${r.email_weekly ? 'on' : 'off'} · nudges: ${r.email_nudges ? 'on' : 'off'} (${r.nudges_sent} sent this break, last ${r.nudged_day ?? '–'})`);
+}
+
+// Game mode tester round (docs/GAME-MODE.md phase 5): Game vs Classic per family, numbers only, no names or ids.
+if (tables.has('families')) {
+  const rows = await q("SELECT snapshot FROM families WHERE snapshot IS NOT NULL ORDER BY created_at");
+  const blocks = [];
+  rows.forEach((r, i) => {
+    let snap;
+    try { snap = JSON.parse(r.snapshot); } catch { return; }
+    if (!Array.isArray(snap?.roundLog) || !snap.roundLog.length) return;
+    blocks.push(formatComparison(`Family ${i + 1}`, compareLooks(snap.roundLog)));
+  });
+  console.log('\nGame mode tester round (last 28 days):');
+  console.log(blocks.length ? blocks.join('\n') : '  (no finished rounds synced yet)');
 }
 
 if (tables.has('email_log')) {

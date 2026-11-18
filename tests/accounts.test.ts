@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeDb } from './parent-server.test';
 import {
-  AUTH_LIMITS, acceptInvite, acceptTerms, adminOverview, completeSignIn, createInvite, decide, decideByLink, escalate, familyKeyFor,
+  AUTH_LIMITS, acceptInvite, acceptTerms, adminOverview, completeSignIn, completeSignInCode, createInvite, decide, decideByLink, escalate, familyKeyFor,
   inviteInfo, linkFamily, me, parseAdmins, SUPER_ADMINS, removeMember, requestSignIn, requireMember, revokeInvite, sessionUser, signOut, suspend,
   type AccountsCtx, type User
 } from '../server/accounts';
@@ -108,6 +108,38 @@ describe('accounts: built-in super admins (step079)', () => {
     await requestSignIn(s.ctx(), { email: SUPER_ADMINS[1] });
     const u = (await s.db.prepare('SELECT * FROM users WHERE id = ?').bind('x1').first<User>())!;
     expect(u.is_admin).toBe(1);
+  });
+});
+
+describe('accounts: the 6-digit code in the sign-in email (Home Screen app)', () => {
+  const codeOf = (s: ReturnType<typeof setup>, to: string) => [...s.sent].reverse().find((m) => m.to === to)!.subject.match(/(\d{6})$/)![1];
+  it('signs in with the code once; the link stops working too', async () => {
+    const s = setup();
+    await requestSignIn(s.ctx(), { email: ADMIN });
+    const code = codeOf(s, ADMIN);
+    expect(s.sent[0].text).toContain(code);
+    const r = await completeSignInCode(s.ctx(), { email: ADMIN.toUpperCase(), code });
+    expect(r.cookie).toMatch(/^pt_session=/);
+    await expect(completeSignInCode(s.ctx(), { email: ADMIN, code })).rejects.toThrow(/didn't work/);
+    expect(await completeSignIn(s.ctx(), s.linkTo(ADMIN, '/api/auth/signin')!)).toEqual({ error: expect.stringMatching(/already used/) });
+  });
+  it('allows 5 wrong tries, then the code is dead; strangers get the same answer', async () => {
+    const s = setup();
+    await requestSignIn(s.ctx(), { email: ADMIN });
+    const code = codeOf(s, ADMIN);
+    const wrong = code === '000000' ? '111111' : '000000';
+    for (let i = 0; i < 5; i++) await expect(completeSignInCode(s.ctx(), { email: ADMIN, code: wrong })).rejects.toThrow(/didn't work/);
+    await expect(completeSignInCode(s.ctx(), { email: ADMIN, code })).rejects.toThrow(/didn't work/);
+    await expect(completeSignInCode(s.ctx(), { email: 'stranger@example.com', code: '123456' })).rejects.toThrow(/didn't work/);
+  });
+  it('expires after 15 minutes, and using the link kills the code', async () => {
+    const s = setup();
+    await requestSignIn(s.ctx(), { email: ADMIN });
+    await expect(completeSignInCode(s.ctx(T0 + 16 * 60_000), { email: ADMIN, code: codeOf(s, ADMIN) })).rejects.toThrow(/didn't work/);
+    await requestSignIn(s.ctx(), { email: ADMIN });
+    const code = codeOf(s, ADMIN);
+    await completeSignIn(s.ctx(), s.linkTo(ADMIN, '/api/auth/signin')!);
+    await expect(completeSignInCode(s.ctx(), { email: ADMIN, code })).rejects.toThrow(/didn't work/);
   });
 });
 

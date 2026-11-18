@@ -1,6 +1,6 @@
 /** POST /api/auth: accounts (server/accounts.ts). The body's "action" picks what to do; the session cookie says who. */
 import {
-  acceptInvite, acceptTerms, adminOverview, clearCookie, createInvite, decide, familyKeyFor, inviteInfo, me, removeMember,
+  acceptInvite, acceptTerms, completeSignInCode, adminOverview, clearCookie, createInvite, decide, familyKeyFor, inviteInfo, me, removeMember,
   requestSignIn, requireMember, revokeInvite, sessionUser, signOut, suspend
 } from '../../../server/accounts';
 import { HttpError, json, loadData, readJson, sameOrigin, type FamilyRow } from '../../../server/parent';
@@ -33,6 +33,10 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
         const row = key ? await ctx.db.prepare('SELECT * FROM families WHERE key = ?').bind(key).first<FamilyRow>() : null;
         if (!row) throw new HttpError(404, 'No synced device for this family yet');
         return json(200, await loadData(ctx.db, row));
+      }
+      case 'code': {
+        const { cookie } = await completeSignInCode(ctx, body);
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', 'set-cookie': cookie } });
       }
       case 'signout': {
         await signOut(ctx, request);

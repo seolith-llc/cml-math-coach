@@ -576,3 +576,5 @@ html[data-look="game"] .bar:has(.bar-music:not([hidden])) { grid-template-column
 .accept-card { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); display: grid; gap: 12px; box-shadow: 0 6px 24px rgb(0 0 0 / .12); }
 .accept-row { display: flex; gap: 12px; align-items: flex-start; line-height: 1.4; cursor: pointer; }
 .accept-row input { width: 24px; height: 24px; flex: none; margin: 0; accent-color: var(--accent); }
+
+.row-input.code { font-size: 24px; letter-spacing: 6px; font-variant-numeric: tabular-nums; }

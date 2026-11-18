@@ -31,8 +31,28 @@ function emailForm(button: string, send: (email: string) => Promise<void>): HTML
   return form;
 }
 
-const sentView = (email: string) =>
-  h('div', { class: 'stack' }, h('h2', { class: 'page-heading' }, 'Check your email'), group(null, h('div', { class: 'row' }, h('span', { class: 'row-label' }, email))));
+/** After the email is sent: the 6-digit code from it signs in right here (the Home Screen app has its own storage). */
+function sentView(email: string): HTMLElement {
+  const code = h('input', { class: 'row-input code', type: 'text', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: 6, placeholder: '6-digit code', 'aria-label': 'Code from the email' }) as HTMLInputElement;
+  const out = h('p', { class: 'feedback', role: 'status' });
+  const btn = h('button', { class: 'btn primary hero', type: 'submit' }, 'Sign in') as HTMLButtonElement;
+  const form = h('form', { class: 'stack', onsubmit: async (e: Event) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(code.value.trim())) return;
+    btn.disabled = true;
+    try {
+      await call('code', { email, code: code.value.trim() });
+      await refreshAccount();
+      location.hash = '#/';
+    } catch (err) {
+      out.className = 'feedback bad';
+      out.textContent = (err as Error).message;
+      btn.disabled = false;
+    }
+  } }, group(null, h('div', { class: 'row' }, code)), btn, out);
+  setTimeout(() => code.focus(), 50);
+  return h('div', { class: 'stack' }, h('h2', { class: 'page-heading' }, 'Check your email'), group(null, h('div', { class: 'row' }, h('span', { class: 'row-label' }, email))), form);
+}
 
 /** #/signin */
 export function signinScreen(): View {

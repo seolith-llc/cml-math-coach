@@ -170,11 +170,11 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 
 | # | Do this | Expect |
 |---|---|---|
-| U1 | Open your invite link, enter your email, tap **Join**, then open the sign-in email and tap **Sign in**. | The terms screen, then the app. Settings → **People** lists your family and your role. |
+| U1 | Open your invite link, enter your email, tap **Join**, then type the 6-digit code from the sign-in email (in the Home Screen app, always use the code; in Safari the **Sign in** button works too). | The terms screen, then the app. Settings → **People** lists your family and your role. |
 | U2 | Settings → People → **Invite a viewer**; send the link to another adult in your family. | They join at once as a **Viewer**: they see the family's **Progress**, but no invite or remove options. |
 | U3 | Settings → People → **Invite another family**. | A link is shared; the count goes down by one. When that family joins, you get an email to **Approve** or **Decline**. Until you approve, they only see *Waiting for approval*. |
 | U4 | Settings → People → tap an open invite → cancel it. | The invite disappears; a family invite goes back to the count. |
-| U5 | Sign out, then sign in again with the email link; try an old or used link. | A used or 15-minute-old link says so and offers a new one. |
+| U5 | Sign out, then sign in again; try a wrong code, an old code, and a used link. | A wrong or 15-minute-old code says it didn't work; after 5 wrong tries a new email is needed; a used link says so. |
 
 ## 5. What we especially want to know
 

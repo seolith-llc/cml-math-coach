@@ -156,9 +156,13 @@ async function sendSignIn(ctx: AccountsCtx, u: User): Promise<void> {
   if ((n?.n ?? 0) >= AUTH_LIMITS.signinPerHour) return; // quietly: the answer is the same either way
   const t = await newToken(ctx, 'signin', u.id, AUTH_LIMITS.signinMinutes * MIN);
   const url = `${ctx.origin}/api/auth/signin?t=${t}`;
-  await mail(ctx, u.email, 'signin', 'Your Puzzle Trail sign-in link', 'Sign in to Puzzle Trail',
-    `<p>Tap the button to sign in on this device. The link works once, for ${AUTH_LIMITS.signinMinutes} minutes.</p><p style="color:#6e6e73;font-size:13px">If you didn't ask for this, ignore this email.</p>`,
-    `Sign in to Puzzle Trail. The link works once, for ${AUTH_LIMITS.signinMinutes} minutes. If you didn't ask for this, ignore this email.`,
+  // the same email carries a 6-digit code: an iPad Home Screen app keeps its own storage, so it signs in by typing the code
+  const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000).padStart(6, '0');
+  await ctx.db.prepare('INSERT OR REPLACE INTO signin_codes (user, code_hash, expires_at, tries) VALUES (?, ?, ?, 0)')
+    .bind(u.id, await sha256Hex(`${u.id}:${code}`), now(ctx) + AUTH_LIMITS.signinMinutes * MIN).run();
+  await mail(ctx, u.email, 'signin', `Your Puzzle Trail sign-in code: ${code}`, 'Sign in to Puzzle Trail',
+    `<p>Type this code in the app:</p><p style="font-size:32px;font-weight:700;letter-spacing:6px;margin:8px 0 16px">${code}</p><p>Or tap the button to sign in in this browser. The code and the link work once, for ${AUTH_LIMITS.signinMinutes} minutes.</p><p style="color:#6e6e73;font-size:13px">If you didn't ask for this, ignore this email.</p>`,
+    `Your Puzzle Trail sign-in code: ${code}\nType it in the app, or open the link below to sign in in this browser. The code and the link work once, for ${AUTH_LIMITS.signinMinutes} minutes. If you didn't ask for this, ignore this email.`,
     { label: 'Sign in', url });
 }
 
@@ -234,14 +238,42 @@ export async function completeSignIn(ctx: AccountsCtx, token: string): Promise<{
   if (row.expires_at <= now(ctx)) return { error: 'This link has expired. Ask for a new one.' };
   const u = await userById(ctx.db, row.user);
   if (!u || u.status === 'denied' || u.status === 'suspended') return { error: 'This account is not active.' };
+  await ctx.db.batch([
+    ctx.db.prepare('UPDATE auth_tokens SET used_at = ? WHERE hash = ?').bind(now(ctx), hash),
+    ctx.db.prepare('DELETE FROM signin_codes WHERE user = ?').bind(u.id)
+  ]);
+  return startSession(ctx, u);
+}
+
+async function startSession(ctx: AccountsCtx, u: User): Promise<{ cookie: string }> {
   if (u.is_admin && u.status === 'active') await ensureHousehold(ctx, u);
   const session = randomToken(32);
   await ctx.db.batch([
-    ctx.db.prepare('UPDATE auth_tokens SET used_at = ? WHERE hash = ?').bind(now(ctx), hash),
     ctx.db.prepare('INSERT INTO sessions (hash, user, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256Hex(session), u.id, now(ctx), now(ctx) + AUTH_LIMITS.sessionDays * DAY),
     ctx.db.prepare('UPDATE users SET last_seen = ? WHERE id = ?').bind(now(ctx), u.id)
   ]);
   return { cookie: sessionCookie(session) };
+}
+
+/** POST /api/auth (action code): the 6-digit code from the sign-in email, typed in the app. 5 tries, then a new email is needed. */
+export async function completeSignInCode(ctx: AccountsCtx, body: Record<string, unknown>): Promise<{ cookie: string }> {
+  const wrong = new HttpError(400, "That code didn't work. Check the latest email, or ask for a new one");
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const code = typeof body.code === 'string' ? body.code.replace(/\s/g, '') : '';
+  if (!/^\d{6}$/.test(code) || !email) throw wrong;
+  const u = await userByEmail(ctx.db, email);
+  if (!u || u.status === 'denied' || u.status === 'suspended') throw wrong;
+  const row = await ctx.db.prepare('SELECT * FROM signin_codes WHERE user = ?').bind(u.id).first<{ code_hash: string; expires_at: number; tries: number }>();
+  if (!row || row.expires_at <= now(ctx) || row.tries >= 5) throw wrong;
+  if (row.code_hash !== (await sha256Hex(`${u.id}:${code}`))) {
+    await ctx.db.prepare('UPDATE signin_codes SET tries = tries + 1 WHERE user = ?').bind(u.id).run();
+    throw wrong;
+  }
+  await ctx.db.batch([
+    ctx.db.prepare('DELETE FROM signin_codes WHERE user = ?').bind(u.id),
+    ctx.db.prepare("UPDATE auth_tokens SET used_at = ? WHERE user = ? AND purpose = 'signin' AND used_at IS NULL").bind(now(ctx), u.id)
+  ]);
+  return startSession(ctx, u);
 }
 
 export async function signOut(ctx: AccountsCtx, request: Request) {
@@ -534,7 +566,8 @@ export async function inviteByEmail(ctx: AccountsCtx, emails: unknown): Promise<
   const out = { invited: 0, already: 0, invalid: 0 };
   for (const email of [...new Set(list)]) {
     if (!EMAIL_RE.test(email) || email.length > 254) { out.invalid++; continue; }
-    if (await userByEmail(ctx.db, email)) { out.already++; continue; }
+    // members, and super admins (who sign in without an invite), are skipped
+    if (ctx.admins.includes(email) || (await userByEmail(ctx.db, email))) { out.already++; continue; }
     const { link } = await createInvite(ctx, admin, { kind: 'family' });
     await mail(ctx, email, 'invite', "You're invited to Puzzle Trail", 'You’re invited to Puzzle Trail',
       `<p>Puzzle Trail is a private, invite-only puzzle game for kids, with tough number and thinking puzzles.</p>

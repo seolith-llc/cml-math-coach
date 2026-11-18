@@ -99,7 +99,7 @@ describe('phase 3: the super admin invites families by email', () => {
     expect(sent.map((m) => m.to)).toEqual(['one@example.com', 'two@example.com']);
     expect(sent[0].text).toMatch(/#\/invite\/[A-Za-z0-9_-]{20,}/);
     expect(sent[0].text).toContain('not affiliated with or endorsed by');
-    expect(await inviteByEmail(ctx(), [parseAdmins('')[0]])).toEqual({ invited: 0, already: 1, invalid: 0 });
+    expect(await inviteByEmail(ctx(), [parseAdmins('')[0], parseAdmins('')[1]])).toEqual({ invited: 0, already: 2, invalid: 0 });
   });
 
   it('the route needs the bearer secret', async () => {

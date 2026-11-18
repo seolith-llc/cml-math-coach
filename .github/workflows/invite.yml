@@ -7,8 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       emails:
-        description: 'Email addresses, separated by commas'
-        required: true
+        description: 'Email addresses, separated by commas (leave empty with the box below ticked)'
+        required: false
+        default: ''
+      from_access_list:
+        description: 'Invite everyone on the Cloudflare Access list (secret ACCESS_ALLOWED_EMAILS): the move from the old address'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,9 +27,11 @@ jobs:
           APP_URL: ${{ vars.APP_URL || 'https://puzzletrail.seolith.com' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           EMAILS: ${{ inputs.emails }}
+          ACCESS_LIST: ${{ inputs.from_access_list && secrets.ACCESS_ALLOWED_EMAILS || '' }}
         run: |
           set -u
-          body=$(jq -n --arg e "$EMAILS" '{emails: $e}')
+          all="$EMAILS,$ACCESS_LIST"
+          body=$(jq -n --arg e "$all" '{emails: $e}')
           code=$(curl -s -o /tmp/out.json -w '%{http_code}' -X POST "$APP_URL/api/admin/invite" \
             -H "authorization: Bearer $CRON_SECRET" -H 'content-type: application/json' -d "$body")
           echo "HTTP $code $(cat /tmp/out.json)" | tee -a "$GITHUB_STEP_SUMMARY"

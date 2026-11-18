@@ -15,6 +15,7 @@
 import { ACCEPT_DAYS, DISCLAIMER_SHORT, TERMS_VERSION, daysLeft, termsDue } from '../src/content/legal';
 import type { Mailer } from './email';
 import { HttpError, sha256Hex, type DB } from './parent';
+import { capacityPaused, getCapacity } from './capacity';
 
 export const SESSION_COOKIE = 'pt_session';
 const MIN = 60_000;
@@ -56,6 +57,9 @@ export interface AccountsCtx {
   admins: string[];
   now?: number;
 }
+
+/** The capacity guard (server/capacity.ts) is holding new families back for now. */
+const PAUSED = new HttpError(503, 'New families are paused for a few days while the app catches up. Please try again later');
 
 const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[a-z]{2,}$/i;
 const now = (ctx: AccountsCtx) => ctx.now ?? Date.now();
@@ -326,6 +330,7 @@ export async function acceptInvite(ctx: AccountsCtx, body: Record<string, unknow
     if (!has) await ctx.db.prepare('INSERT INTO members (household, user, role, created_at) VALUES (?, ?, ?, ?)').bind(inv.household, u.id, inv.role, now(ctx)).run();
   } else {
     if (u) throw new HttpError(409, 'This email already has Puzzle Trail. Sign in instead');
+    if (await capacityPaused(ctx.db)) throw PAUSED;
     const auto = inviter.is_admin === 1;
     u = await createUser(ctx, email, auto ? 'active' : 'pending', inviter.id);
     if (auto) await createHousehold(ctx, u.id);
@@ -354,6 +359,7 @@ export async function createInvite(ctx: AccountsCtx, me: User, body: Record<stri
     await ctx.db.prepare("INSERT INTO invites (id, kind, household, role, created_by, created_at, expires_at) VALUES (?, 'join', ?, ?, ?, ?, ?)")
       .bind(base.id, household, role, me.id, base.created_at, base.expires_at).run();
   } else if (body.kind === 'family') {
+    if (await capacityPaused(ctx.db)) throw PAUSED;
     const owns = await ctx.db.prepare("SELECT 1 FROM members WHERE user = ? AND role = 'owner' LIMIT 1").bind(me.id).first();
     if (!me.is_admin && !owns) throw new HttpError(403, 'Only a family owner can invite another family');
     if (!me.is_admin && me.invites_left <= 0) throw new HttpError(403, 'No family invites left');
@@ -483,7 +489,7 @@ export async function me(ctx: AccountsCtx, u: User | null, required: boolean) {
     .all<{ user: string; email: string; created_at: number }>()).results;
   // limited access: only family owners (and super admins) invite new families
   const canInviteFamilies = u.is_admin === 1 || households.some((h) => h.role === 'owner');
-  return { ...base, canInviteFamilies, invitesLeft: u.is_admin ? null : u.invites_left, households, invites, waiting };
+  return { ...base, canInviteFamilies, familiesPaused: await capacityPaused(ctx.db), invitesLeft: u.is_admin ? null : u.invites_left, households, invites, waiting };
 }
 
 export async function acceptTerms(ctx: AccountsCtx, u: User | null, body: Record<string, unknown>) {
@@ -505,7 +511,7 @@ export async function adminOverview(ctx: AccountsCtx, u: User) {
   const recent = (await ctx.db
     .prepare('SELECT u.id, u.email, u.status, u.created_at, u.last_seen, i.email AS invited_by FROM users u LEFT JOIN users i ON i.id = u.invited_by ORDER BY u.created_at DESC LIMIT 50')
     .all<Record<string, unknown>>()).results;
-  return { counts: Object.fromEntries(counts.map((c) => [c.status, c.n])), users: recent };
+  return { counts: Object.fromEntries(counts.map((c) => [c.status, c.n])), users: recent, capacity: await getCapacity(ctx.db) };
 }
 
 /** Super admin: suspend a person, and with branch everyone they invited (recursively); sessions end at once. */
@@ -556,6 +562,7 @@ export async function familyKeyFor(ctx: AccountsCtx, u: User, household?: string
 export async function inviteByEmail(ctx: AccountsCtx, emails: unknown): Promise<{ invited: number; already: number; invalid: number }> {
   const list = (Array.isArray(emails) ? emails : String(emails ?? '').split(/[\s,;]+/)).map((e) => String(e).trim().toLowerCase()).filter(Boolean);
   if (list.length > 50) throw new HttpError(400, 'At most 50 at a time');
+  if (await capacityPaused(ctx.db)) throw PAUSED;
   const adminEmail = ctx.admins[0];
   if (!adminEmail) throw new HttpError(503, 'No super admin');
   let admin = await userByEmail(ctx.db, adminEmail);
@@ -577,4 +584,37 @@ export async function inviteByEmail(ctx: AccountsCtx, emails: unknown): Promise<
     out.invited++;
   }
   return out;
+}
+
+/* ---------------- invites that grow with practice (phase 5) ---------------- */
+
+export const GROW = { activeDays: 3, everyDays: 7 };
+
+/**
+ * Hourly (it decides itself): an owner whose family practised on 3+ of the last 7 days gets one more family invite,
+ * at most once a week, up to AUTH_LIMITS.familyInvitesMax. Super admins have no limit anyway.
+ */
+export async function growInvites(ctx: AccountsCtx): Promise<{ granted: number }> {
+  const t = now(ctx);
+  const week = GROW.everyDays * DAY;
+  const owners = (await ctx.db
+    .prepare(`SELECT u.id, h.family_key FROM users u
+       JOIN members m ON m.user = u.id AND m.role = 'owner'
+       JOIN households h ON h.id = m.household
+       WHERE u.status = 'active' AND u.is_admin = 0 AND h.family_key IS NOT NULL AND u.invites_left < ?
+         AND u.created_at <= ? AND (u.invites_granted_at IS NULL OR u.invites_granted_at <= ?)
+       LIMIT 200`)
+    .bind(AUTH_LIMITS.familyInvitesMax, t - week, t - week)
+    .all<{ id: string; family_key: string }>()).results;
+  let granted = 0;
+  for (const o of owners) {
+    const r = await ctx.db
+      .prepare('SELECT COUNT(DISTINCT ts / 86400000) AS days FROM attempts WHERE family = ? AND ts >= ?')
+      .bind(o.family_key, t - week)
+      .first<{ days: number }>();
+    if ((r?.days ?? 0) < GROW.activeDays) continue;
+    await ctx.db.prepare('UPDATE users SET invites_left = MIN(invites_left + 1, ?), invites_granted_at = ? WHERE id = ?').bind(AUTH_LIMITS.familyInvitesMax, t, o.id).run();
+    granted++;
+  }
+  return { granted };
 }

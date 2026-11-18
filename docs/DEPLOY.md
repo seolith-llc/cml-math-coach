@@ -126,6 +126,15 @@ How people join: Settings → **People** → *Invite a co-parent* / *Invite a vi
 - **Old address** `cml-math-coach.seolith.com`: stays behind Cloudflare Access (`ACCESS_URL`; the Access script never adds the new address). With `MOVE_ON = true` it uploads each device's progress under a one-time code (`/api/handoff`, D1 `handoffs`, 30 minutes) and opens `https://puzzletrail.seolith.com/#/handoff/<code>`; the device then only shows "Puzzle Trail has moved". Reminders set up on the old address must be turned on again on the new one.
 - **Inviting families:** Actions → **Invite** → email addresses (comma-separated). Each gets an invite link by email from the super admin; the log shows only counts. Use it only once the repository is private (run inputs are visible to anyone who can see the repository).
 
+## Growth and the capacity guard (phase 5, step085)
+
+- **Invites grow with practice:** 3 family invites to start, plus one a week in which the family practised on 3+ days, up to 10 (hourly job).
+- **Capacity guard:** every hour, `scripts/capacity.mjs` reads today's (UTC) usage for the whole Cloudflare account and posts it to `/api/admin/capacity`.
+  Above 80% of a free daily limit (100,000 requests, 5,000,000 D1 rows read, 100,000 rows written, 10,000 Workers AI neurons), new families pause and the natural voice falls back to the device voice; below 60% it resumes.
+  The token needs **Account → Account Analytics → Read**: add it to `CLOUDFLARE_API_TOKEN`, or store a separate token as the secret `CLOUDFLARE_ANALYTICS_TOKEN`. A measure the token can't read is skipped (the hourly summary says which).
+  On a paid plan, set the Actions variable `CAPACITY_LIMITS_JSON`, e.g. `{"requests": 10000000}`.
+- **Numbers:** Actions → Status prints people, families, invites, approvals, sign-ins and the capacity state (no addresses); the in-app Admin page shows the capacity too.
+
 ## Private access (Cloudflare Access)
 
 The app is private: it is not indexed (robots.txt, `X-Robots-Tag: noindex`), crawlers and AI agents are refused

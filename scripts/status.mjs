@@ -75,6 +75,25 @@ if (tables.has('families')) {
   console.log(blocks.length ? blocks.join('\n') : '  (no finished rounds synced yet)');
 }
 
+// Phase 5: growth (numbers only, never addresses)
+if (tables.has('users')) {
+  const day = 86_400_000, now = Date.now();
+  const n = async (sql) => Number((await q(sql))[0]?.n ?? 0);
+  const users = await q('SELECT status, COUNT(*) AS n FROM users GROUP BY status');
+  const roles = await q('SELECT role, COUNT(*) AS n FROM members GROUP BY role');
+  console.log('\nGrowth (invite-only accounts):');
+  console.log(`  People: ${users.map((r) => `${r.status} ${r.n}`).join(', ') || 'none yet'} · roles: ${roles.map((r) => `${r.role} ${r.n}`).join(', ') || '–'}`);
+  console.log(`  Families: ${await n('SELECT COUNT(*) AS n FROM households')} (${await n('SELECT COUNT(*) AS n FROM households WHERE family_key IS NOT NULL')} with a synced device)`);
+  console.log(`  Invites, last 7 days: ${await n(`SELECT COUNT(*) AS n FROM invites WHERE created_at > ${now - 7 * day}`)} made, ${await n(`SELECT COUNT(*) AS n FROM invites WHERE used_at > ${now - 7 * day}`)} used · open now: ${await n(`SELECT COUNT(*) AS n FROM invites WHERE used_by IS NULL AND revoked = 0 AND expires_at > ${now}`)}`);
+  console.log(`  Approvals waiting: ${await n('SELECT COUNT(*) AS n FROM approvals WHERE decided_at IS NULL')} (${await n('SELECT COUNT(*) AS n FROM approvals WHERE decided_at IS NULL AND escalated_at IS NOT NULL')} with the super admin)`);
+  console.log(`  Signed in, last 7 days: ${await n(`SELECT COUNT(*) AS n FROM users WHERE last_seen > ${now - 7 * day}`)} people · sign-in emails, last 24 h: ${await n(`SELECT COUNT(*) AS n FROM email_log WHERE kind = 'signin' AND ts > ${now - day}`)}`);
+  const cap = (await q("SELECT v FROM kv WHERE k = 'capacity'"))[0];
+  if (cap) {
+    const c = JSON.parse(cap.v);
+    console.log(`  Capacity: ${c.paused ? 'PAUSED' : 'open'} · busiest ${c.worst?.key ?? '–'} ${c.worst ? Math.round(c.worst.share * 100) + '%' : ''} · checked ${when(c.at)}`);
+  } else console.log('  Capacity: not checked yet');
+}
+
 if (tables.has('email_log')) {
   console.log('\nRecent email sends:');
   const rows = await q('SELECT ts, kind, ok, detail FROM email_log ORDER BY ts DESC LIMIT 20');

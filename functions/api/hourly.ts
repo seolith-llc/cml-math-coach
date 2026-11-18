@@ -4,13 +4,14 @@
  * - parent nudges (5 pm Chicago, not Sunday)
  * - the weekly summary (Sunday evening window; once per family per week)
  * - family approvals undecided for 72 hours go to the super admin (server/accounts.ts)
+ * - one more family invite a week for owners whose family practised on 3+ days (phase 5)
  * Each part decides for itself whether it's time, so running hourly is always safe.
  */
 import { sendNudges, sendWeekly } from '../../server/email';
 import { json } from '../../server/parent';
 import { sendReminders } from '../../server/push';
 import { accountsCtx, bearerOk, mailerFrom, originFor, type Env } from '../../server/env';
-import { escalate } from '../../server/accounts';
+import { escalate, growInvites } from '../../server/accounts';
 import { sweepHandoffs } from '../../server/handoff';
 
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
@@ -31,6 +32,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     nudges: mailer ? await run(() => sendNudges(ctx)) : { error: 'Email is not configured' },
     weekly: mailer ? await run(() => sendWeekly(ctx)) : { error: 'Email is not configured' },
     handoffs: await run(() => sweepHandoffs(env.DB!)),
+    invites: await run(() => growInvites(accountsCtx(env, request))),
     approvals: mailer ? await run(() => escalate(accountsCtx(env, request))) : { error: 'Email is not configured' }
   });
 }

@@ -78,6 +78,7 @@ Only Test mode writes a `meets` record. The setup is stored in `settings.test`.
 - **Streak:** local days; one missed day per week is forgiven. No loss-framed copy anywhere.
 - **Reminders go to the parent first:** inactivity nudge emails (3 days, then 7, max 2 per break, 5 pm Chicago, never Sunday) with their own switch and one-click "turn off reminders".
   Device reminders (web push) are opt-in in Settings, one a day at a chosen hour, skipped if practice already happened today, paused after 14 idle days. On iPad they need the Home Screen app.
+- **Growth (phase 5, step085):** owners start with 3 family invites and get one more per week in which their family practised on 3+ days, up to 10 (`accounts.growInvites`, hourly; `users.invites_granted_at`). **Capacity guard** (`server/capacity.ts`): the hourly job runs `scripts/capacity.mjs`, which reads today's account-wide Cloudflare usage (Functions requests, D1 rows read/written, Workers AI neurons) and posts it to `/api/admin/capacity` (bearer). Above 80% of a free limit, new families pause (family invites and their acceptance answer 503; co-parents and viewers can still join) and `/api/tts` makes no new clips (the app falls back to the device voice); it resumes under 60%. Admin and Status show it.
 - **Scheduling:** one job. `.github/workflows/hourly.yml` → `POST /api/hourly` (bearer `CRON_SECRET`), and each part decides if it's due. The VAPID key pair is generated once and stored in D1 `kv`.
 
 ## Feedback (in the app)

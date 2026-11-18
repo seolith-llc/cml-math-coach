@@ -1,3 +1,5 @@
+import { capacityPaused } from '../../server/capacity';
+import type { DB } from '../../server/parent';
 /**
  * Cloudflare Pages Function: GET /api/tts?v=<speaker>&t=<text>
  * Returns natural-sounding MP3 speech from Workers AI (Deepgram Aura-2).
@@ -10,6 +12,8 @@
 
 interface Env {
   AI: { run(model: string, input: Record<string, unknown>): Promise<unknown> };
+  /** For the capacity guard (server/capacity.ts): no new clips while paused. */
+  DB?: DB;
 }
 
 interface Ctx {
@@ -113,6 +117,9 @@ export async function onRequestGet(ctx: Ctx): Promise<Response> {
     const wait = await rateLimit(edge, url.origin, ip);
     if (wait) return err(429, 'Too many voice requests - using the device voice for now', { 'retry-after': String(wait) });
   }
+
+  // Capacity guard: near the account's free daily limits, no new clips (the app uses the device voice; cached clips still play).
+  if (env.DB && (await capacityPaused(env.DB))) return err(503, 'Natural voice paused for today - using the device voice', { 'retry-after': '3600' });
 
   let audio: ArrayBuffer | Uint8Array;
   try {

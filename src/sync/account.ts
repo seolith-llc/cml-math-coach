@@ -15,6 +15,7 @@ export interface Me extends AccountState {
   termsVersion?: string;
   invitesLeft?: number | null;
   canInviteFamilies?: boolean;
+  familiesPaused?: boolean;
   households?: Household[];
   invites?: Invite[];
   waiting?: { user: string; email: string; created_at: number }[];

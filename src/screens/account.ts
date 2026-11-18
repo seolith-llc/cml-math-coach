@@ -156,7 +156,7 @@ export function peopleScreen(): View {
     };
     fill(root,
       ...(me.households ?? []).flatMap((hh) => householdSection(hh, refresh)),
-      me.canInviteFamilies ? list([{ label: 'Invite another family', value: me.invitesLeft === null || me.invitesLeft === undefined ? undefined : me.invitesLeft, onclick: familyInvite }]) : null,
+      me.canInviteFamilies ? list([{ label: 'Invite another family', value: me.familiesPaused ? 'Paused' : me.invitesLeft === null || me.invitesLeft === undefined ? undefined : me.invitesLeft, onclick: familyInvite }]) : null,
       me.invites?.length
         ? list(me.invites.map((i) => ({
             label: inviteLabel(i),
@@ -193,6 +193,7 @@ export function peopleScreen(): View {
 /* ---------------- Admin (super admin only) ---------------- */
 
 interface AdminData {
+  capacity: { paused: boolean; worst: { key: string; share: number } | null };
   counts: Record<string, number>;
   users: { id: string; email: string; status: string; created_at: number; last_seen: number | null; invited_by: string | null }[];
 }
@@ -206,6 +207,7 @@ export function adminScreen(): View {
       const tile = (n: number | undefined, label: string) => h('div', { class: 'tile' }, h('strong', {}, String(n ?? 0)), h('span', {}, label));
       fill(root,
         h('div', { class: 'tiles', style: '--n: 3' }, tile(d.counts.active, 'Active'), tile(d.counts.pending, 'Waiting'), tile(d.counts.suspended, 'Suspended')),
+        list([{ label: 'New families', value: d.capacity.paused ? 'Paused' : 'Open' }, { label: 'Busiest limit today', value: d.capacity.worst ? `${Math.round(d.capacity.worst.share * 100)}%` : '–' }]),
         list(d.users.map((u) => ({
           label: u.email,
           value: u.status === 'active' ? day(u.last_seen ?? u.created_at) : u.status,

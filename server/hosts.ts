@@ -19,5 +19,5 @@ export const OPEN_API: readonly string[] = [
   '/api/auth', '/api/auth/signin', '/api/auth/approve',
   '/api/email/confirm', '/api/email/unsubscribe',
   '/api/handoff',
-  '/api/hourly', '/api/weekly', '/api/admin/invite'
+  '/api/hourly', '/api/weekly', '/api/admin/invite', '/api/admin/capacity'
 ];

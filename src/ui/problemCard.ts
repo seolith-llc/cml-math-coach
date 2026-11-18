@@ -1,5 +1,6 @@
 import type { Problem } from '../core/types';
 import { THINK_SECONDS, helpState, maxTriesFor } from '../core/thinkFirst';
+import { ASK_CHANCE, reasonQuestion } from '../core/explainBack';
 import { Coach } from '../core/coach';
 import { Rng, randomSeed } from '../core/rng';
 import { answerPlaceholder, formatAnswer, parseChoice, parseDigits } from '../core/answer';
@@ -30,13 +31,15 @@ export interface CardOptions {
   onNext: () => void;
   /** The daily Big Puzzle: no try limit (core/thinkFirst.ts). */
   big?: boolean;
+  /** "How did you know?" after some right first tries (core/explainBack.ts): puzzles of other families to borrow reasons from. */
+  reasons?: { pool: () => Problem[]; onPick: (right: boolean) => void };
 }
 
 /**
  * One problem: question, answer field, check. Voice (read aloud, spoken answers and commands),
  * hints, mistake coaching and the step-by-step solution all live here.
  */
-export function problemCard({ problem, onDone, onNext, big = false }: CardOptions): { el: HTMLElement; destroy: () => void; expire: () => void } {
+export function problemCard({ problem, onDone, onNext, big = false, reasons }: CardOptions): { el: HTMLElement; destroy: () => void; expire: () => void } {
   const state = load();
   const settings = state.settings;
   const coach = new Coach(problem, new Rng(randomSeed()), maxTriesFor(problem.answer, big));
@@ -63,6 +66,8 @@ export function problemCard({ problem, onDone, onNext, big = false }: CardOption
   const status = h('p', { class: 'status-line', 'aria-live': 'polite' });
   const feedback = h('p', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
   const hints = h('ul', { class: 'hints' });
+  const why = h('div', { class: 'why' });
+  const rng = new Rng(randomSeed());
   const solution = h('div', { class: 'solution' });
   const scene = sceneFor(problem);
   let player: Player | undefined;
@@ -128,6 +133,21 @@ export function problemCard({ problem, onDone, onNext, big = false }: CardOption
     next.focus({ preventScroll: true });
   }
 
+  /** "How did you know?": three lines of thinking; one is how this puzzle is solved. Never blocks Next. */
+  function askWhy() {
+    const q = reasonQuestion(problem, reasons!.pool(), rng);
+    if (!q) return;
+    const out = h('p', { class: 'feedback', role: 'status' });
+    const buttons = q.options.map((text, i) => h('button', { class: 'reason', type: 'button', onclick: () => {
+      buttons.forEach((b, j) => { b.disabled = true; b.classList.toggle('right', j === q.right); b.classList.toggle('picked', j === i); });
+      const right = i === q.right;
+      out.className = `feedback ${right ? 'good' : 'info'}`;
+      out.textContent = right ? 'Yes! That is the thinking.' : 'This one is how this puzzle works.';
+      reasons!.onPick(right);
+    } }, text) as HTMLButtonElement);
+    why.replaceChildren(h('p', { class: 'why-q' }, 'How did you know?'), h('div', { class: 'reasons' }, ...buttons), out);
+  }
+
   /** Answer button, or the skip/explain voice commands: only once the answer is open (think first). */
   async function giveUp(skipped: boolean) {
     if (finished) return;
@@ -165,6 +185,7 @@ export function problemCard({ problem, onDone, onNext, big = false }: CardOption
     if (fb.verdict === 'correct') {
       setFeedback('good', fb.message);
       finish({ correct: true, firstTry: coach.firstTryCorrect, skipped: false, revealed: false, wrongAnswer: coach.wrongAnswers[0] });
+      if (coach.firstTryCorrect && reasons && rng.next() < ASK_CHANCE) askWhy();
       await say(fb.message);
       if (settings.handsFree && !destroyed) setTimeout(() => !destroyed && onNext(), 600);
       return;
@@ -259,6 +280,7 @@ export function problemCard({ problem, onDone, onNext, big = false }: CardOption
     picker?.el,
     h('div', { class: 'answer-row' }, board || picker ? null : input, picker ? null : check, next),
     feedback,
+    why,
     hints,
     solution,
     h('div', { class: 'tools' },

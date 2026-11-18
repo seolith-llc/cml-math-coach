@@ -9,7 +9,8 @@ import { topicsForGrade } from '../content/topics';
 /** Families that reward a long think (number track only; checked against the grade's topics). */
 export const BIG_FAMILIES = [
   'magic-square', 'rule-machine', 'cryptarithm', 'balance', 'logic-order', 'logic-match', 'work-backwards', 'heads-legs',
-  'shape-equations', 'brothers-sisters', 'count-triangles', 'coin-combinations', 'digit-placement', 'custom-operation', 'venn'
+  'shape-equations', 'brothers-sisters', 'count-triangles', 'coin-combinations', 'digit-placement', 'custom-operation', 'venn',
+  'heavy-coin', 'frog-well'
 ];
 
 function hash(s: string): number {

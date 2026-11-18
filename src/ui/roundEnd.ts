@@ -27,6 +27,8 @@ export interface RoundItem {
   answer?: string;
   /** Missed, then right on a second try from the summary. */
   fixed?: boolean;
+  /** Picked the right reason for "How did you know?" (core/explainBack.ts). */
+  reasoned?: boolean;
 }
 
 /**
@@ -112,7 +114,7 @@ export function roundEnd(o: {
     const f = facts();
     const goalNow = today({ log: state.log, goal: state.settings.goal, reviewDue: 0, meets: [] }).goalMet;
     earned = awardStickers(state, roundStickers({
-      right: f.right, fixed: f.fixed, total: f.total,
+      right: f.right, fixed: f.fixed, total: f.total, reasoned: o.items.filter((x) => x.reasoned).length,
       starsGained: roundStars(state, grade) - o.celebrate!.starsBefore,
       goalReached: !o.celebrate!.goalBefore && goalNow,
       todayCount: stickersToday(state)

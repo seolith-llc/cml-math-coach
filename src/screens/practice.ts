@@ -1,3 +1,5 @@
+import { reasonPool } from '../core/explainBack';
+import { Rng, randomSeed } from '../core/rng';
 import type { Problem } from '../core/types';
 import { addToReview, load, recordAttempt, type RoundKind } from '../core/storage';
 import { levelFor, pickTopic } from '../core/mastery';
@@ -69,7 +71,12 @@ export function practiceScreen(topicId?: string): View {
         if (!ok) addToReview(state, problem.id, r.wrongAnswer);
         celebrate(ev);
       },
-      onNext: next
+      onNext: next,
+      // "How did you know?" (core/explainBack.ts): a right reason marks this round item for a Thinker sticker
+      reasons: {
+        pool: () => reasonPool(problem, new Rng(randomSeed())),
+        onPick: (right) => { const it = round.find((x) => x.problem.id === problem.id); if (it) it.reasoned = right; }
+      }
     });
     destroyCard = card.destroy;
     currentCard = card.el;

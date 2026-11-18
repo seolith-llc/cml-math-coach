@@ -1,12 +1,14 @@
 /**
  * Phase 4 "make kids think" families (docs/REDESIGN.md §4, step083): original puzzle types.
  * - magic squares: find the total from a full line, then a missing number (level 3: one hidden box first);
- * - rule machines: find the rule from in → out pairs, use it (level 3: work backwards from an output).
+ * - rule machines: find the rule from in → out pairs, use it (level 3: work backwards from an output);
+ * - the heavy coin: fewest weighings (three groups per weighing; level 3: the most coins for k weighings);
+ * - frog in a well: up by day, back by night, out on the last jump.
  */
 import type { Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { misNum, num, until } from './helpers';
-import { magicScene, ruleScene } from '../scenes/thinkers';
+import { magicScene, ruleScene, weighScene, wellScene } from '../scenes/thinkers';
 
 /* ---------------- magic squares ---------------- */
 
@@ -173,6 +175,91 @@ export const ruleMachine: Topic = {
         [nextInList, 'That continues the list of outputs. Use the rule on the new number instead.'],
         ...(backwards ? ([[r.f(y), `That runs ${y} through the machine forwards. We need the number that went in.`]] as [number, string][]) : [])
       ])
+    };
+  }
+};
+
+/* ---------------- the heavy coin (fewest weighings) ---------------- */
+
+const weighings = (n: number) => { let k = 0, m = 1; while (m < n) { m *= 3; k++; } return k; };
+const halvings = (n: number) => { let k = 0, m = 1; while (m < n) { m *= 2; k++; } return k; };
+
+export const heavyCoin: Topic = {
+  id: 'heavy-coin',
+  title: 'The heavy coin',
+  category: 'Logic',
+  grades: [2, 3],
+  strategy: 'Use logical reasoning',
+  guide: {
+    idea: 'One coin is a little heavier than the others. A balance scale gives three answers: left side down, right side down, or level. So split the coins into three groups: each weighing keeps only the group with the heavy coin.',
+    tips: ['Split into three groups, as equal as you can: two on the scale, one off.', 'If the scale is level, the heavy coin is in the group you left off.', 'Each weighing leaves a third of the coins.'],
+    traps: ['Splitting into two halves wastes the "level" answer.', 'Weighing the coins two at a time takes far too long.']
+  },
+  generate: ({ grade, level, rng }) => {
+    if (level === 3) {
+      const k = grade === 2 ? 2 : rng.int(3, 4);
+      const max = 3 ** k;
+      const sizes = Array.from({ length: k }, (_, i) => 3 ** (k - i - 1));
+      return {
+        scene: weighScene(max, sizes, max),
+        text: `One coin is heavier than the others. With **${k} weighings** on a balance scale, what is the **most coins** you can start with and still always find the heavy coin?`,
+        answer: num(max, 'coins'),
+        hints: ['A balance has three answers: left down, right down, or level.', 'So one weighing can find the heavy coin among 3 coins.', `Each extra weighing lets you start with three times as many: ${Array.from({ length: k }, (_, i) => 3 ** (i + 1)).join(', ')}…`],
+        steps: [`1 weighing: 3 coins. Each extra weighing triples it.`, `${k} weighings: ${Array.from({ length: k }, () => 3).join(' × ')} = ${max} coins.`],
+        misconceptions: misNum(max, [[2 ** k, `${2 ** k} is what halving gives. A balance also tells you when the heavy coin is off the scale (level), so use three groups.`], [3 * k, `That adds 3 each time. Each weighing multiplies by 3.`]])
+      };
+    }
+    const n = grade === 2 ? (level === 1 ? rng.int(3, 9) : rng.int(10, 20)) : level === 1 ? rng.int(10, 27) : rng.int(28, 60);
+    const k = weighings(n);
+    // three real groups where possible (4 → 1, 1 and 2, not 2, 2 and 0); a weighing leaves the bigger of the two kinds
+    const group = (m: number) => { let g = Math.ceil(m / 3); if (m - 2 * g <= 0 && Math.floor(m / 3) >= 1) g = Math.floor(m / 3); return g; };
+    const sizes: number[] = [];
+    for (let m = n; m > 1; ) { const g = group(m); m = Math.max(g, m - 2 * g); sizes.push(m); }
+    const split = (m: number) => { const g = group(m); return `${g}, ${g} and ${m - 2 * g}`; };
+    return {
+      scene: weighScene(n, sizes),
+      text: `**${n} coins** look the same, but one is a little heavier. What is the **fewest weighings** on a balance scale that will always find the heavy coin?`,
+      answer: num(k, 'weighings'),
+      hints: ['Don\'t split into two halves: split into three groups.', 'Put two groups on the scale. Left down, right down, or level tells you which group has the heavy coin.', `Groups of ${split(n)} first. How many coins are left after each weighing?`],
+      steps: [`Split ${n} into three groups (${split(n)}): one weighing leaves ${sizes[0]}.`, ...sizes.slice(1).map((m, i) => `Weighing ${i + 2} leaves ${m}.`), `So ${k} weighing${k === 1 ? '' : 's'} always find it.`],
+      misconceptions: misNum(k, [[halvings(n), `${halvings(n)} is what halving takes. Use three groups: the group off the scale counts too.`], [n - 1, 'Weighing coins one pair at a time takes far too many. Weigh groups.'], [Math.floor(n / 2), 'Split into three groups, not pairs.']])
+    };
+  }
+};
+
+/* ---------------- the frog in the well ---------------- */
+
+export const frogWell: Topic = {
+  id: 'frog-well',
+  title: 'Frog in a well',
+  category: 'Word problems',
+  grades: [2, 3],
+  strategy: 'Draw a picture',
+  guide: {
+    idea: 'Up by day, back by night: each full day the frog gains the difference. But on the day its jump reaches the top, it is out and does not slide back.',
+    tips: ['Work out how far it gets each full day (up minus back).', 'Find the last day first: the jump that reaches the top.', 'Draw the days on a number line.'],
+    traps: ['Dividing the depth by the daily gain forgets the last jump.']
+  },
+  generate: ({ grade, level, rng }) => {
+    const [up, back, depth] = until(() => {
+      const u = grade === 2 ? rng.int(3, level === 1 ? 4 : 5) : rng.int(4, level === 3 ? 9 : 7);
+      const b = rng.int(1, u - 2);
+      const d = grade === 2 ? rng.int(u + 3, [12, 18, 24][level - 1]) : rng.int(u + 5, [25, 40, 50][level - 1]);
+      return [u, b, d];
+    }, ([u, b, d]) => u > b && d > u && (d - u) % (u - b) !== 0 && Math.ceil((d - u) / (u - b)) + 1 <= 10);
+    const gain = up - back;
+    const days = Math.ceil((depth - up) / gain) + 1;
+    const naive = Math.ceil(depth / gain);
+    const nightPos = (d: number) => d * gain;
+    const ft = (n: number) => `${n} ${n === 1 ? 'foot' : 'feet'}`;
+    return {
+      scene: wellScene(depth, up, back, days),
+      text: `A frog is at the bottom of a **${depth}-foot** well. Each day it jumps up **${ft(up)}**, and each night it slides back **${ft(back)}**. On which day does it get out?`,
+      speech: `A frog is at the bottom of a ${depth} foot well. Each day it jumps up ${ft(up)}, and each night it slides back ${ft(back)}. On which day does it get out?`,
+      answer: num(days),
+      hints: [`Each full day and night it gets ${gain} ${gain === 1 ? 'foot' : 'feet'} higher.`, 'Draw it day by day: up, then back.', `On the last day it jumps out and doesn't slide back.`],
+      steps: [`Each day and night: ${up} − ${back} = ${ft(gain)} higher.`, `After ${days - 1} night${days === 2 ? '' : 's'} it is at ${nightPos(days - 1)} feet; on day ${days} it jumps to ${nightPos(days - 1) + up}, out of the ${depth}-foot well.`],
+      misconceptions: misNum(days, [[naive, `${naive} forgets the last day: once the jump reaches the top, the frog is out and doesn't slide back.`], [Math.ceil(depth / up), `That forgets the slide back each night.`]])
     };
   }
 };

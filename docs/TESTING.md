@@ -173,6 +173,8 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | K1 | Open any typed question. | **Hint** and **Answer** are dimmed. Hint opens after 30 seconds or one wrong answer. |
 | K2 | Answer wrong twice, using every hint. | A miss names the likely mistake but gives no hint by itself. **Answer** opens only after 2 misses and all hints; a third miss shows the answer. Picture choices allow 2 tries. |
 | K3 | Learn → **Magic squares** and **Rule machines**: practise at each level. | Harder levels need two steps (a hidden box first, or working backwards). |
+| K5 | Answer several questions right on the first try. | Now and then **How did you know?** offers three reasons. One is this puzzle's thinking; another is the same kind of puzzle with other numbers. In the game look, the right pick earns a **Thinker** sticker at the round's end. |
+| K6 | Learn → **The heavy coin** and **Frog in a well**. | Fewest weighings with three groups (the hardest level asks the most coins for some weighings); the frog escapes on the last jump without sliding back. |
 | K4 | Home → **Big Puzzle**. | One hard puzzle for today, no clock, no try limit; after solving, Home shows ★ next to it until tomorrow. |
 
 ### Accounts and invites (once sign-in is switched on)

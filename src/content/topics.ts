@@ -57,6 +57,8 @@ export const TOPICS: Topic[] = [
   placement.digitPlacement,
   thinkers.magicSquare,
   thinkers.ruleMachine,
+  thinkers.heavyCoin,
+  thinkers.frogWell,
   // reasoning (track: 'thinking'), by group: words, numbers, shapes
   verbal.verbalAnalogies,
   verbal.sentenceCompletion,

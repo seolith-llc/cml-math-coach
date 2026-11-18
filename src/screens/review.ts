@@ -1,3 +1,5 @@
+import { reasonPool } from '../core/explainBack';
+import { Rng, randomSeed } from '../core/rng';
 import { dueReviews, load } from '../core/storage';
 import { problemFromId } from '../content/topics';
 import { h } from '../ui/dom';
@@ -63,7 +65,12 @@ export function reviewScreen(): View {
         trail?.place();
         recordSecondTry(state, grade, item.p, res);
       },
-      onNext: next
+      onNext: next,
+      // "How did you know?" (core/explainBack.ts): a right reason marks this round item for a Thinker sticker
+      reasons: {
+        pool: () => reasonPool(item.p, new Rng(randomSeed())),
+        onPick: (right) => { const it = round.find((x) => x.problem.id === item.p.id); if (it) it.reasoned = right; }
+      }
     });
     destroyCard = card.destroy;
     currentCard = card.el;

@@ -34,7 +34,7 @@ Thinking Puzzles answers count toward the daily goal, the streak and the weekly 
 
 ## Think first
 
-Puzzle Trail is meant to be hard in a good way. **Hint** opens after a real try (one wrong answer, or 30 seconds), and **Answer** only after two tries and every hint. Each day's **Big Puzzle** (Home) is one very hard puzzle with no clock: a good one to work on together. Ask "How do you know?" more than "Is that right?".
+Puzzle Trail is meant to be hard in a good way. **Hint** opens after a real try (one wrong answer, or 30 seconds), and **Answer** only after two tries and every hint. Each day's **Big Puzzle** (Home) is one very hard puzzle with no clock: a good one to work on together. Now and then, after a right answer, the app asks **How did you know?** and offers three reasons: picking the right one earns a Thinker sticker. Ask "How do you know?" yourself, too, more than "Is that right?".
 
 ## Goals, stars and reminders
 

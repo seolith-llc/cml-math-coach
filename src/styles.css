@@ -580,3 +580,19 @@ html[data-look="game"] .bar:has(.bar-music:not([hidden])) { grid-template-column
 .row-input.code { font-size: 24px; letter-spacing: 6px; font-variant-numeric: tabular-nums; }
 /* Think first (core/thinkFirst.ts): Hint and Answer stay dimmed until they open. */
 .tools .btn.plain:disabled { opacity: .38; cursor: default; }
+
+/* "How did you know?" (core/explainBack.ts) */
+.why:empty { display: none; }
+.why { margin-top: 14px; display: grid; gap: 8px; }
+.why-q { margin: 0; font-weight: 700; }
+.reasons { display: grid; gap: 8px; }
+.reason { text-align: left; font: inherit; line-height: 1.35; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); cursor: pointer; }
+.reason:disabled { cursor: default; }
+.reason.right { border-color: var(--good); }
+.reason.picked:not(.right) { border-color: var(--line); opacity: .7; }
+:root[data-hl='neon'] .reason.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -4px var(--neon-glow); }
+/* the buddy on the stones: its bubble beside it, not over the top bar (step084) */
+.has-buddy > .buddy .buddy-bubble { bottom: auto; top: 6px; left: calc(100% + 6px); transform: none; max-width: 170px; }
+.has-buddy > .buddy .buddy-bubble::after { top: 12px; left: -14px; margin: 0; border-top-color: transparent; border-right-color: var(--surface); }
+.has-buddy > .buddy.bubble-left .buddy-bubble { left: auto; right: calc(100% + 6px); }
+.has-buddy > .buddy.bubble-left .buddy-bubble::after { left: auto; right: -14px; border-right-color: transparent; border-left-color: var(--surface); }

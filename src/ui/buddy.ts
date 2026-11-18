@@ -55,7 +55,10 @@ export function trailBuddy(dotsEl: HTMLElement, scope: HTMLElement) {
     if (!now) return;
     const host = dotsEl.getBoundingClientRect();
     const r = now.getBoundingClientRect();
-    buddy.el.style.left = `${r.left - host.left + r.width / 2}px`;
+    const x = r.left - host.left + r.width / 2;
+    buddy.el.style.left = `${x}px`;
+    // The bubble sits beside the buddy (never above it, where the top bar is), on the side with more room.
+    buddy.el.classList.toggle('bubble-left', x > host.width / 2);
   };
   requestAnimationFrame(place);
   const onResize = () => place();

@@ -1,15 +1,16 @@
 /**
  * Game-look stickers (docs/GAME-MODE.md, phase 4). Small surprises at the end of a round, never pay-per-answer
  * (expected rewards for a task lower interest), no currency, nothing to spend, at most 3 a day.
- * They name what the child did: fixed a miss, earned a star, reached today's goal, a careful round.
+ * They name what the child did: fixed a miss, explained their thinking, earned a star, reached today's goal, a careful round.
  * Pure: rules, the surprise order and 24 original SVG designs (simple shapes, drawn in-house).
  */
 
-export type StickerKind = 'fixer' | 'star' | 'goal' | 'careful';
+export type StickerKind = 'fixer' | 'thinker' | 'star' | 'goal' | 'careful';
 
 /** Why a sticker was earned, in the child's (and parent's) words. Effort and strategy, never ability. */
 export const STICKER_LABELS: Record<StickerKind, string> = {
   fixer: 'Fixed a miss',
+  thinker: 'Explained it',
   star: 'New star',
   goal: "Today's goal",
   careful: 'Careful round'
@@ -28,6 +29,8 @@ export interface RoundFacts {
   starsGained: number;
   /** The daily goal was reached during the round. */
   goalReached: boolean;
+  /** "How did you know?" answered with the right reason (core/explainBack.ts). */
+  reasoned?: number;
   /** Stickers already earned today. */
   todayCount: number;
 }
@@ -36,6 +39,7 @@ export interface RoundFacts {
 export function roundStickers(f: RoundFacts): StickerKind[] {
   const kinds: StickerKind[] = [];
   if (f.fixed > 0) kinds.push('fixer');
+  if ((f.reasoned ?? 0) > 0) kinds.push('thinker');
   if (f.starsGained > 0) kinds.push('star');
   if (f.goalReached) kinds.push('goal');
   if (f.total >= 5 && f.right >= Math.ceil(f.total * 0.8)) kinds.push('careful');

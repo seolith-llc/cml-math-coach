@@ -66,7 +66,7 @@ export function trailBuddy(dotsEl: HTMLElement, scope: HTMLElement) {
     if (right) buddy.say(pickLine(RIGHT_LINES, buddy.last()), 'happy');
     else buddy.say(pickLine(MISS_LINES, buddy.last()), 'think', 2600);
   };
-  scope.addEventListener('cml:answer', onAnswer);
+  scope.addEventListener('pt:answer', onAnswer);
   return {
     /** After dots.update(): walk to the next stone. */
     place: () => requestAnimationFrame(place),
@@ -74,7 +74,7 @@ export function trailBuddy(dotsEl: HTMLElement, scope: HTMLElement) {
     cheer: (text: string) => buddy.say(text, 'cheer', 3000, true),
     destroy: () => {
       window.removeEventListener('resize', onResize);
-      scope.removeEventListener('cml:answer', onAnswer);
+      scope.removeEventListener('pt:answer', onAnswer);
     }
   };
 }

@@ -20,7 +20,7 @@ export const COUNTS = [6, 10, 15, 20] as const;
 export const TOTAL_MINUTES = [5, 10, 15, 20, 30, 45, 60] as const;
 export const EACH_SECONDS = [30, 60, 90, 120, 180, 300] as const;
 
-/** CML meet: 6 questions, 30 minutes, scored at the end. */
+/** challenge: 6 questions, 30 minutes, scored at the end. */
 export const DEFAULT_TEST: TestConfig = { count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 };
 
 const nearest = (list: readonly number[], v: unknown, dflt: number) => {

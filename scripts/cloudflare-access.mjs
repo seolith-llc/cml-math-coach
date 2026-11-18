@@ -4,13 +4,13 @@
  * Run by .github/workflows/cloudflare-access.yml. Idempotent: creates or updates, never duplicates.
  *
  *  1. Checks Zero Trust is set up, and turns on the "One-time PIN" login (a code sent by email).
- *  2. "Math Coach": the custom domain, <project>.pages.dev and every preview (*.<project>.pages.dev).
+ *  2. "Puzzle Trail": the custom domain, <project>.pages.dev and every preview (*.<project>.pages.dev).
  *     Policies: allowed emails (ACCESS_ALLOWED_EMAILS, a secret so it never shows in public logs),
  *     and the CI service token (deploy smoke tests, hourly job, Status probe).
- *  3. "Math Coach email links": bypass for /api/email/confirm and /api/email/unsubscribe only, so a
+ *  3. "Puzzle Trail email links": bypass for /api/email/confirm and /api/email/unsubscribe only, so a
  *     parent can confirm or unsubscribe (including mail providers' one-click unsubscribe) without signing in.
  *     Both are protected by their own signed tokens and reveal nothing else.
- *  4. "Math Coach app updates": bypass for the service-worker scripts only (/sw.js, /push-sw.js, /workbox-*.js).
+ *  4. "Puzzle Trail app updates": bypass for the service-worker scripts only (/sw.js, /push-sw.js, /workbox-*.js).
  *     Browsers refuse a redirect when they check for an app update, so behind the sign-in an installed copy could never
  *     update, nor find out it was signed out. These are generic code (also in the public repository), no data;
  *     every page and API stays behind the sign-in.
@@ -29,7 +29,7 @@ const ci = { id: process.env.CF_ACCESS_CLIENT_ID, secret: process.env.CF_ACCESS_
 /** Preview by default: report what would change and touch nothing. APPLY=true makes the changes. */
 const apply = process.env.APPLY === 'true';
 /** The only Access applications this script ever creates or changes; every other application is left alone. */
-const OURS = ['Math Coach', 'Math Coach email links', 'Math Coach app updates'];
+const OURS = ['Puzzle Trail', 'Puzzle Trail email links', 'Puzzle Trail app updates'];
 const todo = [];
 
 const fail = (msg) => {
@@ -90,8 +90,8 @@ const covers = (pattern, h) => {
 const others = apps.filter((a) => !OURS.includes(a.name));
 const overlapping = others.filter((a) => uris(a).some((u) => hosts.some((h) => covers(u, h.replace(/^\*\./, 'preview.')) || covers(u, h))));
 console.log(`✔ ${others.length} other Access application${others.length === 1 ? '' : 's'} on this account: left untouched`);
-if (overlapping.length) console.log(`::warning::${overlapping.length} existing application(s) already cover one of the Math Coach hostnames. Access uses the most specific match, so Math Coach's own rules still apply, but check them in Zero Trust → Access → Applications.`);
-else console.log('✔ None of them covers the Math Coach hostnames');
+if (overlapping.length) console.log(`::warning::${overlapping.length} existing application(s) already cover one of the Puzzle Trail hostnames. Access uses the most specific match, so Puzzle Trail's own rules still apply, but check them in Zero Trust → Access → Applications.`);
+else console.log('✔ None of them covers the Puzzle Trail hostnames');
 const WHAT = { [OURS[0]]: hosts.join(', '), [OURS[1]]: 'email confirm and unsubscribe links only', [OURS[2]]: 'service-worker scripts only, so installed copies can update' };
 for (const name of OURS) console.log(`${apply ? '✔' : '·'} ${apps.some((a) => a.name === name) ? 'Update' : 'Create'}: "${name}" (${WHAT[name]})`);
 if (!apply) {
@@ -112,7 +112,7 @@ const common = { type: 'self_hosted', session_duration: session, app_launcher_vi
 
 await upsert({
   ...common,
-  name: 'Math Coach',
+  name: 'Puzzle Trail',
   domain: hosts[0],
   destinations: hosts.map((h) => ({ type: 'public', uri: h })),
   policies: [
@@ -123,7 +123,7 @@ await upsert({
 const linkPaths = ['/api/email/confirm', '/api/email/unsubscribe'];
 await upsert({
   ...common,
-  name: 'Math Coach email links',
+  name: 'Puzzle Trail email links',
   domain: hosts[0] + linkPaths[0],
   destinations: hosts.slice(0, 2).flatMap((h) => linkPaths.map((p) => ({ type: 'public', uri: h + p }))),
   policies: [{ name: 'Email links (token-protected)', decision: 'bypass', precedence: 1, include: [{ everyone: {} }] }]

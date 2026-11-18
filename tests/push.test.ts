@@ -20,7 +20,7 @@ describe('RFC 8291 encryption', () => {
     const body = await encryptPayload(msg, r.p256dh, r.auth);
     const plain = ece.decrypt(Buffer.from(body), { version: 'aes128gcm', privateKey: r.ecdh, authSecret: r.authBuf });
     expect(plain.toString('utf8')).toBe(msg);
-    expect(JSON.parse(msg)).toEqual({ title: 'Math Coach', body: "Sam, ready for today's 10?", url: './#/practice' });
+    expect(JSON.parse(msg)).toEqual({ title: 'Puzzle Trail', body: "Sam, ready for today's 10?", url: './#/practice' });
   });
   it('uses the aes128gcm header layout (salt, rs=4096, 65-byte key id)', async () => {
     const r = receiver();

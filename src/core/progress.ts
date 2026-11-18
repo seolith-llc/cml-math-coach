@@ -2,7 +2,7 @@
  * Motivation model (pure). Designed for children: progress is about mastery, goals are small,
  * streaks forgive a rest day, and nothing is ever taken away.
  *
- * - Stars: each topic earns ★ / ★★ / ★★★ as the learner moves up a level (Warm-up → Contest → Challenge → Mastered).
+ * - Stars: each topic earns ★ / ★★ / ★★★ as the learner moves up a level (Warm-up → Climber → Challenge → Mastered).
  *   Stars only go up, even if later answers dip.
  * - Daily goal: a small number of problems; when it's met the app says so and suggests stopping.
  * - Streak: consecutive practice days; one missed day per week is forgiven automatically.
@@ -14,14 +14,14 @@ export interface StarStat {
   stars?: number;
 }
 
-/** Thresholds match mastery.levelFor: ★ = moved to Contest level, ★★ = Challenge, ★★★ = mastered. */
+/** Thresholds match mastery.levelFor: ★ = moved to Climber level, ★★ = Challenge, ★★★ = mastered. */
 export const STAR_RULES = [
   { mastery: 0.5, attempts: 2 },
   { mastery: 0.8, attempts: 4 },
   { mastery: 0.9, attempts: 8 }
 ] as const;
 
-export const LEVEL_NAMES = ['Warm-up', 'Contest', 'Challenge', 'Mastered'] as const;
+export const LEVEL_NAMES = ['Warm-up', 'Climber', 'Challenge', 'Mastered'] as const;
 
 export function starsFor(s: StarStat): number {
   let n = 0;

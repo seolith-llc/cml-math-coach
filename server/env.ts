@@ -7,7 +7,7 @@ export interface Env {
   AWS_ACCESS_KEY_ID?: string;
   AWS_SECRET_ACCESS_KEY?: string;
   AWS_REGION?: string;
-  /** e.g. "CML Math Coach <coach@seolith.com>" (the domain must be verified in SES) */
+  /** e.g. "Puzzle Trail <coach@seolith.com>" (the domain must be verified in SES) */
   MAIL_FROM?: string;
   MAIL_REPLY_TO?: string;
   CRON_SECRET?: string;

@@ -93,7 +93,7 @@ Emails go out through the SES v2 API, signed with SigV4 in [`server/ses.ts`](../
 4. **GitHub → Settings → Secrets and variables → Actions**
    - Secrets: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `CRON_SECRET` (a random string of at least 16 characters; generate one with
      `openssl rand -base64 32`)
-   - Variables (optional): `AWS_REGION` (default `us-east-1`), `MAIL_FROM` (default `CML Math Coach <coach@seolith.com>`), `MAIL_REPLY_TO`
+   - Variables (optional): `AWS_REGION` (default `us-east-1`), `MAIL_FROM` (default `Puzzle Trail <coach@seolith.com>`), `MAIL_REPLY_TO`
    - `FEEDBACK_TO` (optional): where in-app feedback is emailed; defaults to `MAIL_REPLY_TO`. Triage it with Actions → **Feedback**.
 5. Re-run **Deploy to Cloudflare Pages**. It copies these into the Pages project's secrets. `APP_URL` is in `wrangler.toml`.
 6. On the parent dashboard, add your email, confirm it, and press **Send a test now**.
@@ -128,8 +128,8 @@ One-time setup:
    (yourself, the parents, the testers). It is a secret so the addresses never appear in this public repository.
 5. Run **Actions → Cloudflare Access** with **apply** unticked first: a preview that changes nothing. It confirms the Zero Trust
    organization and that the one-time PIN login is reused as is, counts the other applications (never changed, and their names and
-   hostnames are never printed, since these logs are public), warns if any of them already covers a Math Coach hostname, and lists
-   what is still missing. Then run it again with **apply** ticked: it creates or updates only "Math Coach" and "Math Coach email links"
+   hostnames are never printed, since these logs are public), warns if any of them already covers a Puzzle Trail hostname, and lists
+   what is still missing. Then run it again with **apply** ticked: it creates or updates only "Puzzle Trail" and "Puzzle Trail email links"
    (app-scoped policies, nothing shared with other applications) and checks the live result. Re-run it whenever the list changes.
    Each invited person who signs in uses one Zero Trust seat (Free plan: 50).
 

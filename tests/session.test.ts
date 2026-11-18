@@ -4,7 +4,7 @@ import { makeMeet } from '../src/content/topics';
 import type { Grade } from '../src/core/types';
 
 describe('test config', () => {
-  it('defaults to a CML meet and snaps values to the allowed lists', () => {
+  it('defaults to a challenge and snaps values to the allowed lists', () => {
     expect(normalizeTest(undefined)).toEqual(DEFAULT_TEST);
     expect(normalizeTest({ count: 9, totalMinutes: 27, eachSeconds: 100, feedback: 'learn', clock: 'each' }))
       .toEqual({ count: 10, feedback: 'learn', clock: 'each', totalMinutes: 30, eachSeconds: 90 });

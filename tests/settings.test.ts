@@ -41,6 +41,12 @@ describe('settings', () => {
     expect(migrateSettings({ look: 'game' }, base).lookOffered).toBe(true);
     expect(migrateSettings({ lookOffered: true }, base).lookOffered).toBe(true);
   });
+  it('adds the terms acceptance: none for older saves, kept when valid', () => {
+    expect(base.terms).toBeNull();
+    expect(migrateSettings({ goal: 15 } as never, base).terms).toBeNull(); // saved before 2026-11-18
+    expect(migrateSettings({ terms: { version: '2026-11-18', at: 5 } } as never, base).terms).toEqual({ version: '2026-11-18', at: 5 });
+    expect(migrateSettings({ terms: { version: 7, at: 'x' } } as never, base).terms).toBeNull();
+  });
   it('adds and cleans the test setup', () => {
     expect(base.test).toEqual({ count: 6, feedback: 'test', clock: 'total', totalMinutes: 30, eachSeconds: 120 });
     expect(migrateSettings({ test: { count: 11, clock: 'each', eachSeconds: 95 } } as never, base).test)

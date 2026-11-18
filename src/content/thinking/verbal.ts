@@ -1,6 +1,6 @@
 /**
- * CogAT-style Verbal Battery: analogies, sentence completion, classification (original items).
- * Grade 2 is picture-based and read aloud (like CogAT Level 8); Grade 3 uses words (like Level 9).
+ * Thinking puzzles with words: analogies, sentence completion, classification (original items).
+ * Grade 2 is picture-based and read aloud; Grade 3 uses words.
  */
 import type { Topic } from '../../core/types';
 import { SceneBuilder, rect, text } from '../../core/scene';
@@ -106,10 +106,10 @@ function analogyScene(ab: Pair, cd: Pair, pics: boolean) {
 }
 
 export const verbalAnalogies: Topic = {
-  id: 'cogat-analogies',
+  id: 'think-analogies',
   title: 'Picture & word analogies',
-  category: 'Verbal',
-  track: 'cogat',
+  category: 'Words',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Find the rule',
   guide: {
@@ -257,10 +257,10 @@ function sentenceScene(line: string, answer: string, why: string, pic?: string) 
 }
 
 export const sentenceCompletion: Topic = {
-  id: 'cogat-sentences',
+  id: 'think-sentences',
   title: 'Sentence completion',
-  category: 'Verbal',
-  track: 'cogat',
+  category: 'Words',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Use logical reasoning',
   guide: {
@@ -362,10 +362,10 @@ function classScene(stim: Item[], ans: Item, tag: string, pics: boolean) {
 }
 
 export const classification: Topic = {
-  id: 'cogat-classification',
+  id: 'think-classification',
   title: 'Picture & word classification',
-  category: 'Verbal',
-  track: 'cogat',
+  category: 'Words',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Find the rule',
   guide: {

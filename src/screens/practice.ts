@@ -13,15 +13,15 @@ import type { View } from '../app';
 
 const SESSION = 10;
 
-/** Smart mix (weakest topics more often), the CogAT mix (#/practice/cogat), an island mix (#/practice/island-<id>), or one topic: #/practice/<topicId>. 10 problems per round. */
+/** Smart mix (weakest topics more often), the Thinking Puzzles mix (#/practice/thinking), an island mix (#/practice/island-<id>), or one topic: #/practice/<topicId>. 10 problems per round. */
 export function practiceScreen(topicId?: string): View {
   const state = load();
   const grade = state.settings.grade;
-  const cogat = topicId === 'cogat';
+  const thinking = topicId === 'thinking';
   // #/practice/island-<id>: a mix of one world-map island's topics (game look)
   const island = topicId?.startsWith('island-') ? islandById(topicId.slice('island-'.length)) : undefined;
-  const fixed = topicId && !cogat && !island ? topicById(topicId) : undefined;
-  const pool = island ? islandTopics(grade, island) : topicsForGrade(grade, cogat ? 'cogat' : 'cml');
+  const fixed = topicId && !thinking && !island ? topicById(topicId) : undefined;
+  const pool = island ? islandTopics(grade, island) : topicsForGrade(grade, thinking ? 'thinking' : 'number');
   const results: boolean[] = [];
   let round: RoundItem[] = [];
   let start = roundStart(state); // game-look celebration compares against this
@@ -82,7 +82,7 @@ export function practiceScreen(topicId?: string): View {
     dots.el.hidden = true;
     const items = round;
     const at = Date.now();
-    const kind = (fixed?.track ?? (cogat ? 'cogat' : 'cml')) as RoundKind;
+    const kind = (fixed?.track ?? (thinking ? 'thinking' : 'number')) as RoundKind;
     roundEnd({
       slot,
       items,
@@ -111,5 +111,5 @@ export function practiceScreen(topicId?: string): View {
   // Game look: the buddy walks the round's stones and reacts to each answer.
   const trail = trailBuddy(dots.el, root);
   next();
-  return { title: fixed ? fixed.title : island ? island.name : cogat ? 'CogAT' : 'Practice', el: root, destroy: () => { stopPeek(); destroyCard(); trail?.destroy(); } };
+  return { title: fixed ? fixed.title : island ? island.name : thinking ? 'Thinking Puzzles' : 'Practice', el: root, destroy: () => { stopPeek(); destroyCard(); trail?.destroy(); } };
 }

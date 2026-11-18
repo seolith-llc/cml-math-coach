@@ -1,7 +1,7 @@
 /** Grade levels supported by the coach. */
 export type Grade = 2 | 3;
 
-/** 1 = warm-up, 2 = contest level, 3 = challenge. */
+/** 1 = warm-up, 2 = climber, 3 = challenge. */
 export type Level = 1 | 2 | 3;
 
 /** How an answer should be interpreted and compared. */
@@ -94,7 +94,7 @@ export interface Topic {
   grades: Grade[];
   strategy: Strategy;
   guide: TopicGuide;
-  /** Default 'cml'. CogAT topics stay out of CML practice, tests and progress. */
+  /** Default 'number'. Thinking Puzzles topics stay out of number practice, tests and progress. */
   track?: Track;
   generate: (ctx: GenContext) => Omit<Problem, 'id' | 'topicId' | 'grade' | 'level'>;
 }
@@ -108,12 +108,12 @@ export type Category =
   | 'Logic'
   | 'Counting'
   | 'Puzzles'
-  | 'Verbal'
-  | 'Quantitative'
-  | 'Nonverbal';
+  | 'Words'
+  | 'Numbers'
+  | 'Shapes';
 
-/** Which practice track a topic belongs to: CML math, or CogAT-style reasoning. */
-export type Track = 'cml' | 'cogat';
+/** Which practice track a topic belongs to: number puzzles, or thinking puzzles. */
+export type Track = 'number' | 'thinking';
 
 export interface GenContext {
   grade: Grade;

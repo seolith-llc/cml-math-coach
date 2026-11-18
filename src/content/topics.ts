@@ -9,9 +9,9 @@ import * as counting from './generators/counting';
 import * as puzzles from './generators/puzzles';
 import * as placement from './generators/placement';
 import * as family from './generators/family';
-import * as verbal from './cogat/verbal';
-import * as quant from './cogat/quantitative';
-import * as nonverbal from './cogat/nonverbal';
+import * as verbal from './thinking/verbal';
+import * as quant from './thinking/quantitative';
+import * as nonverbal from './thinking/nonverbal';
 
 export const TOPICS: Topic[] = [
   number.missingNumber,
@@ -54,7 +54,7 @@ export const TOPICS: Topic[] = [
   puzzles.balance,
   placement.palindromes,
   placement.digitPlacement,
-  // CogAT-style reasoning (track: 'cogat'), in battery order
+  // reasoning (track: 'thinking'), by group: words, numbers, shapes
   verbal.verbalAnalogies,
   verbal.sentenceCompletion,
   verbal.classification,
@@ -67,8 +67,8 @@ export const TOPICS: Topic[] = [
 ];
 
 export const topicById = (id: string) => TOPICS.find((t) => t.id === id);
-/** Topics of one track for a grade. CML is the default everywhere (practice mix, tests, progress, stars). */
-export const topicsForGrade = (grade: Grade, track: Track = 'cml') => TOPICS.filter((t) => t.grades.includes(grade) && (t.track ?? 'cml') === track);
+/** Topics of one track for a grade. Number Puzzles is the default everywhere (practice mix, tests, progress, stars). */
+export const topicsForGrade = (grade: Grade, track: Track = 'number') => TOPICS.filter((t) => t.grades.includes(grade) && (t.track ?? 'number') === track);
 
 /** Problem ids encode everything needed to regenerate the same problem later (review queue). */
 export function makeProblem(topic: Topic, grade: Grade, level: Level, seed = randomSeed()): Problem {
@@ -92,8 +92,8 @@ export function problemFromId(id: string): Problem | undefined {
 }
 
 /**
- * A test of `count` questions (6 = a CML meet). Difficulty ramps up: the first sixth is warm-up, the last third is
- * challenge (Grade 2 caps at contest level). Topics never repeat, and categories rotate so neighbours differ.
+ * A test of `count` questions (6 = a challenge). Difficulty ramps up: the first sixth is warm-up, the last third is
+ * challenge (Grade 2 caps at the climber level). Topics never repeat, and categories rotate so neighbours differ.
  * Logic, counting and puzzle topics lean towards the end, as on real papers.
  */
 export function makeMeet(grade: Grade, seed = randomSeed(), count = 6): Problem[] {

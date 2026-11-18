@@ -1,6 +1,6 @@
-# Math Coach: tester guide
+# Puzzle Trail: tester guide
 
-Thank you for testing! Math Coach is a voice-first practice app for kids in Grades 2–3. It covers Continental Math League (CML) math and CogAT-style reasoning. A child practices on an iPad, and a parent follows along on their own device.
+Thank you for testing! Puzzle Trail is a voice-first practice app for kids in Grades 2–3. It has number puzzles and thinking puzzles. A child practices on an iPad, and a parent follows along on their own device.
 
 **App:** https://cml-math-coach.seolith.com
 **Time needed:** about 60–90 minutes, split over 2–3 days if you can, so you also see the streak, Review and reminders.
@@ -31,7 +31,7 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 |---|---|---|
 | 1 | Parent dashboard, emails, reminders, sync | D1–D8, N1–N3, X3 |
 | 2 | Math practice, tests, review, goals and stars | P1–P8, T1–T4, R1–R2, E1–E3 |
-| 3 | CogAT (Grade 2 *and* Grade 3) | C1–C9 |
+| 3 | Thinking Puzzles (Grade 2 *and* Grade 3) | C1–C9 |
 | 4 | Explanations, voice and accessibility | H1–H3, V1–V5, X1–X2 |
 | 5 | Other devices and browsers, offline, edge cases | X1–X6, plus the smoke test on every device you have |
 
@@ -39,10 +39,10 @@ Everyone runs the **smoke test** (section 3). Then spend most of your time on th
 
 | ID | Steps | Expected |
 |---|---|---|
-| S1 | Open the app, set Grade, Name, Voice (section 1). | Home shows the grade switch, the **Today** card ("0 of 10") and rows Test, Learn, CogAT, Progress, Parent dashboard. Every other screen has **⌂ Home** next to Back in the top bar. |
+| S1 | Open the app, set Grade, Name, Voice (section 1). | Home shows the grade switch, the **Today** card ("0 of 10") and rows Test, Learn, Thinking Puzzles, Progress, Parent dashboard. Every other screen has **⌂ Home** next to Back in the top bar. |
 | S2 | Home → **Practice**. Answer 10 problems (type, or tap the mic and say it). Get some wrong on purpose. | A dot per problem (green/red). Right answers are praised; wrong answers get a specific tip. |
 | S3 | At the end of the round, look at the summary. | Score ("7 of 10"), one line of feedback, **By type**, and the list of **Questions** with ✓/✗. |
-| S4 | Home → **CogAT** → **Practice**. Answer a few by tapping a picture or word. | Choices are big tap targets; a tap checks immediately. |
+| S4 | Home → **Thinking Puzzles** → **Practice**. Answer a few by tapping a picture or word. | Choices are big tap targets; a tap checks immediately. |
 | S5 | Close the app completely and reopen it. | Progress is kept; Home shows **Last round**. |
 
 ## 4. Test cases
@@ -62,19 +62,19 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | P8 | Mid-round, tap **‹** (left of the progress dots) or any answered dot. Use ‹ › to move between earlier questions; on a missed one tap **Try again**; then **Back to question N**. | Each earlier question shows your answer vs the right one and its explanation. A fixed one counts at the end ("6 → 7 of 10"). The current question comes back exactly as you left it (typed answer kept). Not offered during a scored Test. |
 | P7 | At the summary tap **Try missed again** and get them right. | The score updates, e.g. **"6 → 9 of 10"**, and the feedback says what you fixed. Leave the app midway, reopen via Home → **Last round**: the improved score is kept. |
 
-### CogAT
+### Thinking Puzzles
 
 | ID | Steps | Expected |
 |---|---|---|
-| C1 | Grade 2: CogAT → **Practice** (a round of 10). | Picture questions, **3** choices, questions read aloud. |
+| C1 | Grade 2: Thinking Puzzles → **Practice** (a round of 10). | Picture questions, **3** choices, questions read aloud. |
 | C2 | Grade 3: same. | Word/number questions, **5** choices. |
-| C3 | CogAT screen: open each of the 9 types (Verbal: analogies, sentence completion, classification · Quantitative: number analogies, puzzles, series · Nonverbal: matrices, paper folding, figure classification). | Each has a lesson, a worked example with an animation, and a **Practice** button. |
+| C3 | Thinking Puzzles screen: open each of the 9 types (Words: analogies, sentence completion, classification · Numbers: number analogies, puzzles, series · Shapes: matrices, paper folding, figure classification). | Each has a lesson, a worked example with an animation, and a **Practice** button. |
 | C4 | Answer by voice: say the letter ("B") or the option name ("butterfly"). | The right choice is selected and checked. |
 | C5 | Look closely at 20+ questions of each type. | Exactly **one** answer is defensible. Pictures are clear; nothing is cut off; no two choices look identical. **Report anything ambiguous.** |
 | C6 | Paper folding: watch the explanation. | Each fold opens in turn and the holes mirror across the fold line. |
-| C7 | Finish a CogAT round, leave, then CogAT → **Last round**. | The same summary, explanations and **Try missed again**. |
-| C9 | On the CogAT screen switch **Grade 2 ↔ Grade 3**. | The list redraws for that grade; each grade keeps its own stars and last round. |
-| C8 | Check Learn, Progress and Tests. | CogAT questions do **not** appear in the math sections. |
+| C7 | Finish a Thinking Puzzles round, leave, then Thinking Puzzles → **Last round**. | The same summary, explanations and **Try missed again**. |
+| C9 | On the Thinking Puzzles screen switch **Grade 2 ↔ Grade 3**. | The list redraws for that grade; each grade keeps its own stars and last round. |
+| C8 | Check Learn, Progress and Tests. | Thinking Puzzles questions do **not** appear in the math sections. |
 
 ### Tests
 
@@ -100,13 +100,13 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | ID | Steps | Expected |
 |---|---|---|
 | H1 | In any explanation use the controls: ⟲ replay, ‹ back, ▶/❚❚, › next, speed (1× / 1.5× / 0.75×), speaker on/off. | All work; the counter ("3 / 7") is right; speed changes both the animation and the voice. |
-| H2 | Watch 10+ explanations (mix of math and CogAT). | The picture matches what is said; numbers are right; nothing overlaps or is cut off. |
+| H2 | Watch 10+ explanations (mix of math and Thinking Puzzles). | The picture matches what is said; numbers are right; nothing overlaps or is cut off. |
 | H3 | Learn → any topic. | The idea, tips, "watch out", and an animated example. |
 | H9 | After two or more Tests (Test mode), open Progress. | The three numbers glow; under Tests, the best score is highlighted (with one test, nothing is); "Practice next" stays plain. Classic: no glow. |
 | H8 | Learn → any topic, then Learn → How to solve. Light and dark mode. | Topic: earned stars glow in the list; the main idea has a lime edge; tips have lime bullets; "Watch out" stays plain; the example's key words are highlighted and its picture glows. How to solve: the step and strategy names are highlighted. Classic: none of these. |
 | H7 | On the parent's device (Neon is per device): open the Parent dashboard after the child has practised and missed a few. | The week's numbers and the ✓ marks glow; ✗ marks, the chart and the mastery bars don't. Under Mistakes, key words and the right answer are highlighted. Tapping a question in the last round shows the right answer highlighted and the glowing explanation. Classic on that device: no glow. |
 | H6 | Review a missed problem; then a Test (Test mode, Total clock) where you get some right and leave some blank, and Hand in. | The dot for the current question glows; right dots glow; missed ones don't. The clock has a soft glow until its last minute (then plain red). The answer box glows when you tap it. After handing in, right cards glow and wrong ones don't, and the right answer under each question is highlighted. Classic: none of these glow. |
-| H5 | CogAT, Grade 2 and Grade 3: answer a few questions of each kind, getting one wrong on purpose. | Key words in each question are highlighted (Grade 3 sentences: the blank). The answer you pick glows, the right answer glows when shown, and a wrong pick has a red border with no glow. Classic: no highlights or glow. |
+| H5 | Thinking Puzzles, Grade 2 and Grade 3: answer a few questions of each kind, getting one wrong on purpose. | Key words in each question are highlighted (Grade 3 sentences: the blank). The answer you pick glows, the right answer glows when shown, and a wrong pick has a red border with no glow. Classic: no highlights or glow. |
 | H4 | Practice a problem with key numbers in **bold** (e.g. comparing two sums), then press Answer. Settings → **Highlights**: switch Neon ↔ Classic. Try light and dark mode. | Neon (the default): key words have a lime highlighter, and the box the explanation is talking about glows. Classic: plain bold and no glow. The choice is kept after closing the app. Text stays easy to read in both modes. |
 | V1 | Settings → Voice: try *Natural* voices and *This device* voices, and **Speed**. | The voice changes; natural voices sound human. |
 | V2 | Read aloud on: start a problem. | The question is read automatically. |
@@ -121,11 +121,11 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 |---|---|---|
 | D1 | Kid device: Settings → **Parent dashboard** → set a PIN (4–8 digits) → **Turn on**. | A **Share dashboard link** row appears. |
 | D2 | Open the link on a *different* device and enter the PIN. | The dashboard shows the problems, first-try %, minutes, days, charts and topics. |
-| D3 | Practice a round on the kid device; refresh the dashboard. | New data within a minute, including the round sections (e.g. **CogAT · Tue, Nov 10** with the score and every question). |
+| D3 | Practice a round on the kid device; refresh the dashboard. | New data within a minute, including the round sections (e.g. **Thinking Puzzles · Tue, Nov 10** with the score and every question). |
 | D4 | On the dashboard tap a question in a round section. | Your child's answer vs the right one, and the explanation plays. |
 | D5 | Check the **Mistakes** list. | Each says what happened: "Showed the answer", "Skipped", "Right after a hint", the wrong answer, or "(b) octopus" for a choice. |
 | D6 | Dashboard → **Email** → enter your address → **Add**. | A confirmation email arrives (check spam). Clicking it confirms. *If nothing arrives within 10 minutes, report it as Blocked; it may mean the sender is still restricted.* |
-| D7 | After confirming: **Send test**. | A weekly summary email with KPIs, the chart, **CogAT** (if you did CogAT), and Mistakes. Links work. |
+| D7 | After confirming: **Send test**. | A weekly summary email with KPIs, the chart, **Thinking Puzzles** (if you did Thinking Puzzles), and Mistakes. Links work. |
 | D9 | On the child's device: Home → **Parent dashboard**, then **⌂ Home** (or Back) in the top bar. | The dashboard opens (PIN as usual) and Home/Back return to the app's home page. |
 | D8 | Wrong PIN 5 times. **Lock**. **Export CSV**. | Locked for a while after 5 tries; Lock asks for the PIN again; the CSV downloads. |
 
@@ -181,7 +181,7 @@ Reply to the invite email (one email per issue, or one list) with:
 Test case: C5 (or "exploratory")
 Result: Fail
 Device / OS / browser: iPad 10th gen, iPadOS 18.1, Home Screen app
-Grade and screen: Grade 3, CogAT → Paper folding
+Grade and screen: Grade 3, Thinking Puzzles → Paper folding
 Steps: 1) … 2) … 3) …
 Expected: …
 Actual: …

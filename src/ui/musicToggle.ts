@@ -4,7 +4,7 @@ import { musicScene, refreshSound } from '../voice/music';
 import { icon } from './icons';
 import { iconButton } from './dom';
 
-const LAST = 'cml-last-tune';
+const LAST = 'pt-last-tune';
 
 /**
  * The music on/off button in the top bar: game look only, on every screen where music can play
@@ -34,7 +34,7 @@ export function musicToggle(): { el: HTMLButtonElement; sync: () => void } {
     el.setAttribute('aria-pressed', String(!on));
     el.classList.toggle('off', !on);
   };
-  window.addEventListener('cml:music', sync);
+  window.addEventListener('pt:music', sync);
   sync();
   return { el, sync };
 }

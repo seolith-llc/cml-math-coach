@@ -1,8 +1,9 @@
+import { DISCLAIMER_SHORT } from '../src/content/legal';
 /**
  * Weekly progress email: content (HTML + plain text) and scheduling helpers.
  * Numbers come from the same summarize() the dashboard uses, so both always agree.
  */
-import { cogatWeek, outcomeLabel, summarize, topicTitle, type DashboardData } from '../src/core/insights';
+import { thinkingWeek, outcomeLabel, summarize, topicTitle, type DashboardData } from '../src/core/insights';
 import { formatAnswer } from '../src/core/answer';
 import { problemFromId } from '../src/content/topics';
 
@@ -91,13 +92,13 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     <p style="font-size:12px;color:${C.muted};margin:6px 0 0"><span style="color:${C.blue}">■</span> first try &nbsp; <span style="color:${C.orange}">■</span> with help</p>`;
 
   const weekMeets = s.meets.filter((m) => m.date >= now - 7 * 86_400_000);
-  const cogat = cogatWeek(data, now);
-  const cogatDay = (ts: number) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long', timeZone: DIGEST_TZ });
-  const cogatLines = cogat
+  const thinking = thinkingWeek(data, now);
+  const thinkingDay = (ts: number) => new Date(ts).toLocaleDateString('en-US', { weekday: 'long', timeZone: DIGEST_TZ });
+  const thinkingLines = thinking
     ? [
-        ...(cogat.problems ? [`${cogat.problems} question${cogat.problems === 1 ? '' : 's'}, ${cogat.pct}% right first try`] : []),
-        ...(cogat.lastRound ? [`Last round (${cogatDay(cogat.lastRound.at)}): ${cogat.lastRound.score}`] : []),
-        ...cogat.byType.map((r) => `${r.title}: ${r.right} of ${r.total}`)
+        ...(thinking.problems ? [`${thinking.problems} question${thinking.problems === 1 ? '' : 's'}, ${thinking.pct}% right first try`] : []),
+        ...(thinking.lastRound ? [`Last round (${thinkingDay(thinking.lastRound.at)}): ${thinking.lastRound.score}`] : []),
+        ...thinking.byType.map((r) => `${r.title}: ${r.right} of ${r.total}`)
       ]
     : [];
   const mistakes = s.mistakes.filter((m) => m.ts >= now - 7 * 86_400_000).slice(0, 3);
@@ -121,7 +122,7 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     if (s.strong.length) items.push(`<strong style="color:${C.good}">Strong:</strong> ${s.strong.slice(0, 3).map((t) => esc(t.title)).join(', ')}`);
     parts.push(section('Topics', list(items)));
   }
-  if (cogatLines.length) parts.push(section('CogAT', list(cogatLines.map(esc))));
+  if (thinkingLines.length) parts.push(section('Thinking Puzzles', list(thinkingLines.map(esc))));
   if (weekMeets.length) parts.push(section('Tests', list(weekMeets.map((m) => `${m.score} of ${m.total} in ${Math.round(m.seconds / 60)} minutes`))));
   if (mistakes.length) {
     parts.push(section('Mistakes', mistakes.map((m) => {
@@ -133,9 +134,9 @@ export function buildDigest(data: DashboardData, links: DigestLinks, now = Date.
     }).join('')));
   }
   if (s.tips.length) parts.push(section('Next week', list(s.tips.slice(0, 3).map(esc))));
-  parts.push(`<tr><td style="padding:22px 24px 6px"><a href="${esc(links.appUrl)}" style="display:inline-block;background:${C.blue};color:#fff;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:10px">Open Math Coach</a></td></tr>`);
+  parts.push(`<tr><td style="padding:22px 24px 6px"><a href="${esc(links.appUrl)}" style="display:inline-block;background:${C.blue};color:#fff;text-decoration:none;font-weight:700;padding:10px 18px;border-radius:10px">Open Puzzle Trail</a></td></tr>`);
   parts.push(`<tr><td style="padding:16px 24px 24px;font-size:11px;color:${C.muted};line-height:1.5;border-top:1px solid ${C.line}">
-    Sent because you turned on weekly email in the Math Coach parent dashboard. <a href="${esc(links.unsubscribeUrl)}" style="color:${C.muted}">Unsubscribe</a></td></tr>`);
+    Sent because you turned on weekly email in the Puzzle Trail parent dashboard. <a href="${esc(links.unsubscribeUrl)}" style="color:${C.muted}">Unsubscribe</a><br><br>${esc(DISCLAIMER_SHORT)}</td></tr>`);
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${esc(subject)}</title></head>
 <body style="margin:0;background:${C.bg};font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
@@ -150,7 +151,7 @@ ${parts.join('\n')}
   if (practiced) t.push('', 'Day by day: ' + last7.map((x) => `${dayName(x.date)} ${x.firstTry + x.other}`).join(', '));
   if (s.needsHelp.length) t.push('', `Needs help: ${s.needsHelp.slice(0, 3).map((x) => x.title).join(', ')}`);
   if (s.strong.length) t.push(`Strong: ${s.strong.slice(0, 3).map((x) => x.title).join(', ')}`);
-  if (cogatLines.length) t.push('', 'CogAT:', ...cogatLines.map((x) => `- ${x}`));
+  if (thinkingLines.length) t.push('', 'Thinking Puzzles:', ...thinkingLines.map((x) => `- ${x}`));
   if (weekMeets.length) t.push('', ...weekMeets.map((m) => `Test: ${m.score} of ${m.total}`));
   if (mistakes.length) {
     t.push('', 'Mistakes:');
@@ -160,7 +161,7 @@ ${parts.join('\n')}
     }
   }
   if (s.tips.length) t.push('', 'Next week:', ...s.tips.slice(0, 3).map((x) => `- ${x}`));
-  t.push('', `Open Math Coach: ${links.appUrl}`, '', `Unsubscribe: ${links.unsubscribeUrl}`);
+  t.push('', `Open Puzzle Trail: ${links.appUrl}`, '', `Unsubscribe: ${links.unsubscribeUrl}`, '', DISCLAIMER_SHORT);
 
   return { subject, html, text: t.join('\n') };
 }

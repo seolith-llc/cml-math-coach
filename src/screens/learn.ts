@@ -3,7 +3,7 @@ import { load } from '../core/storage';
 import { statFor } from '../core/mastery';
 import { starText } from '../core/progress';
 import { makeProblem, topicById, topicsForGrade } from '../content/topics';
-import { CONTEST_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
+import { CHALLENGE_TIPS, FOUR_STEPS, STRATEGIES } from '../content/strategies';
 import { speak, stopSpeaking } from '../voice/speech';
 import { group, h, iconButton, list, rich, svg } from '../ui/dom';
 import { scenePlayer } from '../ui/player';
@@ -60,7 +60,7 @@ export function strategiesScreen(): View {
         iconButton('speaker', 'Read aloud', () => void speak(FOUR_STEPS.map((s) => `${s.title.replace(/^\d\.\s*/, '')}. ${s.text}`).join(' ')))),
       list(Object.entries(STRATEGIES).map(([k, v]) => ({ label: h('span', {}, h('strong', { class: 'key' }, k), h('br'), h('span', { class: 'sub' }, v)) })), 'Strategies',
         iconButton('speaker', 'Read aloud', () => void speak(Object.entries(STRATEGIES).map(([k, v]) => `${k}. ${v}`).join(' ')))),
-      list(CONTEST_TIPS.map((x) => ({ label: x })), 'On contest day')),
+      list(CHALLENGE_TIPS.map((x) => ({ label: x })), 'On a timed challenge')),
     destroy: stopSpeaking
   };
 }

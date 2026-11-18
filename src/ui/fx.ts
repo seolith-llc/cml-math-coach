@@ -18,7 +18,7 @@ export function reducedMotion(): boolean {
 export function cheer(card: HTMLElement, right: boolean): void {
   if (!gameLook()) return;
   // Lets the buddy (ui/buddy.ts trailBuddy) react to every checked answer, including a first wrong try.
-  card.dispatchEvent(new CustomEvent('cml:answer', { bubbles: true, detail: { right } }));
+  card.dispatchEvent(new CustomEvent('pt:answer', { bubbles: true, detail: { right } }));
   sfx(right ? 'right' : 'miss');
   const cls = right ? 'fx-pop' : 'fx-wobble';
   card.classList.remove('fx-pop', 'fx-wobble');

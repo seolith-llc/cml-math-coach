@@ -1,28 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { TOPICS, makeMeet, makeProblem, topicsForGrade } from '../src/content/topics';
 import { checkAnswer, parseChoice } from '../src/core/answer';
-import { POINTY, holesAfter, type Fig } from '../src/content/cogat/figures';
-import { classify } from '../src/content/cogat/nonverbal';
+import { POINTY, holesAfter, type Fig } from '../src/content/thinking/figures';
+import { classify } from '../src/content/thinking/nonverbal';
 import { Rng } from '../src/core/rng';
-import { _test } from '../src/content/cogat/verbal';
+import { _test } from '../src/content/thinking/verbal';
 import type { Grade, Level } from '../src/core/types';
 
-const cogat = TOPICS.filter((t) => t.track === 'cogat');
+const thinking = TOPICS.filter((t) => t.track === 'thinking');
 
-describe('CogAT track', () => {
-  it('has the three batteries with three question types each', () => {
-    expect(cogat.map((t) => t.category)).toEqual(['Verbal', 'Verbal', 'Verbal', 'Quantitative', 'Quantitative', 'Quantitative', 'Nonverbal', 'Nonverbal', 'Nonverbal']);
-    for (const g of [2, 3] as Grade[]) expect(topicsForGrade(g, 'cogat')).toHaveLength(9);
+describe('Thinking Puzzles track', () => {
+  it('has three groups with three question types each', () => {
+    expect(thinking.map((t) => t.category)).toEqual(['Words', 'Words', 'Words', 'Numbers', 'Numbers', 'Numbers', 'Shapes', 'Shapes', 'Shapes']);
+    for (const g of [2, 3] as Grade[]) expect(topicsForGrade(g, 'thinking')).toHaveLength(9);
   });
 
-  it('stays out of CML practice and tests', () => {
+  it('stays out of number practice and tests', () => {
     for (const g of [2, 3] as Grade[]) {
-      expect(topicsForGrade(g).some((t) => t.track === 'cogat')).toBe(false);
-      for (let s = 1; s <= 30; s++) expect(makeMeet(g, s, 20).some((p) => p.topicId.startsWith('cogat'))).toBe(false);
+      expect(topicsForGrade(g).some((t) => t.track === 'thinking')).toBe(false);
+      for (let s = 1; s <= 30; s++) expect(makeMeet(g, s, 20).some((p) => p.topicId.startsWith('thinking'))).toBe(false);
     }
   });
 
-  for (const t of cogat)
+  for (const t of thinking)
     for (const grade of t.grades)
       it(`${t.id} G${grade}: well-formed multiple choice`, () => {
         for (let s = 1; s <= 150; s++) {
@@ -48,7 +48,7 @@ describe('CogAT track', () => {
       });
 
   it('Grade 2 verbal items are pictures; Grade 3 verbal items are words', () => {
-    for (const id of ['cogat-analogies', 'cogat-sentences', 'cogat-classification']) {
+    for (const id of ['think-analogies', 'think-sentences', 'think-classification']) {
       const t = TOPICS.find((x) => x.id === id)!;
       for (let s = 1; s <= 20; s++) {
         const g2 = makeProblem(t, 2, 2, s).answer, g3 = makeProblem(t, 3, 2, s).answer;

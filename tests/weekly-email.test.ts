@@ -55,7 +55,7 @@ describe('weekly email opt-in flow', () => {
     await expect(setEmail(ctx, { familyId: FAMILY, pin: '0000', email: 'p@example.com' })).rejects.toMatchObject({ status: 401 });
     await expect(setEmail(ctx, { familyId: FAMILY, pin: PIN, email: 'not-an-email' })).rejects.toMatchObject({ status: 400 });
     await setEmail(ctx, { familyId: FAMILY, pin: PIN, email: ' Parent@Example.com ' });
-    expect(sent[0]).toMatchObject({ to: 'parent@example.com', subject: 'Confirm your weekly Math Coach email' });
+    expect(sent[0]).toMatchObject({ to: 'parent@example.com', subject: 'Confirm your weekly Puzzle Trail email' });
     await expect(testEmail(ctx, { familyId: FAMILY, pin: PIN })).rejects.toThrow(/Confirm your email/);
 
     const dash1 = await readDashboard(db, { familyId: FAMILY, pin: PIN }, SUN_EVENING);
@@ -68,11 +68,13 @@ describe('weekly email opt-in flow', () => {
 
     await testEmail(ctx, { familyId: FAMILY, pin: PIN });
     const t = sent[1];
-    expect(t.subject).toMatch(/^\[Test\] Sam <b>'s math week: 4 problems, 75% right first try$/);
+    expect(t.subject).toMatch(/^\[Test\] Your child's math week: 4 problems, 75% right first try$/);
     expect(t.headers!['List-Unsubscribe']).toMatch(/^<https:\/\/cml-math-coach\.seolith\.com\/api\/email\/unsubscribe\?u=/);
     expect(t.headers!['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click');
     // user content is escaped in HTML
-    expect(t.html).toContain('Sam &lt;b&gt;');
+    expect(t.html).not.toContain('Sam');
+    expect(t.text).toContain('not affiliated with or endorsed by'); // the disclaimer (content/legal.ts)
+    expect(t.html).toContain('not affiliated with or endorsed by');
     expect(t.html).toContain('Tues&lt;script&gt;');
     expect(t.html).not.toContain('<script>');
     expect(t.text).toContain('Mistakes:');
@@ -119,7 +121,7 @@ describe('weekly batch', () => {
     expect((await sendWeekly({ db, mailer, origin: ORIGIN, now: SUN_EVENING - 6 * 3_600_000 })).reason).toMatch(/Outside/);
     const r1 = await sendWeekly({ db, mailer, origin: ORIGIN, now: SUN_EVENING });
     expect(r1).toMatchObject({ week: '2026-11-08', sent: 1, failed: 0, remaining: 0 });
-    expect(sent[before].subject).toBe("Sam <b>'s math week: 4 problems, 75% right first try");
+    expect(sent[before].subject).toBe("Your child's math week: 4 problems, 75% right first try");
     const r2 = await sendWeekly({ db, mailer, origin: ORIGIN, now: SUN_EVENING + 3_600_000 }); // second cron slot
     expect(r2.sent).toBe(0);
     expect(sent.length).toBe(before + 1);
@@ -210,24 +212,24 @@ describe('email log: refusals', () => {
   });
 });
 
-describe('CogAT in the weekly email', () => {
+describe('Thinking Puzzles in the weekly email', () => {
   const now = SUN_EVENING, DAY = 86_400_000;
   const att = (ts: number, topicId: string, firstTry: boolean, i: number) => ({ ts, problemId: `${topicId}:3:1:${i}`, topicId, grade: 3, level: 1, correct: firstTry, firstTry, skipped: false, hints: 0, seconds: 30, mode: 'practice' });
   const data = (attempts: ReturnType<typeof att>[], rounds?: object) => ({ child: { name: 'Ava', grade: 3 as const }, lastSync: now, snapshot: rounds ? { rounds } : null, attempts }) as DashboardData;
 
-  it('adds a CogAT section with the week, the last round and each question type', () => {
+  it('adds a Thinking Puzzles section with the week, the last round and each question type', () => {
     const d = data(
-      [att(now - DAY, 'cogat-paper-folding', false, 1), att(now - DAY, 'cogat-paper-folding', true, 2), att(now - 2 * DAY, 'cogat-matrices', true, 3), att(now - DAY, 'coins', true, 4), att(now - 9 * DAY, 'cogat-matrices', false, 5)],
-      { '3:cogat': { kind: 'cogat', grade: 3, at: now - DAY, items: [{ problemId: 'cogat-paper-folding:3:1:1', ok: false, fixed: true }, { problemId: 'cogat-matrices:3:1:3', ok: true }] } }
+      [att(now - DAY, 'think-paper-folding', false, 1), att(now - DAY, 'think-paper-folding', true, 2), att(now - 2 * DAY, 'think-matrices', true, 3), att(now - DAY, 'coins', true, 4), att(now - 9 * DAY, 'think-matrices', false, 5)],
+      { '3:thinking': { kind: 'thinking', grade: 3, at: now - DAY, items: [{ problemId: 'think-paper-folding:3:1:1', ok: false, fixed: true }, { problemId: 'think-matrices:3:1:3', ok: true }] } }
     );
     const g = buildDigest(d, { appUrl: ORIGIN, unsubscribeUrl: ORIGIN + '/u' }, now)!;
-    expect(g.html).toContain('>CogAT</h2>');
-    expect(g.text).toContain('CogAT:\n- 3 questions, 67% right first try\n- Last round (Saturday): 1 → 2 of 2\n- Paper folding: 1 of 2\n- Figure matrices: 1 of 1');
+    expect(g.html).toContain('>Thinking Puzzles</h2>');
+    expect(g.text).toContain('Thinking Puzzles:\n- 3 questions, 67% right first try\n- Last round (Saturday): 1 → 2 of 2\n- Paper folding: 1 of 2\n- Figure matrices: 1 of 1');
   });
 
-  it('leaves it out in a week without CogAT', () => {
-    const g = buildDigest(data([att(now - DAY, 'coins', true, 1), att(now - 9 * DAY, 'cogat-matrices', true, 2)]), { appUrl: ORIGIN, unsubscribeUrl: ORIGIN + '/u' }, now)!;
-    expect(g.html).not.toContain('>CogAT</h2>');
-    expect(g.text).not.toContain('CogAT');
+  it('leaves it out in a week without Thinking Puzzles', () => {
+    const g = buildDigest(data([att(now - DAY, 'coins', true, 1), att(now - 9 * DAY, 'think-matrices', true, 2)]), { appUrl: ORIGIN, unsubscribeUrl: ORIGIN + '/u' }, now)!;
+    expect(g.html).not.toContain('>Thinking Puzzles</h2>');
+    expect(g.text).not.toContain('Thinking Puzzles');
   });
 });

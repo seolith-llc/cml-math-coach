@@ -60,7 +60,7 @@ export function feedbackEmail(f: Stored): { subject: string; text: string; html:
   ].join('\n');
   const esc = (x: string) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return {
-    subject: `Math Coach ${f.kind === 'problem' ? 'problem' : 'idea'}: ${first}${f.message.length > first.length ? '…' : ''}`,
+    subject: `Puzzle Trail ${f.kind === 'problem' ? 'problem' : 'idea'}: ${first}${f.message.length > first.length ? '…' : ''}`,
     text,
     html: `<pre style="font: 15px/1.5 -apple-system, sans-serif; white-space: pre-wrap">${esc(text)}</pre>`
   };

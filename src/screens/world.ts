@@ -62,12 +62,12 @@ export function worldScreen(): View {
       h('span', { class: 'island-bar' }, h('span', { style: `width:${p.max ? Math.round((p.stars / p.max) * 100) : 0}%` })));
   }));
 
-  const last = (['cml', 'review'] as const).map((k) => ({ k, at: lastRound(state, grade, k)?.at ?? 0 })).sort((a, b) => b.at - a.at)[0];
+  const last = (['number', 'review'] as const).map((k) => ({ k, at: lastRound(state, grade, k)?.at ?? 0 })).sort((a, b) => b.at - a.at)[0];
   const lastRow = last.at ? savedScore(last.k) : undefined;
-  const cogatStars = topicsForGrade(grade, 'cogat').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
+  const thinkingStars = topicsForGrade(grade, 'thinking').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
 
   return {
-    title: 'Math Coach',
+    title: 'Puzzle Trail',
     el: h('div', { class: 'stack world' },
       gradeSwitch(),
       hero,
@@ -76,7 +76,7 @@ export function worldScreen(): View {
         { label: 'Sticker book', value: state.stickers?.length || undefined, href: '#/stickers' },
         lastRow ? { label: 'Last round', value: lastRow.score, href: lastRow.href } : null,
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
-        { label: 'CogAT', value: cogatStars ? `${cogatStars} ★` : undefined, href: '#/cogat' },
+        { label: 'Thinking Puzzles', value: thinkingStars ? `${thinkingStars} ★` : undefined, href: '#/thinking' },
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', href: '#/learn' },
         { label: 'Progress', href: '#/progress' },

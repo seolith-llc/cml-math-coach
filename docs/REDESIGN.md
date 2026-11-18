@@ -1,6 +1,10 @@
 # Redesign: free, invite-and-approve growth, original brand, tougher thinking
 
-Status: **proposal (step076)**, waiting on the decisions at the end. Nothing here is built yet.
+Status: **decided (step077)**. Phase 1 (rebrand, legal pages, 30-day terms on the device) shipped in step077; phases 2–5 next.
+
+**Decisions (step077):** name **Puzzle Trail**; repository **private** (the owner changes it in GitHub settings); landing page **not indexed**;
+child nickname **on the device only**; **invite-only** (no open sign-up and no waitlist); every member **accepts the terms**, access lasts
+**30 days**, then they **re-accept** to continue.
 
 ## Why
 
@@ -21,7 +25,7 @@ Status: **proposal (step076)**, waiting on the decisions at the end. Nothing her
   - No exam names, no "Level 8/9" or battery language. The grade still decides 3 picture choices (Grade 2) or 5 word choices (Grade 3).
 - **Other renames:**
   - "Meets" become **Challenges**.
-  - The weekly email, the parent dashboard, Learn, the tester guide and all code identifiers (`cogat`, `cml`, `track: 'cml'`) are renamed, with a storage migration so no progress is lost.
+  - The weekly email, the parent dashboard, Learn, the tester guide and all code identifiers (old track and topic ids) are renamed, with a storage migration so no progress is lost.
 - **Audit pass on every generator:** problems stay original and generated per seed. Nothing is copied or paraphrased from any contest paper, book or video.
 - **The old names in git history:** the repository is renamed, and either **made private** (recommended, free) or its history is rewritten.
   Rewriting does not remove forks or caches that already exist.
@@ -62,15 +66,19 @@ Sign-up is protected by Cloudflare Turnstile (free) and rate limits.
 | **Viewer** (limited) | grandparent, tutor, teacher | read-only progress dashboard; no settings, invites or feedback |
 | **Child profile** | no email, no login | plays on a device a parent signed in; the parent area stays behind the PIN |
 
-**How people get in (organic growth, gated):**
-1. **Join my family** (co-parent or viewer): the owner creates the invite, so the invitee is in as soon as they confirm their email.
+**How people get in (invite-only, organic growth, gated):**
+1. **Join my family** (co-parent or viewer): the owner creates the invite, so the invitee is in as soon as they confirm their email and accept the terms.
 2. **Invite a friend's family:** an approved parent sends an invite link. When the friend signs up, **the inviter approves with one tap** in an email.
    If the inviter does not answer in 72 hours, it goes to the super admin.
-3. **No invite:** the sign-up goes on a **waitlist**. The super admin approves or denies with one tap in a daily digest email.
-4. **Invite quota:** 3 to start, plus 1 per week of active practice, up to 10. Every account records who invited it, so a bad branch can be paused at once.
-5. **Capacity guard:** sign-ups pause by themselves near free-tier limits (Workers requests, D1 writes, TTS neurons), and the app falls back to the device voice.
+3. **Super admin invites** seed new families directly (approved on accept).
+   There is no open sign-up and no waitlist: without a valid invite link, the sign-up page only says it is invite-only.
+4. **Terms, 30 days at a time:** at first sign-in and again every 30 days, each member sees the terms, privacy policy and disclaimer and must accept them.
+   Until they re-accept, the app shows only that screen. The child's device keeps playing offline, and syncing resumes after the parent re-accepts.
+   Each acceptance records the terms version and time. A new terms version asks again right away.
+5. **Invite quota:** 3 to start, plus 1 per week of active practice, up to 10. Every account records who invited it, so a bad branch can be paused at once.
+6. **Capacity guard:** sign-ups pause by themselves near free-tier limits (Workers requests, D1 writes, TTS neurons), and the app falls back to the device voice.
 
-**Public pages** (the only ones): landing, privacy, terms, sign-in, sign-up, invite accept, and the existing token-protected email links.
+**Public pages** (the only ones, all `noindex`): landing, privacy, terms, sign-in, invite accept, and the existing token-protected email links.
 Everything else requires a session. Bots still get a 403 (`server/guard.ts`).
 
 **Cost stays $0** on the Cloudflare free tier (Pages, Functions, D1, Turnstile, Workers AI daily allowance) plus SES at about $0.10 per 1,000 emails.
@@ -104,9 +112,8 @@ Cloudflare Access comes off the app hosts only after the new sign-in is live and
 | 4 | Tougher thinking: think-first hints, 70% target, new families, Big Puzzle | 3–5 days |
 | 5 | Growth: quotas, invite tree, capacity guard, Status numbers | 1–2 days |
 
-## Decisions needed
+## Host and repository moves (with phase 3)
 
-1. **Name** (one of the candidates, or your own).
-2. **Repository:** make it private (recommended), or keep it public and rewrite its history.
-3. **Landing page:** indexed by search engines (organic discovery), or not indexed (growth only through invites).
-4. **Child data:** the nickname stays on the device only (recommended), or syncs to the parent dashboard.
+- **Domain:** a new host on `seolith.com` without the old name, for example `puzzletrail.seolith.com`. It is added to the same Pages project.
+  A change of origin empties a device's local progress, so the old host first hands each device's progress to the new host with a one-time code, then redirects.
+- **Repository rename** to `puzzle-trail`: done by the owner at the end. This session is bound to the current name.

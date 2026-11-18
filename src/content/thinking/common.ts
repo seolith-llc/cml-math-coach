@@ -1,7 +1,7 @@
 import type { AnswerSpec, Grade, Misconception } from '../../core/types';
 import type { Rng } from '../../core/rng';
 
-/** Answer choices per item: Grade 2 (CogAT Level 8 style) uses 3, Grade 3 (Level 9 style) uses 5. */
+/** Answer choices per item: Grade 2 uses 3 (pictures, read aloud), Grade 3 uses 5 (words). */
 export const choicesFor = (grade: Grade) => (grade === 2 ? 3 : 5);
 
 export const letterOf = (i: number) => String.fromCharCode(97 + i);
@@ -51,7 +51,7 @@ export function retry<T>(make: () => T | null, tries = 400): T {
     const v = make();
     if (v) return v;
   }
-  throw new Error('cogat: could not build an item');
+  throw new Error('thinking: could not build an item');
 }
 
 export const say = (s: string) => s.replace(/→/g, 'becomes');

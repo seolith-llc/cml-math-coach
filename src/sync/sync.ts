@@ -50,7 +50,7 @@ function payload(state: AppState, attempts: AppState['log'], pin?: string) {
   return {
     familyId: state.sync!.familyId,
     ...(pin ? { pin } : {}),
-    child: { name: state.settings.name, grade: state.settings.grade },
+    child: { grade: state.settings.grade }, // the nickname stays on this device
     snapshot: snapshot(state),
     attempts
   };
@@ -137,7 +137,7 @@ function beacon() {
 
 export function startAutoSync(): void {
   if (typeof window === 'undefined') return;
-  window.addEventListener('cml:progress', () => {
+  window.addEventListener('pt:progress', () => {
     if (!load().sync) return;
     clearTimeout(timer);
     timer = window.setTimeout(() => void syncNow(), 4000);

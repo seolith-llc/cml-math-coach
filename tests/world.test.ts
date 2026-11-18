@@ -5,7 +5,7 @@ import type { Grade } from '../src/core/types';
 
 describe('world map islands', () => {
   for (const grade of [2, 3] as Grade[])
-    it(`Grade ${grade}: every CML topic is on exactly one island, CogAT on none`, () => {
+    it(`Grade ${grade}: every number topics is on exactly one island, Thinking Puzzles on none`, () => {
       const placed = ISLANDS.flatMap((i) => islandTopics(grade, i).map((t) => t.id));
       expect(new Set(placed).size).toBe(placed.length);
       expect([...placed].sort()).toEqual(topicsForGrade(grade).map((t) => t.id).sort());

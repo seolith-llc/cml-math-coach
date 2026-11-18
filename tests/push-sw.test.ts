@@ -20,9 +20,9 @@ describe('service worker push handler', () => {
   it('shows the reminder from the encrypted payload', async () => {
     const { handlers, shown } = loadWorker();
     let wait: Promise<unknown> = Promise.resolve();
-    handlers.push({ data: { json: () => ({ title: 'Math Coach', body: "Sam, ready for today's 10?", url: './#/practice' }) }, waitUntil: (p: Promise<unknown>) => (wait = p) });
+    handlers.push({ data: { json: () => ({ title: 'Puzzle Trail', body: "Sam, ready for today's 10?", url: './#/practice' }) }, waitUntil: (p: Promise<unknown>) => (wait = p) });
     await wait;
-    expect(shown).toEqual([{ title: 'Math Coach', opts: { body: "Sam, ready for today's 10?", icon: 'icon-192.png', badge: 'icon-192.png', tag: 'daily-practice', data: { url: './#/practice' } } }]);
+    expect(shown).toEqual([{ title: 'Puzzle Trail', opts: { body: "Sam, ready for today's 10?", icon: 'icon-192.png', badge: 'icon-192.png', tag: 'daily-practice', data: { url: './#/practice' } } }]);
   });
   it('opens Practice in the existing window when tapped', async () => {
     const { handlers, win } = loadWorker();

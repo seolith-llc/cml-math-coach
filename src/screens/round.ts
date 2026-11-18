@@ -5,8 +5,8 @@ import { h } from '../ui/dom';
 import { keepRound, recordSecondTry, restoreRound, roundEnd } from '../ui/roundEnd';
 import type { View } from '../app';
 
-const KINDS: RoundKind[] = ['cml', 'cogat', 'review'];
-const AGAIN: Record<RoundKind, [string, string]> = { cml: ['Practice', '#/practice'], cogat: ['Practice', '#/practice/cogat'], review: ['Review', '#/review'] };
+const KINDS: RoundKind[] = ['number', 'thinking', 'review'];
+const AGAIN: Record<RoundKind, [string, string]> = { number: ['Practice', '#/practice'], thinking: ['Practice', '#/practice/thinking'], review: ['Review', '#/review'] };
 
 /** "7 → 9 of 10" for a saved round, for list rows. */
 export function savedScore(kind: RoundKind): { score: string; href: string } | undefined {
@@ -24,7 +24,7 @@ export function savedScore(kind: RoundKind): { score: string; href: string } | u
 export function roundScreen(param?: string): View {
   const state = load();
   const grade = state.settings.grade;
-  const kind = (KINDS.includes(param as RoundKind) ? param : 'cml') as RoundKind;
+  const kind = (KINDS.includes(param as RoundKind) ? param : 'number') as RoundKind;
   const saved = lastRound(state, grade, kind);
   const slot = h('div');
   let cleanup = () => {};

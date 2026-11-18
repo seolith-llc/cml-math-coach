@@ -1,21 +1,15 @@
 # Research notes
 
-## The contest (CML Grades 2–3)
-- Grades 2 and 3 take **3 meets per year** (usually Jan–Mar). Each meet has **6 questions in 30 minutes** and one answer per question.
-  Most answers are short (a number, an amount of money, a time, a name, a weekday) and a few are multiple choice.
-- Analysis of the 2021–22 to 2024–25 sample papers (Grades 2 and 3) found these recurring problem families:
-  missing number/box equations, comparing two computations, sum & difference, ages, transfers ("twice as many"),
-  multi-step stories, chickens-and-pigs, unit rate, coins (value, change, ways, distinct amounts, smallest amount),
-  calendar day-of-week, elapsed time & halfway times, unit conversion (yd/ft/in, hours), number-line segments,
-  ordering and matching logic, counting triangles/rectangles ("number the sections"), Venn diagrams, digit counting,
-  number riddles, cryptarithms, made-up operations (Grade 3), shape equations, packages (Grade 3), balance problems,
-  palindromes and magic arrangements.
-- Grade 3 papers reuse several Grade 2 ideas with larger numbers and one more step. The app mirrors this with
-  grade-specific number ranges and three difficulty levels.
-- Palindromes and digit-placement puzzles were added in step002 with two new answer types: `digits` and `placement`.
-  Placement accepts **any** valid arrangement, as the CML solutions do ("other possible arrangements").
-  The brothers/sisters family puzzle was added in step010. Two "as many / more than" clues only fix *girls − boys*, so Grade 2
-  pairs one direct count with one relation, and Grade 3 adds "twice / three times" clues, which make two-relation puzzles solvable.
+## Puzzle families
+- Short answers (a number, an amount of money, a time, a name, a weekday), a few multiple choice, 6 questions in 30 minutes for a timed challenge.
+- Families (all generated, all original): missing number and box equations, comparing two computations, sum and difference, ages, transfers ("twice as many"),
+  multi-step stories, heads and legs, unit rate, coins (value, change, ways, distinct amounts, smallest amount), calendar day-of-week,
+  elapsed time and halfway times, unit conversion, number-line segments, ordering and matching logic, counting triangles and rectangles,
+  Venn diagrams, digit counting, number riddles, letter-digit puzzles, made-up operations (Grade 3), shape equations, packages (Grade 3),
+  balance problems, palindromes and magic arrangements. These are common puzzle genres, not taken from any paper or test.
+- Grade 3 reuses Grade 2 ideas with larger numbers and one more step: grade-specific number ranges and three difficulty levels.
+- Placement puzzles accept **any** valid arrangement. Two "as many / more than" clues only fix *girls − boys*, so Grade 2 pairs one direct
+  count with one relation, and Grade 3 adds "twice / three times" clues, which make two-relation puzzles solvable.
 
 ## Pedagogy
 - **Pólya's 4 steps** (Understand, Plan, Solve, Look back) and a fixed set of named strategies give children a shared language.
@@ -36,7 +30,7 @@
 ## Sources
 - https://bugs.webkit.org/show_bug.cgi?id=225298
 - https://developer.apple.com/forums/thread/748048
-- https://www.mersnj.us/Page/6014 (school overview of CML)
+- https://www.mersnj.us/Page/6014 (school overview of Number Puzzles)
 - https://news.harker.org/grade-3-students-win-math-league-regional-award/
 - https://www.assemblyai.com/blog/speech-recognition-javascript-web-speech-api
 - https://www.testmuai.com/learning-hub/speech-recognition-api-browser-support/

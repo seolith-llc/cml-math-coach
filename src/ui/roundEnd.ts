@@ -75,7 +75,7 @@ export function roundEnd(o: {
   /** Game look: stars and today's goal when the round started, so the round end can celebrate and award stickers.
    *  Left out when reopening a saved round, so nothing is earned twice. */
   celebrate?: RoundStart;
-  /** What kind of round, for the round log (Practice: cml or cogat; Review: review). */
+  /** What kind of round, for the round log (Practice: number or thinking; Review: review). */
   kind?: RoundKind;
 }): void {
   const { slot, items } = o;
@@ -101,7 +101,7 @@ export function roundEnd(o: {
     const st = state.settings;
     const f = facts();
     logRound(state, {
-      at: Date.now(), look: st.look, music: st.look === 'game' ? st.music.tune : 'off', kind: o.kind ?? 'cml',
+      at: Date.now(), look: st.look, music: st.look === 'game' ? st.music.tune : 'off', kind: o.kind ?? 'number',
       grade: st.grade, total: f.total, right: f.right, fixed: f.fixed
     });
   }
@@ -226,7 +226,7 @@ export interface RoundStart {
   goalBefore: boolean;
 }
 
-/** All stars of a grade (CML and CogAT), to see whether a round earned one. */
+/** All stars of a grade (Number and Thinking Puzzles), to see whether a round earned one. */
 export function roundStars(state: AppState, grade: Grade): number {
   return Object.values(state.stats[String(grade)] ?? {}).reduce((n, st) => n + ((st as { stars?: number }).stars ?? 0), 0);
 }
@@ -247,7 +247,7 @@ export function recordSecondTry(state: AppState, grade: Grade, p: Problem, res: 
   }));
 }
 
-/** Save a round as the last one of its kind (reopened from Home or the CogAT screen). */
+/** Save a round as the last one of its kind (reopened from Home or the Thinking Puzzles screen). */
 export function keepRound(state: AppState, grade: Grade, kind: RoundKind, items: RoundItem[], at: number): void {
   saveRound(state, { kind, grade, at, items: items.map((i) => ({ problemId: i.problem.id, ok: i.ok, ...(i.answer ? { answer: i.answer } : {}), ...(i.fixed ? { fixed: true } : {}) })) });
 }

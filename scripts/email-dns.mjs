@@ -112,7 +112,7 @@ if (!apply) { say(plan.create.length || plan.ses ? 'Dry run: nothing was changed
 say('### Applying');
 try {
   for (const r of plan.create) {
-    await cf('POST', `/zones/${zoneId}/dns_records`, { type: r.type, name: r.name, content: r.content, ttl: 1, proxied: false, ...(r.priority ? { priority: r.priority } : {}), comment: 'Math Coach email (scripts/email-dns.mjs)' });
+    await cf('POST', `/zones/${zoneId}/dns_records`, { type: r.type, name: r.name, content: r.content, ttl: 1, proxied: false, ...(r.priority ? { priority: r.priority } : {}), comment: 'Puzzle Trail email (scripts/email-dns.mjs)' });
     say(`- ✔ created ${r.type} ${r.name}`);
   }
   if (plan.ses) {

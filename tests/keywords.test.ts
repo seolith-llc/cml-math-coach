@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { TOPICS, makeProblem } from '../src/content/topics';
 import type { Grade, Level } from '../src/core/types';
 
-/* Key words: every problem (CML and CogAT) marks their key quantities and conditions with **bold**, which the Neon highlight
+/* Key words: every problem (Number and Thinking Puzzles) marks their key quantities and conditions with **bold**, which the Neon highlight
    (settings.highlight) turns into a fluorescent marker. The voice never reads the markers (prepareForSpeech). */
 describe('bold key words', () => {
   for (const topic of TOPICS) {

@@ -1,4 +1,4 @@
-/* Math Coach. One accent, system type, grouped lists. Light and dark. */
+/* Puzzle Trail. One accent, system type, grouped lists. Light and dark. */
 
 :root {
   --bg: #f2f2f7;
@@ -349,7 +349,7 @@ a.row:active, button.row:active { background: var(--fill); }
 :root[data-hl='neon'] .stage g.pulse > * { filter: drop-shadow(0 0 3px var(--neon)) drop-shadow(0 0 8px var(--neon-glow)); }
 /* outlined shapes that carry meaning (answer boxes use the series colours, the right answer is "good") glow too */
 :root[data-hl='neon'] .stage :is(.s-accent, .s-s1, .s-s2, .s-good) { filter: drop-shadow(0 0 2px var(--neon)) drop-shadow(0 0 9px var(--neon-glow)); }
-/* multiple-choice answers (CogAT): the picked one and the right one glow; a wrong pick stays plain */
+/* multiple-choice answers (Thinking Puzzles): the picked one and the right one glow; a wrong pick stays plain */
 :root[data-hl='neon'] .choice.picked:not(.wrong) { border-color: var(--neon); box-shadow: 0 0 0 1px var(--neon), 0 0 16px -4px var(--neon-glow); }
 :root[data-hl='neon'] .choice.right { box-shadow: 0 0 0 1px var(--good), 0 0 18px -4px var(--neon-glow); }
 :root[data-hl='neon'] .hints li:last-child { box-shadow: inset 4px 0 0 var(--neon), 0 0 14px -6px var(--neon-glow); }
@@ -567,3 +567,12 @@ a.row:active, button.row:active { background: var(--fill); }
 /* Game look: the top bar's music button (ui/musicToggle.ts). Three buttons on the right, so both sides widen to keep the title centred. */
 html[data-look="game"] .bar:has(.bar-music:not([hidden])) { grid-template-columns: 132px 1fr 132px; }
 .bar-music.off { color: var(--muted); }
+
+/* Legal pages and the accept screen (screens/legal.ts) */
+.legal-text p { margin: 0 0 10px; line-height: 1.5; }
+.legal-text p:last-child { margin-bottom: 0; }
+.legal-date { margin: 0; color: var(--muted); font-size: 14px; }
+.legal-h { font-size: 20px; margin: 12px 4px 0; }
+.accept-card { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); display: grid; gap: 12px; box-shadow: 0 6px 24px rgb(0 0 0 / .12); }
+.accept-row { display: flex; gap: 12px; align-items: flex-start; line-height: 1.4; cursor: pointer; }
+.accept-row input { width: 24px; height: 24px; flex: none; margin: 0; accent-color: var(--accent); }

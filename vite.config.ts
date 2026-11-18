@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'CML Math Coach — Grades 2 & 3',
-        short_name: 'Math Coach',
-        description: 'Practice Continental Math League style problems with a voice coach.',
+        name: 'Puzzle Trail — Grades 2 & 3',
+        short_name: 'Puzzle Trail',
+        description: 'A puzzle game for kids: number and thinking puzzles with a voice coach.',
         theme_color: '#3b5bdb',
         background_color: '#f8f9fc',
         display: 'standalone',

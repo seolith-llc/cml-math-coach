@@ -1,5 +1,5 @@
 /**
- * Game look world map (docs/GAME-MODE.md, phase 2): the CML topics grouped into four islands,
+ * Game look world map (docs/GAME-MODE.md, phase 2): the number topics grouped into four islands,
  * lit by the stars the child has really earned. Pure data and helpers, no DOM.
  */
 import type { Category, Grade, Topic } from '../core/types';

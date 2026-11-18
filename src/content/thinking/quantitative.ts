@@ -1,4 +1,4 @@
-/** CogAT-style Quantitative Battery: number analogies, number puzzles, number series (original items). */
+/** Thinking puzzles with numbers: number analogies, number puzzles, number series (original items). */
 import type { Grade, Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { SceneBuilder, arc, brace, rect, text } from '../../core/scene';
@@ -60,10 +60,10 @@ function analogyScene(pairs: [number, number][], q: number, rule: Rule, ans: num
 }
 
 export const numberAnalogies: Topic = {
-  id: 'cogat-number-analogies',
+  id: 'think-number-analogies',
   title: 'Number analogies',
-  category: 'Quantitative',
-  track: 'cogat',
+  category: 'Numbers',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Find the rule',
   guide: {
@@ -125,10 +125,10 @@ function puzzleScene(left: [number, number], right: number, ans: number, eq: str
 }
 
 export const numberPuzzles: Topic = {
-  id: 'cogat-number-puzzles',
+  id: 'think-number-puzzles',
   title: 'Number puzzles',
-  category: 'Quantitative',
-  track: 'cogat',
+  category: 'Numbers',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Write a number sentence',
   guide: {
@@ -236,10 +236,10 @@ function seriesScene(sr: Series, beads: boolean) {
 }
 
 export const numberSeries: Topic = {
-  id: 'cogat-number-series',
+  id: 'think-number-series',
   title: 'Number series',
-  category: 'Quantitative',
-  track: 'cogat',
+  category: 'Numbers',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Look for a pattern',
   guide: {

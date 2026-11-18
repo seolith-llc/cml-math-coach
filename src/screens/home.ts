@@ -18,9 +18,9 @@ export function homeScreen(): View {
   const stats = state.stats[String(grade)] ?? {};
   const stars = topicsForGrade(grade).reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
   // The most recent of the last practice round and the last review round.
-  const last = (['cml', 'review'] as const).map((k) => ({ k, at: lastRound(state, grade, k)?.at ?? 0 })).sort((a, b) => b.at - a.at)[0];
+  const last = (['number', 'review'] as const).map((k) => ({ k, at: lastRound(state, grade, k)?.at ?? 0 })).sort((a, b) => b.at - a.at)[0];
   const lastRow = last.at ? savedScore(last.k) : undefined;
-  const cogatStars = topicsForGrade(grade, 'cogat').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
+  const thinkingStars = topicsForGrade(grade, 'thinking').reduce((n, tp) => n + (stats[tp.id]?.stars ?? 0), 0);
 
   const segment = gradeSwitch();
 
@@ -34,7 +34,7 @@ export function homeScreen(): View {
     h('a', { class: `btn ${t.goalMet ? '' : 'primary'} hero`, href: '#/practice' }, t.goalMet ? 'Keep going' : 'Practice'));
 
   return {
-    title: 'Math Coach',
+    title: 'Puzzle Trail',
     el: h('div', { class: 'stack' },
       segment,
       s.lookOffered ? null : lookOffer(state),
@@ -44,7 +44,7 @@ export function homeScreen(): View {
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', value: stars ? `${stars} ★` : undefined, href: '#/learn' },
-        { label: 'CogAT', value: cogatStars ? `${cogatStars} ★` : undefined, href: '#/cogat' },
+        { label: 'Thinking Puzzles', value: thinkingStars ? `${thinkingStars} ★` : undefined, href: '#/thinking' },
         { label: 'Progress', href: '#/progress' },
         // PIN-protected, so it's safe on the child's Home; set up in Settings when it isn't on yet.
         { label: 'Parent dashboard', href: state.sync ? `#/parent/${state.sync.familyId}` : '#/settings/parent' }

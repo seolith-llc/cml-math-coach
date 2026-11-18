@@ -43,7 +43,7 @@ describe('feedback: saving, limits and the owner email', () => {
     const row = await db.prepare('SELECT * FROM user_feedback WHERE id = ?').bind(r.id).first<Record<string, unknown>>();
     expect(row).toMatchObject({ kind: 'problem', status: 'new', problem_id: 'calendar:2:3:41', grade: 2, note: '' });
     expect(sent[0].to).toBe('owner@example.com');
-    expect(sent[0].subject).toBe('Math Coach problem: The answer to this one should be 12, not 13.');
+    expect(sent[0].subject).toBe('Puzzle Trail problem: The answer to this one should be 12, not 13.');
     expect(sent[0].text).toContain('problem calendar:2:3:41');
   });
   it('still saves when the email fails, and says so', async () => {
@@ -64,7 +64,7 @@ describe('feedback: saving, limits and the owner email', () => {
   it('escapes the message in the HTML email', () => {
     const e = feedbackEmail({ id: 'fb_x', ts: 0, kind: 'idea', message: '<b>more</b> stars & badges', route: '', problemId: null, grade: null, device: '' });
     expect(e.html).toContain('&lt;b&gt;more&lt;/b&gt; stars &amp; badges');
-    expect(e.subject).toBe('Math Coach idea: <b>more</b> stars & badges');
+    expect(e.subject).toBe('Puzzle Trail idea: <b>more</b> stars & badges');
   });
 });
 

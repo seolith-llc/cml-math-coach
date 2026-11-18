@@ -4,7 +4,7 @@ import { compareLooks, formatComparison } from '../scripts/lib/experiment.mjs';
 
 const NOW = Date.UTC(2026, 10, 30, 12);
 const DAY = 86_400_000;
-const r = (daysAgo: number, look: string, music: string, right: number, total = 10, fixed = 0) => ({ at: NOW - daysAgo * DAY, look, music, right, total, fixed, kind: 'cml', grade: 3 });
+const r = (daysAgo: number, look: string, music: string, right: number, total = 10, fixed = 0) => ({ at: NOW - daysAgo * DAY, look, music, right, total, fixed, kind: 'number', grade: 3 });
 
 describe('Game vs Classic comparison (tester round)', () => {
   it('compares the looks and music on/off over the last 28 days', () => {

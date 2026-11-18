@@ -65,7 +65,7 @@ export function testScreen(): View {
     return runPaper(cfg, problems, started, seconds, speakOn);
   }
 
-  /** Test mode, no clock or a total clock: all questions on one page, like a contest paper. */
+  /** Test mode, no clock or a total clock: all questions on one page, like a paper worksheet. */
   function runPaper(cfg: TestConfig, problems: Problem[], started: number, seconds: number | null, speakOn: () => boolean) {
     const cards = problems.map((p, i) => answerCard(p, i + 1));
     const c = seconds ? clock(() => finishTest(cfg, problems, cards.map((x) => x.answers()), started), () => speakOn() && void speak('One minute left.')) : null;

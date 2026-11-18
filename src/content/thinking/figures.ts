@@ -1,5 +1,5 @@
 /**
- * Figures for the CogAT-style nonverbal and picture items. One geometry, two outputs:
+ * Figures for the reasoning nonverbal and picture items. One geometry, two outputs:
  * SVG markup (question pictures and tap targets) and scene shapes (animated explanations).
  */
 import { path, type Role, type Shape } from '../../core/scene';

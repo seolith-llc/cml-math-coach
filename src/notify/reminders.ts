@@ -68,7 +68,7 @@ async function reportPractice() {
 export function startReminders(): void {
   if (typeof window === 'undefined') return;
   updateBadge();
-  window.addEventListener('cml:progress', () => {
+  window.addEventListener('pt:progress', () => {
     updateBadge();
     clearTimeout(timer);
     timer = window.setTimeout(() => void reportPractice(), 3000);

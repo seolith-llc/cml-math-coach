@@ -128,7 +128,7 @@ function schedule() {
 
 /** Bring the music to where it should be now: which tune, how loud (with ducking), or stopped. */
 export function refreshSound(): void {
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:music')); // the top-bar button follows
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pt:music')); // the top-bar button follows
   const c = ctx;
   if (!c || !musicBus) return;
   const s = settings();
@@ -185,7 +185,7 @@ export function startSound(): void {
   if (started || typeof window === 'undefined') return;
   started = true;
   // local checks only (Playwright on localhost): read the mixer's state; never on the real site
-  if (location.hostname === 'localhost') (window as unknown as { __cmlSound: typeof soundState }).__cmlSound = soundState;
+  if (location.hostname === 'localhost') (window as unknown as { __ptSound: typeof soundState }).__ptSound = soundState;
   const unlock = () => {
     if (!gameOn()) return; // nothing to unlock in the classic look; try again on a later tap
     const c = audio();
@@ -196,7 +196,7 @@ export function startSound(): void {
   };
   window.addEventListener('pointerdown', unlock, true);
   window.addEventListener('keydown', unlock, true);
-  window.addEventListener('cml:voice', () => refreshSound());
+  window.addEventListener('pt:voice', () => refreshSound());
   document.addEventListener('visibilitychange', () => {
     if (!ctx) return;
     if (document.visibilityState === 'hidden') void ctx.suspend();

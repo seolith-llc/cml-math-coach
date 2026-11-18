@@ -21,7 +21,7 @@ async function checkSignIn(): Promise<void> {
     for (const r of (await navigator.serviceWorker?.getRegistrations()) ?? []) await r.unregister();
     for (const k of (await caches?.keys()) ?? []) await caches.delete(k);
     // Reload at most once a minute, so this can never loop.
-    const key = 'cml-signin-reload';
+    const key = 'pt-signin-reload';
     const last = Number(sessionStorage.getItem(key) ?? 0);
     if (Date.now() - last < 60_000) return;
     sessionStorage.setItem(key, String(Date.now()));

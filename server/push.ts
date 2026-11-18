@@ -193,7 +193,7 @@ const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.p
 
 /** Words for the notification: short, positive, no guilt. */
 export function reminderText(name: string | null, goal: number) {
-  return { title: 'Math Coach', body: name ? `${name}, ready for today's ${goal}?` : `Ready for today's ${goal}?`, url: './#/practice' };
+  return { title: 'Puzzle Trail', body: name ? `${name}, ready for today's ${goal}?` : `Ready for today's ${goal}?`, url: './#/practice' };
 }
 
 export interface PushResult {

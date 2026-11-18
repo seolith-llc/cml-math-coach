@@ -1,3 +1,4 @@
+import { DISCLAIMER_SHORT } from '../src/content/legal';
 /**
  * Weekly-email features on top of the parent dashboard:
  * - set / confirm (double opt-in) / test / stop an email address (PIN-protected, via /api/parent)
@@ -95,12 +96,12 @@ export async function setEmail(ctx: EmailCtx, body: Record<string, unknown>) {
   const who = row.child_name ? `${row.child_name}'s` : "your child's";
   await send(ctx, row.key, 'confirm', {
     to: email,
-    subject: 'Confirm your weekly Math Coach email',
+    subject: 'Confirm your weekly Puzzle Trail email',
     html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:520px;margin:auto;color:#1d2433">
       <h2>Confirm your email</h2><p>Tap the button to get a short weekly email about ${who} math practice every Sunday evening.</p>
       <p><a href="${link}" style="background:#2a78d6;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none;font-weight:700;display:inline-block">Confirm email</a></p>
-      <p style="color:#5f6b80;font-size:13px">The link works for ${TOKEN_DAYS} days. If you didn't ask for this, ignore this email and nothing will be sent.</p></div>`,
-    text: `Confirm your weekly Math Coach email:\n${link}\n\nThe link works for ${TOKEN_DAYS} days. If you didn't ask for this, ignore this email.`
+      <p style="color:#5f6b80;font-size:13px">The link works for ${TOKEN_DAYS} days. If you didn't ask for this, ignore this email and nothing will be sent.</p><p style="color:#5f6b80;font-size:11px">${DISCLAIMER_SHORT}</p></div>`,
+    text: `Confirm your weekly Puzzle Trail email:\n${link}\n\nThe link works for ${TOKEN_DAYS} days. If you didn't ask for this, ignore this email.\n\n${DISCLAIMER_SHORT}`
   });
   return { ok: true, email, verified: false };
 }
@@ -281,9 +282,9 @@ export async function sendNudges(ctx: EmailCtx, opts: { force?: boolean } = {}):
         html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;max-width:520px;margin:auto;color:#1c1c1e;padding:8px">
           <h1 style="font-size:22px;margin:0 0 8px">${esc(subject)}</h1>
           <p style="color:#6e6e73;margin:0 0 20px">Last practice: ${esc(last)}</p>
-          <p><a href="${ctx.origin}/#/practice" style="background:#2f6fed;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600;display:inline-block">Open Math Coach</a></p>
-          <p style="font-size:11px;color:#6e6e73;margin-top:28px">Sent because practice reminders are on. <a href="${off}" style="color:#6e6e73">Turn off reminders</a></p></div>`,
-        text: `${subject}\nLast practice: ${last}\n\nOpen Math Coach: ${ctx.origin}/#/practice\n\nTurn off reminders: ${off}`,
+          <p><a href="${ctx.origin}/#/practice" style="background:#2f6fed;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600;display:inline-block">Open Puzzle Trail</a></p>
+          <p style="font-size:11px;color:#6e6e73;margin-top:28px">Sent because practice reminders are on. <a href="${off}" style="color:#6e6e73">Turn off reminders</a></p><p style="font-size:11px;color:#6e6e73">${DISCLAIMER_SHORT}</p></div>`,
+        text: `${subject}\nLast practice: ${last}\n\nOpen Puzzle Trail: ${ctx.origin}/#/practice\n\nTurn off reminders: ${off}\n\n${DISCLAIMER_SHORT}`,
         headers: { 'List-Unsubscribe': `<${off}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
       });
       await ctx.db.prepare('UPDATE families SET nudges_sent = nudges_sent + 1, nudged_day = ? WHERE key = ?').bind(local.date, row.key).run();

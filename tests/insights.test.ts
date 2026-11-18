@@ -68,10 +68,10 @@ describe('last rounds on the dashboard', () => {
   const base = { child: { name: 'Sam', grade: 3 as const }, lastSync: null, attempts: [] };
   it('lists synced rounds newest first with the score and each question', () => {
     const rounds = lastRounds({ ...base, snapshot: { rounds: {
-      '3:cml': { kind: 'cml', grade: 3, at: 100, items: [{ problemId: 'coins:3:1:1', ok: true }, { problemId: 'coins:3:2:5', ok: false, answer: '45' }] },
-      '3:cogat': { kind: 'cogat', grade: 3, at: 200, items: [{ problemId: 'cogat-paper-folding:3:1:9', ok: false, fixed: true }, { problemId: 'cogat-matrices:3:1:2', ok: true }] }
+      '3:number': { kind: 'number', grade: 3, at: 100, items: [{ problemId: 'coins:3:1:1', ok: true }, { problemId: 'coins:3:2:5', ok: false, answer: '45' }] },
+      '3:thinking': { kind: 'thinking', grade: 3, at: 200, items: [{ problemId: 'think-paper-folding:3:1:9', ok: false, fixed: true }, { problemId: 'think-matrices:3:1:2', ok: true }] }
     } } });
-    expect(rounds.map((r) => [r.title, r.score])).toEqual([['CogAT', '1 → 2 of 2'], ['Math practice', '1 of 2']]);
+    expect(rounds.map((r) => [r.title, r.score])).toEqual([['Thinking puzzles', '1 → 2 of 2'], ['Number puzzles', '1 of 2']]);
     expect(rounds[0].items[0]).toMatchObject({ title: 'Paper folding', fixed: true, ok: false });
     expect(rounds[1].items[1]).toMatchObject({ topicId: 'coins', answer: '45' });
   });
@@ -79,7 +79,7 @@ describe('last rounds on the dashboard', () => {
   it('copes with old snapshots and junk', () => {
     expect(lastRounds({ ...base, snapshot: null })).toEqual([]);
     expect(lastRounds({ ...base, snapshot: { stats: {} } })).toEqual([]);
-    expect(lastRounds({ ...base, snapshot: { rounds: { x: { kind: 'nope', grade: 3, at: 1, items: [{ problemId: 'a:3:1:1', ok: true }] }, y: { kind: 'cml', grade: 3, at: 1, items: [] } } as never } })).toEqual([]);
+    expect(lastRounds({ ...base, snapshot: { rounds: { x: { kind: 'nope', grade: 3, at: 1, items: [{ problemId: 'a:3:1:1', ok: true }] }, y: { kind: 'number', grade: 3, at: 1, items: [] } } as never } })).toEqual([]);
   });
 });
 
@@ -94,7 +94,7 @@ describe('what the child did (dashboard and weekly email)', () => {
   });
 
   it('shows a choice answer as the option, not a bare letter', () => {
-    const t = TOPICS.find((x) => x.id === 'cogat-sentences')!;
+    const t = TOPICS.find((x) => x.id === 'think-sentences')!;
     const p = makeProblem(t, 3, 1, 7);
     const spec = p.answer as { options: string[]; value: string };
     const wrong = spec.value === 'a' ? 'b' : 'a';

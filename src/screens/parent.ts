@@ -16,7 +16,7 @@ import type { View } from '../app';
 type Email = { address: string; verified: boolean; weekly?: boolean; nudges?: boolean } | null;
 type Data = DashboardData & { email?: Email };
 
-const pinKey = (id: string) => `cml-parent-pin:${id}`;
+const pinKey = (id: string) => `pt-parent-pin:${id}`;
 const session = {
   get: (id: string) => { try { return sessionStorage.getItem(pinKey(id)) ?? ''; } catch { return ''; } },
   set: (id: string, pin: string | null) => { try { pin ? sessionStorage.setItem(pinKey(id), pin) : sessionStorage.removeItem(pinKey(id)); } catch { /* private mode */ } }

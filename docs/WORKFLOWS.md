@@ -1,4 +1,4 @@
-# Math Coach: state and workflow model
+# Puzzle Trail: state and workflow model
 
 The states and transitions behind the use cases in `docs/USE-CASES.md` (ids in brackets). Every threshold and
 rule here is read from the code (file references given); diagrams are Mermaid and render on GitHub.

@@ -1,4 +1,4 @@
-/** CogAT-style Nonverbal Battery: figure matrices, paper folding, figure classification (original items). */
+/** Thinking puzzles with shapes: figure matrices, paper folding, figure classification (original items). */
 import type { Grade, Topic } from '../../core/types';
 import type { Rng } from '../../core/rng';
 import { SceneBuilder, circle, line, path, rect, text } from '../../core/scene';
@@ -94,10 +94,10 @@ function matrixScene(a: Fig, b: Fig, c: Fig, d: Fig, cs: Change[]) {
 }
 
 export const figureMatrices: Topic = {
-  id: 'cogat-matrices',
+  id: 'think-matrices',
   title: 'Figure matrices',
-  category: 'Nonverbal',
-  track: 'cogat',
+  category: 'Shapes',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Find the rule',
   guide: {
@@ -185,10 +185,10 @@ function foldScene(folds: Fold[], hole: Pt, holes: Pt[]) {
 }
 
 export const paperFolding: Topic = {
-  id: 'cogat-paper-folding',
+  id: 'think-paper-folding',
   title: 'Paper folding',
-  category: 'Nonverbal',
-  track: 'cogat',
+  category: 'Shapes',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Act it out',
   guide: {
@@ -270,10 +270,10 @@ function classifyScene(stim: Fig[], ans: Fig, rule: Rule) {
 }
 
 export const figureClassification: Topic = {
-  id: 'cogat-figure-classes',
+  id: 'think-figure-classes',
   title: 'Figure classification',
-  category: 'Nonverbal',
-  track: 'cogat',
+  category: 'Shapes',
+  track: 'thinking',
   grades: [2, 3],
   strategy: 'Find the rule',
   guide: {

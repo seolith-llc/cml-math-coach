@@ -3,6 +3,8 @@ import { nextDesign, type StickerKind } from '../content/stickers';
 import type { Grade } from './types';
 import { normalizeTest, type TestConfig } from './session';
 import { GOALS, awardStars, localDay, streak } from './progress';
+import { renameJson } from './legacy';
+import type { Acceptance } from '../content/legal';
 
 export interface TopicStat {
   attempts: number;
@@ -65,6 +67,8 @@ export interface Settings {
   sfx: boolean;
   /** The one-time Game / Classic choice on the classic Home has been answered (or the game look was chosen). */
   lookOffered: boolean;
+  /** When the terms were last accepted on this device (content/legal.ts): shown again after 30 days or a new version. */
+  terms: Acceptance | null;
 }
 
 export type Look = 'classic' | 'game';
@@ -113,6 +117,9 @@ export function migrateSettings(raw: Partial<Settings> & LegacySettings, base: S
   };
   out.sfx = raw.sfx === undefined ? base.sfx : !!raw.sfx;
   out.lookOffered = raw.lookOffered === true || out.look === 'game'; // added 2026-11-17: older classic saves get the offer once
+  // added 2026-11-18 (step077): older saves have not accepted the terms yet
+  const t = raw.terms as Partial<Acceptance> | null | undefined;
+  out.terms = t && typeof t.version === 'string' && Number.isFinite(t.at) ? { version: t.version, at: Number(t.at) } : null;
   return out;
 }
 
@@ -143,8 +150,8 @@ export interface SyncState {
   lastError?: string;
 }
 
-/** Which kind of round: CML practice, CogAT practice, or the Review queue. */
-export type RoundKind = 'cml' | 'cogat' | 'review';
+/** Which kind of round: number practice, Thinking Puzzles practice, or the Review queue. */
+export type RoundKind = 'number' | 'thinking' | 'review';
 
 /** The last finished round of a kind, so its summary, explanations and retries can be reopened later. */
 export interface SavedRound {
@@ -192,7 +199,7 @@ export function logRound(state: AppState, e: RoundLogEntry): void {
   list.push(e);
   if (list.length > 400) list.splice(0, list.length - 400);
   save(state);
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pt:progress'));
 }
 
 export interface Sticker {
@@ -216,16 +223,18 @@ export function awardStickers(state: AppState, kinds: StickerKind[], grade: Grad
   if (list.length > 500) list.splice(0, list.length - 500);
   if (added.length) {
     save(state);
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('pt:progress'));
   }
   return added;
 }
 
-const KEY = 'cml-coach-v1';
+const KEY = 'pt-state-v1';
+/** The key used before the rename (step077): read once, moved to KEY, then removed. */
+const OLD_KEY = String.fromCharCode(99, 109, 108) + '-coach-v1';
 
 export const defaultState = (): AppState => ({
   version: 1,
-  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null, music: { tune: 'breeze', volume: 0.5 }, sfx: true, lookOffered: false },
+  settings: { name: '', grade: 2, rate: 0.95, voice: 'natural:luna', speak: true, handsFree: false, test: normalizeTest(undefined), goal: 10, reminder: { on: false, hour: 17 }, highlight: 'neon', look: 'classic', motion: 'full', buddy: null, music: { tune: 'breeze', volume: 0.5 }, sfx: true, lookOffered: false, terms: null },
   stats: { '2': {}, '3': {} },
   review: [],
   meets: [],
@@ -238,12 +247,17 @@ let memory: AppState | null = null;
 export function load(): AppState {
   if (memory) return memory;
   try {
-    const raw = localStorage.getItem(KEY);
+    const stored = localStorage.getItem(KEY);
+    const old = stored ? null : localStorage.getItem(OLD_KEY);
+    const raw = stored ?? (old === null ? null : renameJson(old));
     if (raw) {
       const parsed = JSON.parse(raw) as AppState;
       const base = defaultState();
       memory = { ...base, ...parsed, settings: migrateSettings(parsed.settings ?? {}, base.settings), stats: { ...base.stats, ...parsed.stats } };
-      if ('autoRead' in (parsed.settings ?? {}) || 'voiceEngine' in (parsed.settings ?? {})) save(memory); // persist the migration once
+      if ('autoRead' in (parsed.settings ?? {}) || 'voiceEngine' in (parsed.settings ?? {}) || old !== null) save(memory); // persist the migration once
+      if (old !== null) {
+        try { localStorage.removeItem(OLD_KEY); } catch { /* blocked */ }
+      }
       return memory;
     }
   } catch {
@@ -268,7 +282,7 @@ export function saveRound(state: AppState, round: SavedRound): void {
   (state.rounds ??= {})[roundKey(round.grade, round.kind)] = round;
   save(state);
   // lets the parent dashboard sync pick up the round (and its fixes) promptly
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pt:progress'));
 }
 
 export const lastRound = (state: AppState, grade: Grade, kind: RoundKind): SavedRound | undefined => state.rounds?.[roundKey(grade, kind)];
@@ -316,7 +330,7 @@ export function recordAttempt(state: AppState, grade: Grade, topicId: string, co
   const up = awardStars(s);
   if (!state.activeDays.includes(day)) state.activeDays.push(day);
   save(state);
-  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cml:progress'));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('pt:progress'));
   const after = detail ? before + 1 : before;
   return {
     ...(up ? { stars: { topicId, stars: up } } : {}),

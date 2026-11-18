@@ -22,8 +22,8 @@ export const STRATEGIES: Record<Strategy, string> = {
   'Find the rule': 'Say in words how the first pair (or the first three) go together. Then use the same rule to pick the answer.'
 };
 
-/** Contest-day advice for 30-minute, 6-question meets. */
-export const CONTEST_TIPS = [
+/** Advice for a timed challenge (6 questions, 30 minutes). */
+export const CHALLENGE_TIPS = [
   'You have about 5 minutes for each question. If you are stuck for 2 minutes, move on and come back later.',
   'Underline the question part, for example "how many MORE", "the LARGER number", "how many PIGS".',
   'Write answers with the right units: ¢ or $, inches, hours, a day of the week.',

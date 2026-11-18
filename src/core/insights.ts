@@ -118,7 +118,7 @@ export function summarize(data: DashboardData, now = Date.now()) {
   else if (week.days < 3) tips.push(`Practiced on ${week.days} day${week.days === 1 ? '' : 's'} this week. Little and often (4–5 days a week) works better than one long session.`);
   if (needsHelp[0]) tips.push(`Sit together for "${needsHelp[0].title}": open its Learn page, do the worked example out loud, then 3 practice problems.`);
   if (week.pct !== null && prevWeek.pct !== null && week.pct - prevWeek.pct >= 10) tips.push(`First-try accuracy is up ${week.pct - prevWeek.pct} points on last week. Worth celebrating!`);
-  if (!meets.length && all.problems >= 30) tips.push('Ready for a first Test: 6 questions in 30 minutes, like contest day.');
+  if (!meets.length && all.problems >= 30) tips.push('Ready for a first Test: 6 questions in 30 minutes.');
   if ((data.snapshot?.reviewDue ?? 0) >= 5) tips.push(`${data.snapshot!.reviewDue} missed problems are waiting in Review. Fixing old mistakes is the fastest win.`);
   if (untried.length && all.problems >= 20) tips.push(`${untried.length} topics are untried yet, for example "${untried[0].title}".`);
   if (all.problems && hinted / all.problems > 0.4) tips.push('Hints are used often. Encourage trying the problem for a minute before asking for a hint.');
@@ -133,7 +133,7 @@ export function summarize(data: DashboardData, now = Date.now()) {
 
 export const topicTitle = (id: string) => topicById(id)?.title ?? id;
 
-export const ROUND_TITLES: Record<SavedRound['kind'], string> = { cml: 'Math practice', cogat: 'CogAT', review: 'Review' };
+export const ROUND_TITLES: Record<SavedRound['kind'], string> = { number: 'Number puzzles', thinking: 'Thinking puzzles', review: 'Review' };
 
 export interface RoundView {
   kind: SavedRound['kind'];
@@ -174,23 +174,23 @@ export function outcomeLabel(a: { problemId: string; correct: boolean; skipped?:
   return given ?? 'Showed the answer';
 }
 
-export interface CogatWeek {
+export interface ThinkingWeek {
   problems: number;
   firstTry: number;
   pct: number;
   /** Per question type, weakest first. */
   byType: { topicId: string; title: string; right: number; total: number }[];
-  /** The latest saved CogAT round, if it finished in this window. */
+  /** The latest saved Thinking Puzzles round, if it finished in this window. */
   lastRound?: { at: number; score: string };
 }
 
-/** CogAT practice in the last 7 days (for the weekly email). Null when there was none. */
-export function cogatWeek(data: DashboardData, now = Date.now()): CogatWeek | null {
+/** Thinking Puzzles practice in the last 7 days (for the weekly email). Null when there was none. */
+export function thinkingWeek(data: DashboardData, now = Date.now()): ThinkingWeek | null {
   const from = now - 7 * 86_400_000;
-  const atts = data.attempts.filter((a) => a.ts >= from && a.ts <= now && topicById(a.topicId)?.track === 'cogat');
-  const round = lastRounds(data).find((r) => r.kind === 'cogat' && r.at >= from && r.at <= now);
+  const atts = data.attempts.filter((a) => a.ts >= from && a.ts <= now && topicById(a.topicId)?.track === 'thinking');
+  const round = lastRounds(data).find((r) => r.kind === 'thinking' && r.at >= from && r.at <= now);
   if (!atts.length && !round) return null;
-  const map = new Map<string, CogatWeek['byType'][number]>();
+  const map = new Map<string, ThinkingWeek['byType'][number]>();
   for (const a of atts) {
     const r = map.get(a.topicId) ?? { topicId: a.topicId, title: topicTitle(a.topicId), right: 0, total: 0 };
     r.total++;

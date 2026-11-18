@@ -2,7 +2,7 @@
   "name": "cml-math-coach",
   "version": "0.1.0",
   "private": true,
-  "description": "Voice-first PWA for practicing Continental Math League problems, Grades 2–3.",
+  "description": "Voice-first PWA for practicing a math contest problems, Grades 2–3.",
   "type": "module",
   "scripts": {
     "dev": "vite",

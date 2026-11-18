@@ -1,3 +1,4 @@
+import { renameId, renameJson } from '../src/core/legacy';
 /**
  * Parent-dashboard backend logic, shared by the Pages Functions in functions/api/.
  * Kept free of Cloudflare-specific globals so it can be unit-tested against SQLite.
@@ -102,7 +103,7 @@ export async function sync(db: DB, body: Record<string, unknown>, now = Date.now
   const key = await sha256Hex('family:' + familyId);
   const attempts = Array.isArray(body.attempts) ? (body.attempts as AttemptIn[]) : [];
   if (attempts.length > LIMITS.attemptsPerSync) throw new HttpError(413, 'Too many attempts in one sync');
-  const snapshot = body.snapshot === undefined ? null : JSON.stringify(body.snapshot);
+  const snapshot = body.snapshot === undefined ? null : renameJson(JSON.stringify(body.snapshot)); // an older app may still send old ids
   if (snapshot && snapshot.length > LIMITS.snapshotBytes) throw new HttpError(413, 'Snapshot too large');
   const child = (body.child ?? {}) as { name?: unknown; grade?: unknown };
 
@@ -119,9 +120,10 @@ export async function sync(db: DB, body: Record<string, unknown>, now = Date.now
   const stmts: Stmt[] = [
     db
       .prepare(
-        'UPDATE families SET child_name = COALESCE(?, child_name), grade = COALESCE(?, grade), snapshot = COALESCE(?, snapshot), last_sync = ? WHERE key = ?'
+        'UPDATE families SET child_name = NULL, grade = COALESCE(?, grade), snapshot = COALESCE(?, snapshot), last_sync = ? WHERE key = ?'
       )
-      .bind(clip(child.name, 40), child.grade === undefined ? null : int(child.grade, 2, 3, 2), snapshot, now, key)
+      // the child's nickname stays on the device (privacy policy): never stored here
+      .bind(child.grade === undefined ? null : int(child.grade, 2, 3, 2), snapshot, now, key)
   ];
   for (const a of attempts) {
     if (!a || typeof a.problemId !== 'string' || typeof a.topicId !== 'string') continue;
@@ -134,8 +136,8 @@ export async function sync(db: DB, body: Record<string, unknown>, now = Date.now
         .bind(
           key,
           int(a.ts, 0, now + 86_400_000),
-          a.problemId.slice(0, 80),
-          a.topicId.slice(0, 40),
+          renameId(a.problemId).slice(0, 80),
+          renameId(a.topicId).slice(0, 40),
           int(a.grade, 2, 3, 2),
           int(a.level, 1, 3, 1),
           a.correct ? 1 : 0,

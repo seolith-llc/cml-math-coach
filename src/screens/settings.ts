@@ -1,3 +1,4 @@
+import { daysLeft } from '../content/legal';
 import { load, reset, save, type Highlight, type Look } from '../core/storage';
 import { PREMIUM_VOICES, listVoices, speak, voiceOptions, voiceQuality, voicesReady } from '../voice/speech';
 import { sttSupported } from '../voice/recognition';
@@ -82,6 +83,8 @@ export function settingsScreen(focus?: string): View {
       reminderGroup(),
       parentGroup(),
       list([
+        { label: 'About', href: '#/about' },
+        { label: 'Terms', value: `${daysLeft(state.settings.terms)} days`, href: '#/terms' },
         { label: 'Privacy', href: '#/privacy' },
         { label: h('span', { class: 'danger' }, 'Reset progress'), onclick: () => { if (confirm('Erase all progress on this device?')) { reset(); toast('Progress erased'); location.hash = '#/'; } } }
       ]));
@@ -149,7 +152,7 @@ function parentGroup(): HTMLElement {
     const link = parentLink(sync.familyId);
     const share = async () => {
       try {
-        if (navigator.share) return await navigator.share({ title: 'Math Coach', url: link });
+        if (navigator.share) return await navigator.share({ title: 'Puzzle Trail', url: link });
       } catch {
         /* cancelled */
       }
@@ -173,12 +176,3 @@ function parentGroup(): HTMLElement {
   return wrap;
 }
 
-export function privacyScreen(): View {
-  const items = [
-    'Progress is saved on this device.',
-    'With the parent dashboard on, results (topic, answer, time, first name) are stored for the dashboard. Turning it off deletes them.',
-    'Natural voices send the text being read to Cloudflare Workers AI.',
-    'Spoken answers are processed by your browser’s speech service.'
-  ];
-  return { title: 'Privacy', el: h('div', { class: 'stack' }, group(null, h('ul', { class: 'bullets' }, ...items.map((x) => h('li', {}, x))))) };
-}

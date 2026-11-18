@@ -15,9 +15,11 @@ import { reviewScreen } from './screens/review';
 import { testScreen } from './screens/test';
 import { learnScreen, strategiesScreen, topicScreen } from './screens/learn';
 import { progressScreen } from './screens/progress';
-import { privacyScreen, settingsScreen } from './screens/settings';
+import { settingsScreen } from './screens/settings';
+import { aboutScreen, acceptScreen, privacyScreen, termsScreen } from './screens/legal';
+import { termsDue } from './content/legal';
 import { parentScreen } from './screens/parent';
-import { cogatScreen } from './screens/cogat';
+import { thinkingScreen } from './screens/thinking';
 import { roundScreen } from './screens/round';
 import { openFeedback } from './ui/feedbackSheet';
 
@@ -41,11 +43,13 @@ const routes: Record<string, (param?: string) => View> = {
   meet: testScreen, // old link
   learn: (p) => (p === 'strategies' ? strategiesScreen() : p ? topicScreen(p) : learnScreen()),
   toolkit: strategiesScreen, // old link
-  cogat: cogatScreen,
+  thinking: thinkingScreen,
   round: roundScreen,
   progress: progressScreen,
   settings: settingsScreen,
   privacy: privacyScreen,
+  terms: termsScreen,
+  about: aboutScreen,
   parent: (p) => (p ? parentScreen(p) : settingsScreen())
 };
 
@@ -75,11 +79,14 @@ export function startApp(root: HTMLElement): void {
     stopSpeaking();
     stopListening();
     const [, name = '', param] = location.hash.replace(/^#/, '').split('/');
-    current = (routes[name] ?? routes[''])(param);
+    // Terms first (content/legal.ts): until accepted on this device, and again every 30 days or when they change,
+    // every screen except the legal pages themselves shows the accept screen.
+    const gate = termsDue(load().settings.terms) && !['terms', 'privacy', 'about'].includes(name);
+    current = gate ? acceptScreen(render) : (routes[name] ?? routes[''])(param);
     setMusicScene(sceneForRoute(routes[name] ? name : ''));
-    const home = !name || !routes[name];
-    title.textContent = home ? 'Math Coach' : current.title;
-    document.title = home ? 'Math Coach' : `${current.title} · Math Coach`;
+    const home = gate || !name || !routes[name];
+    title.textContent = home ? 'Puzzle Trail' : current.title;
+    document.title = home ? 'Puzzle Trail' : `${current.title} · Puzzle Trail`;
     // visibility (not display) keeps the three-column bar centered
     // The parent dashboard keeps Back and Home too: opened from the child's Home row, it needs a way back.
     back.style.visibility = home ? 'hidden' : '';

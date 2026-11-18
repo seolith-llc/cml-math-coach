@@ -32,9 +32,10 @@ describe('inactivity nudges', () => {
     const { db, sent, mailer } = await family(2);
     expect((await sendNudges({ db, mailer, origin: ORIGIN, now: THU_5PM })).sent).toBe(0); // 2 days
     expect((await sendNudges({ db, mailer, origin: ORIGIN, now: THU_5PM + DAY })).sent).toBe(1); // 3 days (Fri)
-    expect(sent[0].subject).toBe('Sam: a quick math round today?');
+    expect(sent[0].subject).toBe('Your child: a quick math round today?');
     expect(sent[0].headers!['List-Unsubscribe']).toMatch(/&k=nudges>$/);
     expect(sent[0].text).toMatch(/Last practice: Tuesday, Nov 10/);
+    expect(sent[0].text).toContain('not affiliated with or endorsed by');
     expect((await sendNudges({ db, mailer, origin: ORIGIN, now: THU_5PM + 2 * DAY })).sent).toBe(0); // Sat: 4 days, second waits for 7
     expect((await sendNudges({ db, mailer, origin: ORIGIN, now: THU_5PM + 5 * DAY })).sent).toBe(1); // Tue: 7 days
     expect((await sendNudges({ db, mailer, origin: ORIGIN, now: THU_5PM + 6 * DAY })).sent).toBe(0); // capped at 2

@@ -115,6 +115,6 @@ describe('/api/hourly', () => {
     expect((await hourly({ request: req(), env })).status).toBe(401);
     const res = await hourly({ request: req('Bearer a-long-enough-cron-secret'), env });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ reminders: { sent: 0, skipped: 0, removed: 0, failed: 0 }, nudges: { error: 'Email is not configured' }, weekly: { error: 'Email is not configured' }, approvals: { error: 'Email is not configured' } });
+    expect(await res.json()).toEqual({ reminders: { sent: 0, skipped: 0, removed: 0, failed: 0 }, nudges: { error: 'Email is not configured' }, weekly: { error: 'Email is not configured' }, handoffs: { deleted: 0 }, approvals: { error: 'Email is not configured' } });
   });
 });

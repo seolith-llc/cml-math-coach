@@ -371,3 +371,23 @@ export function dueReviews(state: AppState, grade: Grade): ReviewItem[] {
 export function dayStreak(state: AppState): number {
   return streak(state.activeDays);
 }
+
+/** The saved progress as stored (for the move to the new address, sync/move.ts). */
+export function rawState(): string | null {
+  try {
+    return localStorage.getItem(KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replaces the saved progress with a document from another address (sync/move.ts); the next load() migrates it. */
+export function importState(raw: string): void {
+  JSON.parse(raw); // throws on garbage before anything is replaced
+  try {
+    localStorage.setItem(KEY, raw);
+  } catch {
+    /* blocked */
+  }
+  memory = null;
+}

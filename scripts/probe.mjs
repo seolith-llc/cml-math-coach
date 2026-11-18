@@ -8,7 +8,7 @@
  *  5. Privacy: noindex on every response, robots.txt disallows all, crawlers and AI agents get 403
  * Prints status codes and bodies so failures (WAF blocks, origin errors, validation) are visible.
  */
-const base = (process.env.APP_URL || 'https://cml-math-coach.seolith.com').replace(/\/+$/, '');
+const base = (process.env.APP_URL || 'https://puzzletrail.seolith.com').replace(/\/+$/, '');
 const headers = {
   'content-type': 'application/json',
   origin: base,
@@ -19,6 +19,9 @@ const headers = {
 // Behind Cloudflare Access, the probe gets in with the CI service token (when it is set up).
 const access = process.env.CF_ACCESS_CLIENT_ID ? { 'cf-access-client-id': process.env.CF_ACCESS_CLIENT_ID, 'cf-access-client-secret': process.env.CF_ACCESS_CLIENT_SECRET ?? '' } : {};
 Object.assign(headers, access);
+// On the new address the data APIs need a signed-in member; the probe uses the CI bearer instead (functions/_middleware.ts).
+const ownSignIn = new URL(base).host === 'puzzletrail.seolith.com';
+if (ownSignIn && process.env.CRON_SECRET) headers.authorization = `Bearer ${process.env.CRON_SECRET}`;
 const familyId = 'probe_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
 const pin = '7391';
 
@@ -53,7 +56,10 @@ const BOTS = ['Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bo
 try {
   // Only responses that reached the app carry its X-Robots-Tag (functions/_middleware.ts); Access answers without it.
   const reachedApp = (r) => r.headers.has('x-robots-tag');
-  if (access['cf-access-client-id']) {
+  if (ownSignIn) {
+    const stranger = await fetch(base + '/api/sync', { method: 'POST', headers: { 'content-type': 'application/json', 'sec-fetch-site': 'same-origin', 'user-agent': headers['user-agent'] }, body: '{}' });
+    check(stranger.status === 401, 'Sign-in required: a stranger gets no data from the API', `HTTP ${stranger.status}`);
+  } else if (access['cf-access-client-id']) {
     const stranger = await fetch(base + '/', { headers: { 'user-agent': headers['user-agent'] }, redirect: 'manual' });
     check(!reachedApp(stranger), 'Cloudflare Access: a stranger gets the sign-in page', `HTTP ${stranger.status}`);
   } else console.log('· Cloudflare Access not set up yet (no CF_ACCESS_CLIENT_ID): the app is open to anyone with the link');

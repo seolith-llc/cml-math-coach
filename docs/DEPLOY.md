@@ -1,4 +1,4 @@
-# Deployment: Cloudflare Pages + cml-math-coach.seolith.com
+# Deployment: Cloudflare Pages + puzzletrail.seolith.com
 
 Hosting is **Cloudflare Pages**, deployed by the GitHub Actions workflow
 [`.github/workflows/deploy-cloudflare.yml`](../.github/workflows/deploy-cloudflare.yml):
@@ -119,6 +119,12 @@ The app has its own sign-in for adults (`server/accounts.ts`, D1 tables from `mi
 
 The deploy copies both into the Pages project. The hourly job also escalates approvals that are 72 hours old.
 How people join: Settings → **People** → *Invite a co-parent* / *Invite a viewer* (that family, at once) or *Invite another family* (a new family: the inviter approves by email; 3 to start). Links are single-use and last 14 days.
+
+## The move to puzzletrail.seolith.com (phase 3, step080)
+
+- **New address** `puzzletrail.seolith.com` (`src/core/hosts.ts` `NEW_HOST`): the app's own sign-in is always required. Every data API needs a signed-in member who accepted the terms in the last 30 days (`functions/_middleware.ts`); open: sign-in, email links, the hand-off, and bearer calls (`CRON_SECRET`: hourly, weekly, CI smoke tests, `/api/admin/invite`). The deploy attaches the domain (`scripts/ensure-domain.mjs` checks both addresses).
+- **Old address** `cml-math-coach.seolith.com`: stays behind Cloudflare Access (`ACCESS_URL`; the Access script never adds the new address). With `MOVE_ON = true` it uploads each device's progress under a one-time code (`/api/handoff`, D1 `handoffs`, 30 minutes) and opens `https://puzzletrail.seolith.com/#/handoff/<code>`; the device then only shows "Puzzle Trail has moved". Reminders set up on the old address must be turned on again on the new one.
+- **Inviting families:** Actions → **Invite** → email addresses (comma-separated). Each gets an invite link by email from the super admin; the log shows only counts. Use it only once the repository is private (run inputs are visible to anyone who can see the repository).
 
 ## Private access (Cloudflare Access)
 

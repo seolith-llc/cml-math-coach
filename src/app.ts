@@ -22,6 +22,8 @@ import { gateFor } from './core/gate';
 import { account, acceptTermsOnAccount, refreshAccount } from './sync/account';
 import { adminScreen, inviteScreen, peopleScreen, signinScreen, waitingScreen } from './screens/account';
 import { familyScreen, parentScreen } from './screens/parent';
+import { handoffScreen, movedScreen } from './screens/move';
+import { moveFromOldHost, movedAlready, onOldHost } from './sync/move';
 import { thinkingScreen } from './screens/thinking';
 import { roundScreen } from './screens/round';
 import { openFeedback } from './ui/feedbackSheet';
@@ -58,6 +60,7 @@ const routes: Record<string, (param?: string) => View> = {
   people: peopleScreen,
   admin: adminScreen,
   family: familyScreen,
+  handoff: handoffScreen,
   parent: (p) => (p ? parentScreen(p) : settingsScreen())
 };
 
@@ -82,6 +85,8 @@ export function startApp(root: HTMLElement): void {
   const music = musicToggle(); // game look: stop or bring back the music from any screen
   root.replaceChildren(h('header', { class: 'bar' }, h('div', { class: 'bar-start' }, back, homeLink), title, h('div', { class: 'bar-end' }, music.el, feedback, gear)), main);
 
+  // The old address, once this device has moved, only points to the new one (sync/move.ts).
+  const moved = onOldHost() && movedAlready();
   let shownGate: ReturnType<typeof gateFor> = null;
   const render = () => {
     current?.destroy?.();
@@ -93,7 +98,8 @@ export function startApp(root: HTMLElement): void {
     const gate = gateFor(name, account(), load().settings.terms);
     shownGate = gate;
     current =
-      gate === 'signin' ? signinScreen()
+      moved ? movedScreen()
+      : gate === 'signin' ? signinScreen()
       : gate === 'waiting' ? waitingScreen()
       : gate === 'terms' ? acceptScreen(() => void acceptTermsOnAccount(TERMS_VERSION).then(render))
       : (routes[name] ?? routes[''])(param);
@@ -121,4 +127,5 @@ export function startApp(root: HTMLElement): void {
   document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && void refreshAccount());
   render();
   void refreshAccount();
+  void moveFromOldHost();
 }

@@ -18,7 +18,7 @@ export interface AccountState {
   termsUntil?: number | null;
 }
 
-export const OPEN_ROUTES = ['signin', 'invite', 'about', 'terms', 'privacy'];
+export const OPEN_ROUTES = ['signin', 'invite', 'about', 'terms', 'privacy', 'handoff'];
 
 export function gateFor(route: string, account: AccountState, deviceTerms: Acceptance | null, now = Date.now()): Gate {
   if (OPEN_ROUTES.includes(route)) return null;

@@ -1,0 +1,31 @@
+# Invite families to Puzzle Trail by email, as the super admin (server/accounts.ts inviteByEmail).
+# Each address without an account gets its own invite link by email; existing members are skipped.
+# The log shows only counts, never the addresses.
+name: Invite
+
+on:
+  workflow_dispatch:
+    inputs:
+      emails:
+        description: 'Email addresses, separated by commas'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  invite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send the invites
+        env:
+          APP_URL: ${{ vars.APP_URL || 'https://puzzletrail.seolith.com' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          EMAILS: ${{ inputs.emails }}
+        run: |
+          set -u
+          body=$(jq -n --arg e "$EMAILS" '{emails: $e}')
+          code=$(curl -s -o /tmp/out.json -w '%{http_code}' -X POST "$APP_URL/api/admin/invite" \
+            -H "authorization: Bearer $CRON_SECRET" -H 'content-type: application/json' -d "$body")
+          echo "HTTP $code $(cat /tmp/out.json)" | tee -a "$GITHUB_STEP_SUMMARY"
+          [ "$code" = "200" ]

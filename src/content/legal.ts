@@ -7,7 +7,7 @@
 
 export const APP_NAME = 'Puzzle Trail';
 /** The date the current terms and privacy policy took effect (YYYY-MM-DD, plus .N for a second change that day). */
-export const TERMS_VERSION = '2026-11-18.2';
+export const TERMS_VERSION = '2026-11-18.3';
 /** Access lasts this many days after accepting; then the terms are shown again and must be accepted again. */
 export const ACCEPT_DAYS = 30;
 
@@ -62,7 +62,8 @@ export const PRIVACY: Section[] = [
     body: [
       'The child’s nickname (optional). It is never sent to us.',
       'Progress: answers, stars, rounds, stickers, settings.',
-      'Everything works offline. Clearing the browser’s data for this site erases it.'
+      'Everything works offline. Clearing the browser’s data for this site erases it.',
+      'When the app moved to its new address, a device’s saved progress was passed to the new address through our server under a one-time code, and deleted from the server as soon as it arrived (at the latest after 30 minutes).'
     ]
   },
   {
@@ -124,7 +125,7 @@ export const PRIVACY: Section[] = [
   {
     title: 'Security',
     body: [
-      'Only invited adults can open the app. Connections are encrypted, PINs are stored hashed, and access to the database is limited to the app and its owner.'
+      'Only invited adults can sign in, and nothing about a family can be seen without signing in. Connections are encrypted, sign-in links, sessions and PINs are stored only in hashed form, and access to the database is limited to the app and its owner.'
     ]
   },
   {

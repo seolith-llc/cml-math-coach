@@ -15,7 +15,7 @@ export type Mailer = (m: Omit<Mail, 'from'>) => Promise<string>;
 export interface EmailCtx {
   db: DB;
   mailer?: Mailer;
-  /** Public site URL used in links, e.g. https://cml-math-coach.seolith.com */
+  /** Public site URL used in links, e.g. https://puzzletrail.seolith.com */
   origin: string;
   now?: number;
 }

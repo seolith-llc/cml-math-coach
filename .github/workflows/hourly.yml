@@ -25,7 +25,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     env:
-      APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+      APP_URL: ${{ vars.APP_URL || 'https://puzzletrail.seolith.com' }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       # Cloudflare Access service token (the app is behind Access); empty until set up
       CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}

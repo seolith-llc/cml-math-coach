@@ -21,7 +21,8 @@ const API = 'https://api.cloudflare.com/client/v4';
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const account = process.env.CLOUDFLARE_ACCOUNT_ID;
 const project = process.env.PROJECT_NAME || 'cml-math-coach';
-const appUrl = (process.env.APP_URL || 'https://cml-math-coach.seolith.com').replace(/\/+$/, '');
+// The old address only (phase 3): the new address (server/hosts.ts NEW_HOST) has the app's own sign-in instead.
+const appUrl = (process.env.ACCESS_URL || 'https://cml-math-coach.seolith.com').replace(/\/+$/, '');
 const tokenName = process.env.ACCESS_SERVICE_TOKEN_NAME || 'math-coach-ci';
 const session = process.env.ACCESS_SESSION || '720h';
 const emails = (process.env.ACCESS_ALLOWED_EMAILS || '').split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean);

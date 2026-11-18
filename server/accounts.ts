@@ -514,3 +514,34 @@ export async function familyKeyFor(ctx: AccountsCtx, u: User, household?: string
     .first<{ family_key: string }>();
   return r?.family_key ?? null;
 }
+
+/* ---------------- onboarding by email (super admin, from CI) ---------------- */
+
+/**
+ * The super admin invites new families by email (Actions → Invite, bearer CRON_SECRET): each address without an account
+ * gets its own family invite link (approved on accept, as all super admin invites are). Existing members are skipped.
+ */
+export async function inviteByEmail(ctx: AccountsCtx, emails: unknown): Promise<{ invited: number; already: number; invalid: number }> {
+  const list = (Array.isArray(emails) ? emails : String(emails ?? '').split(/[\s,;]+/)).map((e) => String(e).trim().toLowerCase()).filter(Boolean);
+  if (list.length > 50) throw new HttpError(400, 'At most 50 at a time');
+  const adminEmail = ctx.admins[0];
+  if (!adminEmail) throw new HttpError(503, 'No super admin');
+  let admin = await userByEmail(ctx.db, adminEmail);
+  if (!admin) {
+    admin = await createUser(ctx, adminEmail, 'active', null);
+    await createHousehold(ctx, admin.id);
+  }
+  const out = { invited: 0, already: 0, invalid: 0 };
+  for (const email of [...new Set(list)]) {
+    if (!EMAIL_RE.test(email) || email.length > 254) { out.invalid++; continue; }
+    if (await userByEmail(ctx.db, email)) { out.already++; continue; }
+    const { link } = await createInvite(ctx, admin, { kind: 'family' });
+    await mail(ctx, email, 'invite', "You're invited to Puzzle Trail", 'You’re invited to Puzzle Trail',
+      `<p>Puzzle Trail is a private, invite-only puzzle game for kids, with tough number and thinking puzzles.</p>
+<p>Tap the button, enter this email address, and you'll get a sign-in link. The invite is for your family only and works once, for ${AUTH_LIMITS.inviteDays} days.</p>`,
+      `Puzzle Trail is a private, invite-only puzzle game for kids. Open the link, enter this email address, and you'll get a sign-in link. The invite is for your family only and works once, for ${AUTH_LIMITS.inviteDays} days.`,
+      { label: 'Accept the invite', url: link });
+    out.invited++;
+  }
+  return out;
+}

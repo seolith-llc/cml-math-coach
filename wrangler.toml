@@ -9,4 +9,4 @@ binding = "AI"
 
 [vars]
 # Public site URL used in email links (confirmation, unsubscribe, "Open Puzzle Trail").
-APP_URL = "https://cml-math-coach.seolith.com"
+APP_URL = "https://puzzletrail.seolith.com"

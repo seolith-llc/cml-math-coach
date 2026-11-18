@@ -5,12 +5,13 @@ import {
 } from '../../../server/accounts';
 import { HttpError, json, loadData, readJson, sameOrigin, type FamilyRow } from '../../../server/parent';
 import { accountsCtx, type Env } from '../../../server/env';
+import { authRequired } from '../../../server/hosts';
 
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!sameOrigin(request)) return json(403, { error: 'Forbidden' });
   if (!env.DB) return json(503, { error: 'Storage is not set up yet' });
   const ctx = accountsCtx(env, request);
-  const required = env.AUTH_REQUIRED === '1';
+  const required = authRequired(env, request);
   try {
     const body = await readJson(request, 20_000);
     const user = await sessionUser(ctx, request);

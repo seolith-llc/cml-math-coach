@@ -35,7 +35,8 @@ jobs:
           ACCESS_ALLOWED_EMAILS: ${{ secrets.ACCESS_ALLOWED_EMAILS }}
           CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
           CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-          APP_URL: ${{ vars.APP_URL || 'https://cml-math-coach.seolith.com' }}
+          # Access guards the old address only (phase 3): the new one has the app's own sign-in.
+          ACCESS_URL: ${{ vars.ACCESS_URL || 'https://cml-math-coach.seolith.com' }}
           ACCESS_SESSION: ${{ inputs.session }}
           APPLY: ${{ inputs.apply }}
         run: node scripts/cloudflare-access.mjs | tee -a "$GITHUB_STEP_SUMMARY"

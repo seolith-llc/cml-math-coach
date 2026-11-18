@@ -11,6 +11,7 @@ import { json } from '../../server/parent';
 import { sendReminders } from '../../server/push';
 import { accountsCtx, bearerOk, mailerFrom, originFor, type Env } from '../../server/env';
 import { escalate } from '../../server/accounts';
+import { sweepHandoffs } from '../../server/handoff';
 
 export async function onRequestPost({ request, env }: { request: Request; env: Env }): Promise<Response> {
   if (!bearerOk(request, env.CRON_SECRET)) return json(401, { error: 'Unauthorized' });
@@ -29,6 +30,7 @@ export async function onRequestPost({ request, env }: { request: Request; env: E
     reminders: await run(() => sendReminders(env.DB!, { subject: origin })),
     nudges: mailer ? await run(() => sendNudges(ctx)) : { error: 'Email is not configured' },
     weekly: mailer ? await run(() => sendWeekly(ctx)) : { error: 'Email is not configured' },
+    handoffs: await run(() => sweepHandoffs(env.DB!)),
     approvals: mailer ? await run(() => escalate(accountsCtx(env, request))) : { error: 'Email is not configured' }
   });
 }

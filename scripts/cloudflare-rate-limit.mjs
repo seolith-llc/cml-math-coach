@@ -7,14 +7,14 @@
  *   CLOUDFLARE_API_TOKEN  needs Zone → Zone WAF → Edit (and Zone → Zone → Read to look up the zone id)
  *   CLOUDFLARE_ZONE_ID    optional; otherwise looked up from ZONE_NAME
  *   ZONE_NAME             default seolith.com
- *   APP_HOST              default cml-math-coach.seolith.com
+ *   APP_HOST              default puzzletrail.seolith.com
  *   RL_REQUESTS / RL_PERIOD / RL_TIMEOUT   default 20 requests / 10 s, block 10 s (allowed on every plan)
  */
 const API = 'https://api.cloudflare.com/client/v4';
 const token = process.env.CLOUDFLARE_API_TOKEN;
 if (!token) throw new Error('CLOUDFLARE_API_TOKEN is not set');
 const zoneName = process.env.ZONE_NAME || 'seolith.com';
-const host = process.env.APP_HOST || 'cml-math-coach.seolith.com';
+const host = process.env.APP_HOST || 'puzzletrail.seolith.com';
 const REF = 'cml-math-coach-tts-rate-limit';
 
 async function cf(method, path, body) {

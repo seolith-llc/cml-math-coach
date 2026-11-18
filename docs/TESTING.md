@@ -2,7 +2,7 @@
 
 Thank you for testing! Puzzle Trail is a voice-first practice app for kids in Grades 2–3. It has number puzzles and thinking puzzles. A child practices on an iPad, and a parent follows along on their own device.
 
-**App:** https://cml-math-coach.seolith.com
+**App:** https://puzzletrail.seolith.com (sign in with the email address your invite was sent to)
 **Time needed:** about 60–90 minutes, split over 2–3 days if you can, so you also see the streak, Review and reminders.
 
 ## 1. Before you start

@@ -2,7 +2,7 @@
 
 ## iPad
 
-1. Open **https://cml-math-coach.seolith.com** in Safari and sign in with your invited email address (a one-time code arrives by email; a sign-in lasts 30 days). Tap once (Apple needs a tap before the app can speak).
+1. Open your invite email and tap **Accept the invite** (or open **https://puzzletrail.seolith.com** in Safari and sign in with your email address): a sign-in link arrives by email, and a sign-in lasts 30 days from your last visit. Tap once (Apple needs a tap before the app can speak).
 2. Share → **Add to Home Screen**. It then opens full screen and works offline. The first time you open it from the icon, sign in once more inside it.
 3. In **Settings**, choose a voice and turn on **Read aloud**.
 

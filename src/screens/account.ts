@@ -51,7 +51,12 @@ function sentView(email: string): HTMLElement {
     }
   } }, group(null, h('div', { class: 'row' }, code)), btn, out);
   setTimeout(() => code.focus(), 50);
-  return h('div', { class: 'stack' }, h('h2', { class: 'page-heading' }, 'Check your email'), group(null, h('div', { class: 'row' }, h('span', { class: 'row-label' }, email))), form);
+  const again = h('button', { class: 'btn', type: 'button', onclick: async () => {
+    again.disabled = true;
+    try { await call('signin', { email }); toast('Sent again'); } catch (err) { toast((err as Error).message); }
+    setTimeout(() => (again.disabled = false), 30_000);
+  } }, 'Send again') as HTMLButtonElement;
+  return h('div', { class: 'stack' }, h('h2', { class: 'page-heading' }, 'Check your email'), group(null, h('div', { class: 'row' }, h('span', { class: 'row-label' }, email))), form, again);
 }
 
 /** #/signin */

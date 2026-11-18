@@ -55,10 +55,13 @@ describe('accounts: sign-in by email link (step078)', () => {
     expect((m as { households: unknown[] }).households).toHaveLength(1);
   });
 
-  it('gives strangers the same answer and sends them nothing', async () => {
+  it('gives strangers the same answer and sends them nothing (logging only the reason)', async () => {
     const s = setup();
     expect(await requestSignIn(s.ctx(), { email: 'stranger@example.com' })).toEqual({ ok: true });
     expect(s.sent).toHaveLength(0);
+    const log = await s.db.prepare("SELECT kind, detail FROM email_log WHERE kind = 'signin-skip'").all<{ kind: string; detail: string }>();
+    expect(log.results).toEqual([{ kind: 'signin-skip', detail: 'no account for that address' }]);
+    expect(JSON.stringify(log.results)).not.toContain('stranger');
     await expect(requestSignIn(s.ctx(), { email: 'not an email' })).rejects.toThrow(/valid email/);
   });
 

@@ -157,7 +157,7 @@ async function newToken(ctx: AccountsCtx, purpose: 'signin' | 'approve', user: s
 async function sendSignIn(ctx: AccountsCtx, u: User): Promise<void> {
   const since = now(ctx) - 60 * MIN;
   const n = await ctx.db.prepare("SELECT COUNT(*) AS n FROM auth_tokens WHERE user = ? AND purpose = 'signin' AND created_at > ?").bind(u.id, since).first<{ n: number }>();
-  if ((n?.n ?? 0) >= AUTH_LIMITS.signinPerHour) return; // quietly: the answer is the same either way
+  if ((n?.n ?? 0) >= AUTH_LIMITS.signinPerHour) return skipped(ctx, 'over the hourly limit'); // quietly: the answer is the same either way
   const t = await newToken(ctx, 'signin', u.id, AUTH_LIMITS.signinMinutes * MIN);
   const url = `${ctx.origin}/api/auth/signin?t=${t}`;
   // the same email carries a 6-digit code: an iPad Home Screen app keeps its own storage, so it signs in by typing the code
@@ -230,7 +230,13 @@ export async function requestSignIn(ctx: AccountsCtx, body: Record<string, unkno
     u = (await userById(ctx.db, u.id))!;
   }
   if (u && (u.status === 'active' || u.status === 'pending')) await sendSignIn(ctx, u);
+  else await skipped(ctx, u ? `account ${u.status}` : 'no account for that address');
   return { ok: true };
+}
+
+/** A sign-in request that sent nothing, for support (Status → Recent email sends). The reason only, never the address. */
+function skipped(ctx: AccountsCtx, why: string) {
+  return ctx.db.prepare('INSERT INTO email_log (ts, family, kind, ok, detail) VALUES (?, ?, ?, ?, ?)').bind(now(ctx), 'account', 'signin-skip', 0, why).run().then(() => undefined, () => undefined);
 }
 
 /** POST /api/auth/signin?t=: uses the link once and starts a session. Returns the cookie to set. */

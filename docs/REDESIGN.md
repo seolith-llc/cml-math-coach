@@ -1,6 +1,6 @@
 # Redesign: free, invite-and-approve growth, original brand, tougher thinking
 
-Status: **decided (step077)**. Phase 1 (rebrand, legal pages, 30-day terms on the device) shipped in step077; phases 2–5 next.
+Status: **decided (step077)**. Phase 1 (rebrand, legal pages, 30-day terms on the device) shipped in step077. Phase 2 (accounts, invites, approvals, roles, per-person terms) shipped in step078 behind `AUTH_REQUIRED` (off until the phase 3 cutover). Phases 3–5 next.
 
 **Decisions (step077):** name **Puzzle Trail**; repository **private** (the owner changes it in GitHub settings); landing page **not indexed**;
 child nickname **on the device only**; **invite-only** (no open sign-up and no waitlist); every member **accepts the terms**, access lasts

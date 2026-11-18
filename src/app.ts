@@ -17,8 +17,11 @@ import { learnScreen, strategiesScreen, topicScreen } from './screens/learn';
 import { progressScreen } from './screens/progress';
 import { settingsScreen } from './screens/settings';
 import { aboutScreen, acceptScreen, privacyScreen, termsScreen } from './screens/legal';
-import { termsDue } from './content/legal';
-import { parentScreen } from './screens/parent';
+import { TERMS_VERSION } from './content/legal';
+import { gateFor } from './core/gate';
+import { account, acceptTermsOnAccount, refreshAccount } from './sync/account';
+import { adminScreen, inviteScreen, peopleScreen, signinScreen, waitingScreen } from './screens/account';
+import { familyScreen, parentScreen } from './screens/parent';
 import { thinkingScreen } from './screens/thinking';
 import { roundScreen } from './screens/round';
 import { openFeedback } from './ui/feedbackSheet';
@@ -50,6 +53,11 @@ const routes: Record<string, (param?: string) => View> = {
   privacy: privacyScreen,
   terms: termsScreen,
   about: aboutScreen,
+  signin: signinScreen,
+  invite: inviteScreen,
+  people: peopleScreen,
+  admin: adminScreen,
+  family: familyScreen,
   parent: (p) => (p ? parentScreen(p) : settingsScreen())
 };
 
@@ -74,15 +82,21 @@ export function startApp(root: HTMLElement): void {
   const music = musicToggle(); // game look: stop or bring back the music from any screen
   root.replaceChildren(h('header', { class: 'bar' }, h('div', { class: 'bar-start' }, back, homeLink), title, h('div', { class: 'bar-end' }, music.el, feedback, gear)), main);
 
+  let shownGate: ReturnType<typeof gateFor> = null;
   const render = () => {
     current?.destroy?.();
     stopSpeaking();
     stopListening();
     const [, name = '', param] = location.hash.replace(/^#/, '').split('/');
-    // Terms first (content/legal.ts): until accepted on this device, and again every 30 days or when they change,
-    // every screen except the legal pages themselves shows the accept screen.
-    const gate = termsDue(load().settings.terms) && !['terms', 'privacy', 'about'].includes(name);
-    current = gate ? acceptScreen(render) : (routes[name] ?? routes[''])(param);
+    // Before any screen (core/gate.ts): sign in (once required), wait for approval, then accept the terms
+    // (the account's, or this device's before sign-in is required) every 30 days or when they change.
+    const gate = gateFor(name, account(), load().settings.terms);
+    shownGate = gate;
+    current =
+      gate === 'signin' ? signinScreen()
+      : gate === 'waiting' ? waitingScreen()
+      : gate === 'terms' ? acceptScreen(() => void acceptTermsOnAccount(TERMS_VERSION).then(render))
+      : (routes[name] ?? routes[''])(param);
     setMusicScene(sceneForRoute(routes[name] ? name : ''));
     const home = gate || !name || !routes[name];
     title.textContent = home ? 'Puzzle Trail' : current.title;
@@ -98,5 +112,13 @@ export function startApp(root: HTMLElement): void {
     window.scrollTo(0, 0);
   };
   window.addEventListener('hashchange', render);
+  // Who is signed in: at start, when the app comes back to the front, and whenever the answer changes the gate.
+  // (only when the gate for this screen changes, so a round in progress is never thrown away)
+  window.addEventListener('pt:account', () => {
+    const name = location.hash.replace(/^#/, '').split('/')[1] ?? '';
+    if (gateFor(name, account(), load().settings.terms) !== shownGate) render();
+  });
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && void refreshAccount());
   render();
+  void refreshAccount();
 }

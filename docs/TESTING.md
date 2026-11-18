@@ -166,6 +166,16 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | G12 | World map → **Sticker book**; parent dashboard → **Stickers**. | Only collected stickers, newest first, each with why and the date (no empty slots or "x of 24"). The parent sees the latest ones with the same reasons. |
 | G13 | Tester round (2 weeks, with a child aged 7–9): turn on the parent dashboard; week 1 Game look with music; week 2 Game look with Settings → Music → Off. Ask the child what they liked and didn't. | Rounds keep syncing. The owner sees Classic vs Game and music on vs off in Actions → Status (anonymous). Send the child's comments by reply or the Feedback button. |
 
+### Accounts and invites (once sign-in is switched on)
+
+| # | Do this | Expect |
+|---|---|---|
+| U1 | Open your invite link, enter your email, tap **Join**, then open the sign-in email and tap **Sign in**. | The terms screen, then the app. Settings → **People** lists your family and your role. |
+| U2 | Settings → People → **Invite a viewer**; send the link to another adult in your family. | They join at once as a **Viewer**: they see the family's **Progress**, but no invite or remove options. |
+| U3 | Settings → People → **Invite another family**. | A link is shared; the count goes down by one. When that family joins, you get an email to **Approve** or **Decline**. Until you approve, they only see *Waiting for approval*. |
+| U4 | Settings → People → tap an open invite → cancel it. | The invite disappears; a family invite goes back to the count. |
+| U5 | Sign out, then sign in again with the email link; try an old or used link. | A used or 15-minute-old link says so and offers a new one. |
+
 ## 5. What we especially want to know
 
 - **Correctness:** any problem with a wrong answer key, two right answers, or an explanation that doesn't match. These matter most.

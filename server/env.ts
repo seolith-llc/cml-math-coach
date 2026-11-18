@@ -1,6 +1,7 @@
 import type { DB } from './parent';
 import type { Mailer } from './email';
 import { sendSes } from './ses';
+import { parseAdmins } from './accounts';
 
 export interface Env {
   DB?: DB;
@@ -15,6 +16,10 @@ export interface Env {
   FEEDBACK_TO?: string;
   /** Public site URL for links in emails; defaults to the request's origin. */
   APP_URL?: string;
+  /** Super admin email addresses, comma-separated (secret): they can sign in without an invite and approve families. */
+  ADMIN_EMAILS?: string;
+  /** "1" once the app's own sign-in replaces Cloudflare Access (phase 3): the app asks everyone to sign in. */
+  AUTH_REQUIRED?: string;
 }
 
 export function mailerFrom(env: Env): Mailer | undefined {
@@ -37,4 +42,9 @@ export function bearerOk(request: Request, secret?: string): boolean {
   let d = 0;
   for (let i = 0; i < want.length; i++) d |= got.charCodeAt(i) ^ want.charCodeAt(i);
   return d === 0;
+}
+
+/** The accounts context for a request (server/accounts.ts). */
+export function accountsCtx(env: Env, request: Request) {
+  return { db: env.DB!, mailer: mailerFrom(env), origin: originFor(env, request), admins: parseAdmins(env.ADMIN_EMAILS) };
 }

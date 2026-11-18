@@ -3,7 +3,7 @@ import { APP_NAME, DISCLAIMER, PRIVACY, TERMS, TERMS_VERSION, type Section } fro
 import { group, h } from '../ui/dom';
 import type { View } from '../app';
 
-const date = new Date(`${TERMS_VERSION}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const date = new Date(`${TERMS_VERSION.slice(0, 10)}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
 function sections(list: Section[]): HTMLElement[] {
   return list.map((s) =>

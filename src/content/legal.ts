@@ -6,8 +6,8 @@
  */
 
 export const APP_NAME = 'Puzzle Trail';
-/** The date the current terms and privacy policy took effect (YYYY-MM-DD). */
-export const TERMS_VERSION = '2026-11-18';
+/** The date the current terms and privacy policy took effect (YYYY-MM-DD, plus .N for a second change that day). */
+export const TERMS_VERSION = '2026-11-18.2';
 /** Access lasts this many days after accepting; then the terms are shown again and must be accepted again. */
 export const ACCEPT_DAYS = 30;
 
@@ -66,6 +66,16 @@ export const PRIVACY: Section[] = [
     ]
   },
   {
+    title: 'Accounts (adults only)',
+    list: true,
+    body: [
+      'Your email address, which family you belong to and your role (owner, co-parent or viewer), who invited you, when you joined, ' +
+        'when you last used the app, and when you accepted these terms.',
+      'People in the same family see each other’s email addresses and roles. The person who invited a new family sees that family’s email address to approve it.',
+      'A sign-in cookie keeps you signed in on a device for 30 days from your last visit. Signing out removes it.'
+    ]
+  },
+  {
     title: 'What is sent to us, and only when the parent turns it on',
     list: true,
     body: [
@@ -108,7 +118,7 @@ export const PRIVACY: Section[] = [
     body: [
       'Turning off the parent dashboard (Settings → Parent dashboard) deletes the family’s synced results from our database.',
       'Turning off email or reminders stops them, and every email has a one-click unsubscribe link.',
-      'To ask what we hold, or for deletion of anything else (such as feedback), use the Feedback button or reply to any email from us.'
+      'To ask what we hold, to close an account, or for deletion of anything else (such as feedback), use the Feedback button or reply to any email from us.'
     ]
   },
   {
@@ -130,7 +140,9 @@ export const TERMS: Section[] = [
     title: 'Invitation only',
     body: [
       `${APP_NAME} is a private, invite-only service. Only an adult (18 or older) who was invited may open it, ` +
-        'and only to use it with their own family. Invitations are personal and may not be shared, sold or posted publicly.'
+        'and only to use it with their own family. Invitations are personal and may not be shared, sold or posted publicly.',
+      'A new family joins only when the person who invited them approves, or the owner of the app does. A co-parent or a viewer is invited by a parent of that family; ' +
+        'a viewer can only see progress. Whoever invites someone is asked to invite only people they know.'
     ]
   },
   {

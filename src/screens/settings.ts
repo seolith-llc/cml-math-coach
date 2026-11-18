@@ -1,3 +1,4 @@
+import { account } from '../sync/account';
 import { daysLeft } from '../content/legal';
 import { load, reset, save, type Highlight, type Look } from '../core/storage';
 import { PREMIUM_VOICES, listVoices, speak, voiceOptions, voiceQuality, voicesReady } from '../voice/speech';
@@ -83,6 +84,7 @@ export function settingsScreen(focus?: string): View {
       reminderGroup(),
       parentGroup(),
       list([
+        account().signedIn ? { label: 'People', href: '#/people' } : { label: 'Sign in', href: '#/signin' },
         { label: 'About', href: '#/about' },
         { label: 'Terms', value: `${daysLeft(state.settings.terms)} days`, href: '#/terms' },
         { label: 'Privacy', href: '#/privacy' },

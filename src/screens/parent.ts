@@ -1,3 +1,4 @@
+import { call } from '../sync/account';
 import { lastRounds, outcomeLabel, recentStickers, summarize, topicTitle, type DashboardData, type RoundView, type TopicRow } from '../core/insights';
 import { answerReview } from '../ui/roundEnd';
 import { stickerSvg } from '../content/stickers';
@@ -173,7 +174,7 @@ const swapPlayer = (p: Player | undefined) => {
   activePlayer = p;
 };
 
-function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
+function render(root: HTMLElement, data: Data, pinned?: { familyId: string; pin: string }) {
   swapPlayer(undefined); // a refresh replaces the page; stop any explanation that was playing
   const s = summarize(data);
   const name = data.child.name || 'Your child';
@@ -207,11 +208,11 @@ function render(root: HTMLElement, familyId: string, pin: string, data: Data) {
               p ? h('dt', {}, 'Answer') : null, p ? h('dd', { class: 'right' }, formatAnswer(p.answer)) : null)); // the right answer: highlighted in Neon
         }))
       : null,
-    emailGroup(familyId, pin, data.email ?? null),
+    pinned ? emailGroup(pinned.familyId, pinned.pin, data.email ?? null) : null,
     list([
       { label: 'Last practiced', value: ago(s.lastPracticed) },
-      { label: 'Export CSV', onclick: () => download(`math-coach-${new Date().toISOString().slice(0, 10)}.csv`, csv(data)) },
-      { label: 'Lock', onclick: () => { session.set(familyId, null); location.reload(); } }
+      { label: 'Export CSV', onclick: () => download(`puzzle-trail-${new Date().toISOString().slice(0, 10)}.csv`, csv(data)) },
+      pinned ? { label: 'Lock', onclick: () => { session.set(pinned.familyId, null); location.reload(); } } : null
     ]));
 }
 
@@ -222,7 +223,7 @@ export function parentScreen(familyId: string): View {
     try {
       const data = (await post({ familyId, pin })) as unknown as Data;
       session.set(familyId, pin);
-      render(root, familyId, pin, data);
+      render(root, data, { familyId, pin });
     } catch (e) {
       session.set(familyId, null);
       gate((e as Error).message);
@@ -245,4 +246,20 @@ export function parentScreen(familyId: string): View {
   const onFocus = () => document.visibilityState === 'visible' && session.get(familyId) && void open(session.get(familyId));
   document.addEventListener('visibilitychange', onFocus);
   return { title: 'Dashboard', el: root, destroy: () => { document.removeEventListener('visibilitychange', onFocus); swapPlayer(undefined); } };
+}
+
+/** #/family/<household>: the same dashboard for a signed-in member (owner, co-parent or viewer), no PIN; no email settings. */
+export function familyScreen(household = ''): View {
+  const root = h('div', { class: 'stack' });
+  const open = async () => {
+    try {
+      render(root, (await call<Data>('dashboard', { household })) as Data);
+    } catch (e) {
+      fill(root, h('p', { class: 'feedback bad', role: 'alert' }, (e as Error).message));
+    }
+  };
+  void open();
+  const onFocus = () => document.visibilityState === 'visible' && void open();
+  document.addEventListener('visibilitychange', onFocus);
+  return { title: 'Progress', el: root, destroy: () => { document.removeEventListener('visibilitychange', onFocus); swapPlayer(undefined); } };
 }

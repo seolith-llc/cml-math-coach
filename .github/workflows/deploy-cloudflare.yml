@@ -75,6 +75,9 @@ jobs:
           MAIL_FROM: ${{ vars.MAIL_FROM || 'Puzzle Trail <coach@seolith.com>' }}
           MAIL_REPLY_TO: ${{ vars.MAIL_REPLY_TO }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          # Accounts (server/accounts.ts): super admin addresses (secret), and "1" when the app's own sign-in is required (phase 3).
+          ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
+          AUTH_REQUIRED: ${{ vars.AUTH_REQUIRED || '0' }}
         run: |
           if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
             echo "::warning::AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY not set - weekly emails stay off."
@@ -91,6 +94,9 @@ jobs:
           put MAIL_FROM "$MAIL_FROM"
           put MAIL_REPLY_TO "$MAIL_REPLY_TO"
           put CRON_SECRET "$CRON_SECRET"
+          put ADMIN_EMAILS "$ADMIN_EMAILS"
+          put AUTH_REQUIRED "$AUTH_REQUIRED"
+          [ -n "$ADMIN_EMAILS" ] || echo "::warning::ADMIN_EMAILS is not set - nobody can approve families or invite the first ones yet."
 
       - name: Deploy
         id: deploy
@@ -118,6 +124,9 @@ jobs:
             -d '{"familyId":"smoke-test-not-a-real-family-id","pin":"0000"}')
           echo "parent API: HTTP $code $(cat /tmp/parent.json)"
           if [ "$code" = "401" ]; then echo "✔ Parent dashboard storage (D1) is bound"; else echo "::warning::Parent dashboard API returned $code"; fi
+          # Accounts: nobody signed in → {"signedIn":false,...} (D1 tables from 0007 exist).
+          me=$(curl -s -X POST "$URL/api/auth" "${access[@]}" -H 'content-type: application/json' -H 'sec-fetch-site: same-origin' -d '{"action":"me"}')
+          case "$me" in *'"signedIn":false'*) echo "✔ Accounts API answers ($me)" ;; *) echo "::warning::Accounts API returned: $me" ;; esac
           # Premium voice: a short phrase (edge-cached after the first run) must return audio.
           tts=$(curl -s -o /tmp/tts.bin -w '%{http_code} %{content_type}' "$URL/api/tts?v=luna&t=Ready" "${access[@]}" -H 'sec-fetch-site: same-origin')
           echo "tts API: $tts, $(wc -c < /tmp/tts.bin) bytes"

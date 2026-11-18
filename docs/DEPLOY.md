@@ -108,6 +108,18 @@ Every weekly email has `List-Unsubscribe` and `List-Unsubscribe-Post` (one-click
 - Encryption (RFC 8291) and VAPID (RFC 8292) are in `server/push.ts`, tested against the independent `http_ece` decoder.
 - Check delivery with Actions → **Status** (subscriptions, last reminder, nudge state, email log).
 
+## Accounts: invite-only sign-in (step078)
+
+The app has its own sign-in for adults (`server/accounts.ts`, D1 tables from `migrations/0007_accounts.sql`): a one-time email link (SES), an HttpOnly session cookie (30 days from last use), invites with approval, and the terms accepted per person every 30 days. Plan: `docs/REDESIGN.md` §3.
+
+| Setting | Where | What |
+|---|---|---|
+| `ADMIN_EMAILS` | GitHub **secret** | Super admin addresses, comma-separated. They sign in without an invite, invite the first families (approved at once), decide approvals after 72 hours, and suspend people (`#/admin`). |
+| `AUTH_REQUIRED` | GitHub **variable** | `1` asks everyone to sign in before anything opens. Leave it unset (`0`) until the cutover (phase 3), while Cloudflare Access still guards the site. |
+
+The deploy copies both into the Pages project. The hourly job also escalates approvals that are 72 hours old.
+How people join: Settings → **People** → *Invite a co-parent* / *Invite a viewer* (that family, at once) or *Invite another family* (a new family: the inviter approves by email; 3 to start). Links are single-use and last 14 days.
+
 ## Private access (Cloudflare Access)
 
 The app is private: it is not indexed (robots.txt, `X-Robots-Tag: noindex`), crawlers and AI agents are refused

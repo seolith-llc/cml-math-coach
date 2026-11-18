@@ -17,9 +17,10 @@ src/
   app.ts            route table (#/<route>/<param>) → one screen per file
   screens/          account (sign-in, invite, waiting, people, admin), legal (about, terms, privacy, accept), home, world (game-look Home: map + islands), buddy (picker), stickers (sticker book), practice, review, test, learn (+ topic, strategies), thinking, round (reopen the last round), progress, settings (+ privacy), parent
   ui/               building blocks: dom (h, list, group, segmented, meter, fill), icons, problemCard, answerCard, placementBoard, choicePicker (tap-to-answer pictures/words), roundEnd (end-of-round summary, explanations, retry missed), clock, charts, session, player (animated explanations), feedbackSheet (the Feedback button), fx (game-look feedback), buddy (game-look buddy: poses, bubble, walking the round's stones), voiceControls (Pause/Mute on questions)
-  core/             pure logic, no DOM: gate (sign-in / waiting / terms before any screen), legacy (old ids → new), types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line), tunes (game music composed in code, levels per screen)
+  core/             pure logic, no DOM: thinkFirst (hint/answer gating, tries), bigPuzzle (daily puzzle), gate (sign-in / waiting / terms before any screen), legacy (old ids → new), types, rng, answer (parse/check), coach, mastery, progress (stars, goal, streak, today), session (test modes + clock), storage, insights, scene (SceneBuilder), explain (sceneFor + whiteboard fallback), pacing (explanation timing), feedback (end-of-round score + line), tunes (game music composed in code, levels per screen)
   content/          topics.ts (registry, makeProblem, makeMeet) + generators/*.ts (one Topic per problem family) + scenes/*.ts (kit + one scene function per family)
                     + thinking/ (verbal, quantitative, nonverbal, figures: shared SVG/scene geometry, common: mc() choices)
+                    + generators/thinkers.ts (magic squares, rule machines) + scenes/thinkers.ts
                     + world.ts (game-look islands → Number Puzzles topics), buddies.ts (buddy SVGs, poses, effort-based lines), stickers.ts (round-end sticker rules, 24 designs)
   voice/            speech (TTS: natural via /api/tts, device fallback), recognition (STT + voice commands), activity (talking/listening signal), music (game-look tunes and effects, Web Audio)
   sync/             offline-first upload of the attempt log to /api/sync; account (who is signed in, cached flags only)
@@ -68,7 +69,10 @@ Only Test mode writes a `meets` record. The setup is stored in `settings.test`.
 
 ## Engagement (child-first)
 
-- **Stars:** a topic earns ★/★★/★★★ when the adaptive level goes up (same thresholds as `mastery.levelFor`), and stars never go down. Level-ups are celebrated.
+- **Think first** (`core/thinkFirst.ts`, step083): on a question card, **Hint** opens after one wrong try or 30 seconds, **Answer** only after 2 wrong tries and every hint; a miss names the likely mistake but never hands out a hint by itself. Typed answers get 3 tries, choices 2 (no guessing). Voice "hint" / "explain" / "skip" follow the same rules; time-up in a Test still reveals.
+- **Desirable difficulty:** `mastery.LEVEL_UP` moves a topic up at 45% and to the hardest level at 70% first-try mastery, aiming at about 70% right on the first try.
+- **Big Puzzle** (`core/bigPuzzle.ts`, `#/big`): one hardest-level puzzle a day per grade, the same for everyone, rotating through `BIG_FAMILIES`; no clock, no try limit (Answer opens after 3 tries and every hint). Results in `state.big` (60 days); a row on Home and the world map shows ★ when solved today.
+- **Stars:** a topic earns ★/★★/★★★ when the adaptive level goes up (same thresholds as `mastery.levelFor`; ★★★ needs 85% over 8 tries), and stars never go down. Level-ups are celebrated.
 - **Daily goal** (5/10/15/20, default 10) and the **Today** card on Home. When the goal is met, "Done for today" is the main action: no endless play.
 - **Streak:** local days; one missed day per week is forgiven. No loss-framed copy anywhere.
 - **Reminders go to the parent first:** inactivity nudge emails (3 days, then 7, max 2 per break, 5 pm Chicago, never Sunday) with their own switch and one-click "turn off reminders".

@@ -61,10 +61,10 @@ export class Coach {
         heard: understood.a
       };
     }
-    const hint = diag ? undefined : this.nextHint();
+    // Think first (core/thinkFirst.ts): a miss names the likely mistake, but a hint is the child's choice, not automatic.
     return {
       verdict: 'wrong',
-      message: diag ? `${diag} Try again!` : `${this.rng.pick(RETRY)}${hint ? ' Hint: ' + hint : ''}`,
+      message: diag ? `${diag} Try again!` : this.rng.pick(RETRY),
       reveal: false,
       heard: understood.a
     };

@@ -16,9 +16,10 @@ export interface StarStat {
 
 /** Thresholds match mastery.levelFor: ★ = moved to Climber level, ★★ = Challenge, ★★★ = mastered. */
 export const STAR_RULES = [
-  { mastery: 0.5, attempts: 2 },
-  { mastery: 0.8, attempts: 4 },
-  { mastery: 0.9, attempts: 8 }
+  { mastery: 0.45, attempts: 2 },
+  { mastery: 0.7, attempts: 4 },
+  // ★★★ takes a long run of first-try wins, mostly at the hardest level (reached at 0.7)
+  { mastery: 0.85, attempts: 8 }
 ] as const;
 
 export const LEVEL_NAMES = ['Warm-up', 'Climber', 'Challenge', 'Mastered'] as const;

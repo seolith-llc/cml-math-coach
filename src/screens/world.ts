@@ -1,3 +1,4 @@
+import { localDay } from '../core/progress';
 import { dayStreak, dueReviews, lastRound, load } from '../core/storage';
 import { today } from '../core/progress';
 import { summary } from '../core/session';
@@ -76,6 +77,7 @@ export function worldScreen(): View {
         { label: 'Sticker book', value: state.stickers?.length || undefined, href: '#/stickers' },
         lastRow ? { label: 'Last round', value: lastRow.score, href: lastRow.href } : null,
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
+        { label: 'Big Puzzle', value: state.big?.[`${localDay(new Date())}:${grade}`]?.solved ? '★' : undefined, href: '#/big' },
         { label: 'Thinking Puzzles', value: thinkingStars ? `${thinkingStars} ★` : undefined, href: '#/thinking' },
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', href: '#/learn' },

@@ -578,3 +578,5 @@ html[data-look="game"] .bar:has(.bar-music:not([hidden])) { grid-template-column
 .accept-row input { width: 24px; height: 24px; flex: none; margin: 0; accent-color: var(--accent); }
 
 .row-input.code { font-size: 24px; letter-spacing: 6px; font-variant-numeric: tabular-nums; }
+/* Think first (core/thinkFirst.ts): Hint and Answer stay dimmed until they open. */
+.tools .btn.plain:disabled { opacity: .38; cursor: default; }

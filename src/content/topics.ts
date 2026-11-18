@@ -9,6 +9,7 @@ import * as counting from './generators/counting';
 import * as puzzles from './generators/puzzles';
 import * as placement from './generators/placement';
 import * as family from './generators/family';
+import * as thinkers from './generators/thinkers';
 import * as verbal from './thinking/verbal';
 import * as quant from './thinking/quantitative';
 import * as nonverbal from './thinking/nonverbal';
@@ -54,6 +55,8 @@ export const TOPICS: Topic[] = [
   puzzles.balance,
   placement.palindromes,
   placement.digitPlacement,
+  thinkers.magicSquare,
+  thinkers.ruleMachine,
   // reasoning (track: 'thinking'), by group: words, numbers, shapes
   verbal.verbalAnalogies,
   verbal.sentenceCompletion,

@@ -1,4 +1,5 @@
 import type { Problem } from '../core/types';
+import { THINK_SECONDS, helpState, maxTriesFor } from '../core/thinkFirst';
 import { Coach } from '../core/coach';
 import { Rng, randomSeed } from '../core/rng';
 import { answerPlaceholder, formatAnswer, parseChoice, parseDigits } from '../core/answer';
@@ -27,16 +28,18 @@ export interface CardOptions {
   problem: Problem;
   onDone: (r: CardResult) => void;
   onNext: () => void;
+  /** The daily Big Puzzle: no try limit (core/thinkFirst.ts). */
+  big?: boolean;
 }
 
 /**
  * One problem: question, answer field, check. Voice (read aloud, spoken answers and commands),
  * hints, mistake coaching and the step-by-step solution all live here.
  */
-export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTMLElement; destroy: () => void; expire: () => void } {
+export function problemCard({ problem, onDone, onNext, big = false }: CardOptions): { el: HTMLElement; destroy: () => void; expire: () => void } {
   const state = load();
   const settings = state.settings;
-  const coach = new Coach(problem, new Rng(randomSeed()));
+  const coach = new Coach(problem, new Rng(randomSeed()), maxTriesFor(problem.answer, big));
   const startedAt = Date.now();
   let finished = false;
   let destroyed = false;
@@ -64,8 +67,17 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
   const scene = sceneFor(problem);
   let player: Player | undefined;
   const mic = sttSupported() ? iconButton('mic', 'Answer by voice', () => (listening ? stopListening() : startListening()), 'mic') : null;
-  const hintBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void showHint() }, 'Hint');
-  const answerBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void reveal(false) }, 'Answer');
+  const hintBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void showHint() }, 'Hint') as HTMLButtonElement;
+  const answerBtn = h('button', { class: 'btn plain', type: 'button', onclick: () => void giveUp(false) }, 'Answer') as HTMLButtonElement;
+
+  // Think first (core/thinkFirst.ts): Hint opens after a try or 30 seconds; Answer after 2 tries and every hint.
+  const help = () => helpState({ tries: coach.tries, hintsUsed: coach.hintsUsed, hintCount: problem.hints.length, elapsedMs: Date.now() - startedAt, big });
+  function showHelp() {
+    const st = help();
+    hintBtn.disabled = !st.hintOpen || coach.hintsUsed >= problem.hints.length;
+    answerBtn.disabled = !st.answerOpen;
+  }
+  const hintTimer = setTimeout(showHelp, THINK_SECONDS * 1000 + 50);
 
   // Everything said about this question goes through Pause/Mute, so the child can always quiet it.
   const voice = voiceControls(() => problem.speech ?? problem.text);
@@ -80,7 +92,9 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
 
   async function showHint() {
     if (finished) return;
+    if (!help().hintOpen) return setFeedback('info', 'Have a go first.');
     const hint = coach.nextHint();
+    showHelp();
     if (!hint) return setFeedback('info', 'No more hints.');
     hints.append(h('li', {}, hint));
     // The picture's setup steps illustrate the hints (never the answer). It narrates them itself.
@@ -114,7 +128,14 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     next.focus({ preventScroll: true });
   }
 
-  /** "Answer" button, or the skip/explain voice commands: show the answer and walk through it. */
+  /** Answer button, or the skip/explain voice commands: only once the answer is open (think first). */
+  async function giveUp(skipped: boolean) {
+    if (finished) return;
+    if (!help().answerOpen) return setFeedback('info', coach.tries < (big ? 3 : 2) ? 'Keep thinking. Try again.' : 'Try the hints first.');
+    return reveal(skipped);
+  }
+
+  /** Show the answer and walk through it (after giving up, the last miss, or time up). */
   async function reveal(skipped: boolean) {
     if (finished) return;
     setFeedback('info', formatAnswer(problem.answer));
@@ -160,6 +181,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
       await readSolution();
       return afterReveal();
     }
+    showHelp();
     await say(fb.message);
     if (settings.handsFree && !destroyed) startListening();
   }
@@ -168,8 +190,8 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     switch (cmd) {
       case 'repeat': await sayAlways(problem.speech ?? problem.text); break;
       case 'hint': await showHint(); break;
-      case 'explain': return reveal(false);
-      case 'skip': return reveal(true);
+      case 'explain': return giveUp(false);
+      case 'skip': return giveUp(true);
       case 'next': if (finished) return onNext(); break;
       case 'stop':
         settings.handsFree = false;
@@ -246,6 +268,8 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
       hintBtn,
       answerBtn));
 
+  showHelp();
+
   queueMicrotask(async () => {
     if (settings.speak || settings.handsFree) await sayAlways(problem.speech ?? problem.text);
     if (settings.handsFree && !destroyed) startListening();
@@ -258,6 +282,7 @@ export function problemCard({ problem, onDone, onNext }: CardOptions): { el: HTM
     expire: () => void reveal(false),
     destroy: () => {
       destroyed = true;
+      clearTimeout(hintTimer);
       player?.destroy();
       stopSpeaking();
       stopListening();

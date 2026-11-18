@@ -6,12 +6,18 @@ export function statFor(state: AppState, grade: Grade, topicId: string) {
   return state.stats[String(grade)]?.[topicId];
 }
 
+/**
+ * Desirable difficulty (docs/REDESIGN.md §4, step083): move up early, so a child gets about 70% right on the first try,
+ * not 90%. Mastery is the weighted first-try rate (storage.record). Stars use the same thresholds (progress.STAR_RULES).
+ */
+export const LEVEL_UP = { two: { mastery: 0.45, attempts: 2 }, three: { mastery: 0.7, attempts: 4 } };
+
 /** Pick a level that keeps the learner in the "just hard enough" zone. */
 export function levelFor(state: AppState, grade: Grade, topicId: string): Level {
   const s = statFor(state, grade, topicId);
   if (!s || s.attempts < 2) return 1;
-  if (s.mastery >= 0.8 && s.attempts >= 4) return 3;
-  if (s.mastery >= 0.5) return 2;
+  if (s.mastery >= LEVEL_UP.three.mastery && s.attempts >= LEVEL_UP.three.attempts) return 3;
+  if (s.mastery >= LEVEL_UP.two.mastery) return 2;
   return 1;
 }
 

@@ -5,6 +5,7 @@ import { normalizeTest, type TestConfig } from './session';
 import { GOALS, awardStars, localDay, streak } from './progress';
 import { renameJson } from './legacy';
 import type { Acceptance } from '../content/legal';
+import type { BigResult } from './bigPuzzle';
 
 export interface TopicStat {
   attempts: number;
@@ -177,6 +178,8 @@ export interface AppState {
   stickers?: Sticker[];
   /** One line per finished round, in either look (docs/GAME-MODE.md phase 5): compares Game with Classic. */
   roundLog?: RoundLogEntry[];
+  /** The daily Big Puzzle per `${day}:${grade}` (core/bigPuzzle.ts), last 60 days. */
+  big?: Record<string, BigResult>;
 }
 
 /** A finished round, for the Game vs Classic comparison. Numbers only: no names, answers or free text. */
@@ -390,4 +393,12 @@ export function importState(raw: string): void {
     /* blocked */
   }
   memory = null;
+}
+
+/** Records today's Big Puzzle (keeps the last 60 days). */
+export function saveBig(state: AppState, day: string, grade: Grade, r: BigResult): void {
+  state.big = { ...(state.big ?? {}), [`${day}:${grade}`]: r };
+  const keys = Object.keys(state.big).sort();
+  for (const k of keys.slice(0, Math.max(0, keys.length - 60))) delete state.big[k];
+  save(state);
 }

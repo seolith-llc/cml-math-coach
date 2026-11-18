@@ -32,6 +32,10 @@ Grade 2 uses pictures, questions read aloud and 3 choices. Grade 3 uses words an
 
 Thinking Puzzles answers count toward the daily goal, the streak and the weekly totals, and the weekly email has its own **Thinking Puzzles** section (questions, right first try, the last round's score and each question type) (missed Thinking Puzzles items show up with their type, e.g. *Paper folding*). Tests and the per-topic number lists don't include them.
 
+## Think first
+
+Puzzle Trail is meant to be hard in a good way. **Hint** opens after a real try (one wrong answer, or 30 seconds), and **Answer** only after two tries and every hint. Each day's **Big Puzzle** (Home) is one very hard puzzle with no clock: a good one to work on together. Ask "How do you know?" more than "Is that right?".
+
 ## Goals, stars and reminders
 
 - **Daily goal:** Settings → Daily goal (5, 10, 15 or 20 problems). Home shows today's progress. When it reaches *Done for today*, that's a good place to stop.

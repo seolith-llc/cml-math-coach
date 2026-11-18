@@ -23,6 +23,7 @@ import { account, acceptTermsOnAccount, refreshAccount } from './sync/account';
 import { adminScreen, inviteScreen, peopleScreen, signinScreen, waitingScreen } from './screens/account';
 import { familyScreen, parentScreen } from './screens/parent';
 import { handoffScreen, movedScreen } from './screens/move';
+import { bigScreen } from './screens/big';
 import { moveFromOldHost, movedAlready, onOldHost } from './sync/move';
 import { thinkingScreen } from './screens/thinking';
 import { roundScreen } from './screens/round';
@@ -61,6 +62,7 @@ const routes: Record<string, (param?: string) => View> = {
   admin: adminScreen,
   family: familyScreen,
   handoff: handoffScreen,
+  big: bigScreen,
   parent: (p) => (p ? parentScreen(p) : settingsScreen())
 };
 

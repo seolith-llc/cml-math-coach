@@ -1,3 +1,4 @@
+import { localDay } from '../core/progress';
 import { BUDDY_KINDS, dayStreak, dueReviews, lastRound, load, save, type AppState } from '../core/storage';
 import { buddySvg } from '../content/buddies';
 import { applyLook } from '../ui/dom';
@@ -44,6 +45,7 @@ export function homeScreen(): View {
         t.reviewDue ? { label: 'Review', value: t.reviewDue, href: '#/review' } : null,
         { label: 'Test', value: t.testThisWeek ? '✓' : summary(s.test), href: '#/test' },
         { label: 'Learn', value: stars ? `${stars} ★` : undefined, href: '#/learn' },
+        { label: 'Big Puzzle', value: state.big?.[`${localDay(new Date())}:${grade}`]?.solved ? '★' : undefined, href: '#/big' },
         { label: 'Thinking Puzzles', value: thinkingStars ? `${thinkingStars} ★` : undefined, href: '#/thinking' },
         { label: 'Progress', href: '#/progress' },
         // PIN-protected, so it's safe on the child's Home; set up in Settings when it isn't on yet.

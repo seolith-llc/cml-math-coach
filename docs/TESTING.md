@@ -166,6 +166,15 @@ Mark each one **Pass / Fail / Blocked** (see section 6 for how to report).
 | G12 | World map → **Sticker book**; parent dashboard → **Stickers**. | Only collected stickers, newest first, each with why and the date (no empty slots or "x of 24"). The parent sees the latest ones with the same reasons. |
 | G13 | Tester round (2 weeks, with a child aged 7–9): turn on the parent dashboard; week 1 Game look with music; week 2 Game look with Settings → Music → Off. Ask the child what they liked and didn't. | Rounds keep syncing. The owner sees Classic vs Game and music on vs off in Actions → Status (anonymous). Send the child's comments by reply or the Feedback button. |
 
+### Think first and the Big Puzzle
+
+| # | Do this | Expect |
+|---|---|---|
+| K1 | Open any typed question. | **Hint** and **Answer** are dimmed. Hint opens after 30 seconds or one wrong answer. |
+| K2 | Answer wrong twice, using every hint. | A miss names the likely mistake but gives no hint by itself. **Answer** opens only after 2 misses and all hints; a third miss shows the answer. Picture choices allow 2 tries. |
+| K3 | Learn → **Magic squares** and **Rule machines**: practise at each level. | Harder levels need two steps (a hidden box first, or working backwards). |
+| K4 | Home → **Big Puzzle**. | One hard puzzle for today, no clock, no try limit; after solving, Home shows ★ next to it until tomorrow. |
+
 ### Accounts and invites (once sign-in is switched on)
 
 | # | Do this | Expect |

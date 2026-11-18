@@ -87,6 +87,13 @@ if (tables.has('users')) {
   console.log(`  Invites, last 7 days: ${await n(`SELECT COUNT(*) AS n FROM invites WHERE created_at > ${now - 7 * day}`)} made, ${await n(`SELECT COUNT(*) AS n FROM invites WHERE used_at > ${now - 7 * day}`)} used · open now: ${await n(`SELECT COUNT(*) AS n FROM invites WHERE used_by IS NULL AND revoked = 0 AND expires_at > ${now}`)}`);
   console.log(`  Approvals waiting: ${await n('SELECT COUNT(*) AS n FROM approvals WHERE decided_at IS NULL')} (${await n('SELECT COUNT(*) AS n FROM approvals WHERE decided_at IS NULL AND escalated_at IS NOT NULL')} with the super admin)`);
   console.log(`  Signed in, last 7 days: ${await n(`SELECT COUNT(*) AS n FROM users WHERE last_seen > ${now - 7 * day}`)} people · sign-in emails, last 24 h: ${await n(`SELECT COUNT(*) AS n FROM email_log WHERE kind = 'signin' AND ts > ${now - day}`)}`);
+  // Support: who joined, who signed in, codes waiting (addresses masked).
+  const people = await q(`SELECT u.email, u.status, u.is_admin, u.created_at, u.last_seen, c.expires_at AS code_until, c.tries AS code_tries,
+      (SELECT COUNT(*) FROM sessions s WHERE s.user = u.id AND s.expires_at > ${now}) AS sessions,
+      (SELECT MAX(created_at) FROM auth_tokens t WHERE t.user = u.id AND t.purpose = 'signin') AS last_email,
+      (SELECT MAX(used_at) FROM auth_tokens t WHERE t.user = u.id AND t.purpose = 'signin') AS link_used
+    FROM users u LEFT JOIN signin_codes c ON c.user = u.id ORDER BY u.created_at`);
+  for (const r of people) console.log(`  · ${mask(r.email)}${r.is_admin ? ' (admin)' : ''}: ${r.status} · joined ${when(r.created_at)} · last sign-in email ${when(r.last_email)} · link used ${when(r.link_used)} · code ${r.code_until ? (r.code_until > now ? `waiting (${r.code_tries} wrong tries)` : 'expired') : '–'} · sessions ${r.sessions} · last seen ${when(r.last_seen)}`);
   const cap = (await q("SELECT v FROM kv WHERE k = 'capacity'"))[0];
   if (cap) {
     const c = JSON.parse(cap.v);

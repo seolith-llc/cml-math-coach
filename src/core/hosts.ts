@@ -7,7 +7,7 @@ export const NEW_ORIGIN = `https://${NEW_HOST}`;
  * Whether the old address sends devices to the new one. Turned on only once NEW_HOST is attached and serving
  * (Actions → Deploy prints "✔ <host> is active on Pages").
  */
-export const MOVE_ON = false;
+export const MOVE_ON = true;
 
 /** Which saved progress to keep when a device arrives with progress from the old address: the one with more answers. */
 export function pickState(here: string | null, incoming: string): string {

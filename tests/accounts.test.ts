@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeDb } from './parent-server.test';
 import {
   AUTH_LIMITS, acceptInvite, acceptTerms, adminOverview, completeSignIn, createInvite, decide, decideByLink, escalate, familyKeyFor,
-  inviteInfo, linkFamily, me, parseAdmins, removeMember, requestSignIn, requireMember, revokeInvite, sessionUser, signOut, suspend,
+  inviteInfo, linkFamily, me, parseAdmins, SUPER_ADMINS, removeMember, requestSignIn, requireMember, revokeInvite, sessionUser, signOut, suspend,
   type AccountsCtx, type User
 } from '../server/accounts';
 import { TERMS_VERSION } from '../src/content/legal';
@@ -86,6 +86,28 @@ describe('accounts: sign-in by email link (step078)', () => {
     const req = await s.signIn(ADMIN);
     await signOut(s.ctx(), req);
     expect(await sessionUser(s.ctx(), req)).toBeNull();
+  });
+});
+
+describe('accounts: built-in super admins (step079)', () => {
+  it('are always admins, alongside ADMIN_EMAILS', () => {
+    expect(parseAdmins(undefined)).toEqual([...SUPER_ADMINS]);
+    expect(parseAdmins('extra@example.com')).toEqual([...SUPER_ADMINS, 'extra@example.com']);
+    expect(SUPER_ADMINS).toHaveLength(2);
+  });
+  it('can sign in with no ADMIN_EMAILS set', async () => {
+    const s = setup();
+    const ctx = { ...s.ctx(), admins: parseAdmins('') };
+    await requestSignIn(ctx, { email: SUPER_ADMINS[0] });
+    const u = (await s.db.prepare('SELECT * FROM users WHERE email = ?').bind(SUPER_ADMINS[0]).first<User>())!;
+    expect(u).toMatchObject({ status: 'active', is_admin: 1 });
+  });
+  it('an existing ordinary account becomes super admin on the next sign-in request', async () => {
+    const s = setup();
+    await s.db.prepare("INSERT INTO users (id, email, status, is_admin, invites_left, created_at) VALUES ('x1', ?, 'active', 0, 3, 1)").bind(SUPER_ADMINS[1]).run();
+    await requestSignIn(s.ctx(), { email: SUPER_ADMINS[1] });
+    const u = (await s.db.prepare('SELECT * FROM users WHERE id = ?').bind('x1').first<User>())!;
+    expect(u.is_admin).toBe(1);
   });
 });
 

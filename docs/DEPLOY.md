@@ -114,7 +114,7 @@ The app has its own sign-in for adults (`server/accounts.ts`, D1 tables from `mi
 
 | Setting | Where | What |
 |---|---|---|
-| `ADMIN_EMAILS` | GitHub **secret** | Super admin addresses, comma-separated. They sign in without an invite, invite the first families (approved at once), decide approvals after 72 hours, and suspend people (`#/admin`). |
+| `ADMIN_EMAILS` | GitHub **secret** (optional) | Extra super admins, comma-separated, on top of the two owners built into `server/accounts.ts` (`SUPER_ADMINS`). Super admins sign in without an invite, invite the first families (approved at once), decide approvals after 72 hours, and suspend people (`#/admin`). |
 | `AUTH_REQUIRED` | GitHub **variable** | `1` asks everyone to sign in before anything opens. Leave it unset (`0`) until the cutover (phase 3), while Cloudflare Access still guards the site. |
 
 The deploy copies both into the Pages project. The hourly job also escalates approvals that are 72 hours old.

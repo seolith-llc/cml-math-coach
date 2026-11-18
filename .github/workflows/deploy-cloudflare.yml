@@ -75,7 +75,7 @@ jobs:
           MAIL_FROM: ${{ vars.MAIL_FROM || 'Puzzle Trail <coach@seolith.com>' }}
           MAIL_REPLY_TO: ${{ vars.MAIL_REPLY_TO }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          # Accounts (server/accounts.ts): super admin addresses (secret), and "1" when the app's own sign-in is required (phase 3).
+          # Accounts (server/accounts.ts): extra super admins beyond the built-in SUPER_ADMINS (secret, optional), and "1" when the app's own sign-in is required (phase 3).
           ADMIN_EMAILS: ${{ secrets.ADMIN_EMAILS }}
           AUTH_REQUIRED: ${{ vars.AUTH_REQUIRED || '0' }}
         run: |
@@ -96,7 +96,6 @@ jobs:
           put CRON_SECRET "$CRON_SECRET"
           put ADMIN_EMAILS "$ADMIN_EMAILS"
           put AUTH_REQUIRED "$AUTH_REQUIRED"
-          [ -n "$ADMIN_EMAILS" ] || echo "::warning::ADMIN_EMAILS is not set - nobody can approve families or invite the first ones yet."
 
       - name: Deploy
         id: deploy

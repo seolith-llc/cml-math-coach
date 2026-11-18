@@ -60,8 +60,13 @@ export interface AccountsCtx {
 const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[a-z]{2,}$/i;
 const now = (ctx: AccountsCtx) => ctx.now ?? Date.now();
 
+/** The app owner's super admins: always admins, whatever ADMIN_EMAILS says (step079). */
+export const SUPER_ADMINS: readonly string[] = ['seolith.com@gmail.com', 'teamdev01@seolith.com'];
+
+/** Super admins: the built-in owners plus any extra addresses in ADMIN_EMAILS. */
 export function parseAdmins(raw: string | undefined): string[] {
-  return (raw ?? '').split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter((e) => EMAIL_RE.test(e));
+  const extra = (raw ?? '').split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter((e) => EMAIL_RE.test(e));
+  return [...new Set([...SUPER_ADMINS, ...extra])];
 }
 
 function randomToken(bytes = 24): string {
@@ -211,6 +216,11 @@ export async function requestSignIn(ctx: AccountsCtx, body: Record<string, unkno
   const email = cleanEmail(body.email);
   let u = await userByEmail(ctx.db, email);
   if (!u && ctx.admins.includes(email)) u = await createUser(ctx, email, 'active', null);
+  else if (u && ctx.admins.includes(email) && (!u.is_admin || u.status !== 'active')) {
+    // a super admin who already had an ordinary account (e.g. joined by invite) becomes super admin
+    await ctx.db.prepare("UPDATE users SET is_admin = 1, status = 'active' WHERE id = ?").bind(u.id).run();
+    u = (await userById(ctx.db, u.id))!;
+  }
   if (u && (u.status === 'active' || u.status === 'pending')) await sendSignIn(ctx, u);
   return { ok: true };
 }
